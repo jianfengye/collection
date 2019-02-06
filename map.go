@@ -4,12 +4,18 @@ import "reflect"
 
 type IMap interface {
 
+	// 设置一个Map的key和value，如果key存在，则覆盖
 	Set(key interface{}, value interface{})
+	// 删除一个Map的key
 	Remove(key interface{})
+	// 根据key获取一个Map的value
 	Get(key interface{}) *Mix
+	// 获取一个Map的长度
 	Len() int
 
+	// 获取Map的所有key组成的集合
 	Keys() IArray
+	// 获取Map的所有value组成的集合
 	Values() IArray
 }
 

@@ -14,6 +14,7 @@ func NewMix(real interface{}) *Mix {
 	}
 }
 
+// Equal 判断两个Mix是否相等
 func (m *Mix) Equal(n *Mix) bool {
 	if m.typ == n.typ {
 		switch m.typ.Kind() {
