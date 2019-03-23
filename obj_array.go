@@ -5,31 +5,28 @@ import (
 )
 
 type ObjArray struct{
-	IntArray
-	objs reflect.Value
-	typ reflect.Type
+	VArray
+	objs reflect.Value // 数组对象，是一个slice
+	typ reflect.Type // 数组对象每个元素类型
+	ptr reflect.Value // 指向数组对象的指针
 }
 
-func NewObjArray(objs reflect.Value) *ObjArray {
-	var typ reflect.Type
-	if objs.Len() <= 0 {
-		panic("ObjArray.NewObjArray: objs can not be empty")
-	} else {
-		typ = objs.Index(0).Type()
-	}
-
+// 根据对象数组创建
+func NewObjArray(objs interface{}) *ObjArray {
+	vals := reflect.ValueOf(objs)
+	typ := reflect.TypeOf(objs).Elem()
 	arr := &ObjArray{
-		objs: objs,
+		objs: vals,
 		typ: typ,
 	}
 	arr.VArray.Parent = arr
 	return arr
 }
 
-func NewObjArrayWithType(objs reflect.Value, typ reflect.Type) *ObjArray {
-
+// 根据Values和单个元素的type创建
+func NewObjArrayWithValType(vals reflect.Value, typ reflect.Type) *ObjArray {
 	arr := &ObjArray{
-		objs: objs,
+		objs: vals,
 		typ: typ,
 	}
 	arr.VArray.Parent = arr
@@ -37,7 +34,7 @@ func NewObjArrayWithType(objs reflect.Value, typ reflect.Type) *ObjArray {
 }
 
 func (arr *ObjArray) Append(obj interface{}) {
-	reflect.Append(arr.objs, reflect.ValueOf(obj))
+	arr.objs = reflect.Append(arr.objs, reflect.ValueOf(obj))
 }
 
 
@@ -88,9 +85,19 @@ func (arr *ObjArray) Index(i int) *Mix {
 }
 
 func (arr *ObjArray) Slice(start, end int) IArray {
-	return NewObjArray(arr.objs.Slice(start, end))
+	return NewObjArrayWithValType(arr.objs.Slice(start, end), arr.typ)
 }
 
 func (arr *ObjArray) Len() int {
 	return arr.objs.Len()
+}
+
+func (arr *ObjArray) NewEmptyIArray() IArray {
+	objs := reflect.MakeSlice(arr.objs.Type(), 0, 0)
+	ret := &ObjArray{
+		objs: objs,
+		typ: arr.typ,
+	}
+	ret.VArray.Parent = ret
+	return ret
 }

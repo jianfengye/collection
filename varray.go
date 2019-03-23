@@ -2,6 +2,9 @@ package collection
 
 
 type IArray interface {
+	// 返回当前空的结构的IArray
+	NewEmptyIArray() IArray
+
 	// 放入一个元素到数组中，对所有Array生效
 	Append(obj interface{})
 
@@ -14,6 +17,11 @@ type IArray interface {
 
 	// 将数组中对象某个key作为map的key，整个对象作为value，作为map返回，如果key有重复会进行覆盖，仅对ObjectArray生效
 	KeyBy(key string) *Map
+
+	// 按照某个方法进行过滤
+	Filter(func(obj interface{}, index int) bool) IArray
+	// 获取满足条件的第一个
+	First(func(obj interface{}, index int) bool) *Mix
 
 	// 数组中最大的元素，仅对基础Array生效
 	Max() *Mix
@@ -37,9 +45,11 @@ type IArray interface {
 	ToInt64() []int64
 	// 转化为golang原生的Int数组，仅对IntArray生效
 	ToInt() []int
+	// 转化为obj数组
+	//ToMix() []*Mix
 }
 
-
+// 这个是一个虚函数，能实现的都实现，不能实现的panic
 type VArray struct {
 	IArray
 	Parent IArray
@@ -105,9 +115,37 @@ func (arr *VArray) Has(obj interface{}) bool {
 	return false
 }
 
-func (arr *VArray) Merge(bArr IArray) {
+func (arr *VArray) Merge(bArr IArray) IArray {
 	l := bArr.Len()
 	for i := 0; i < l; i++{
 		arr.Append(bArr.Index(i).ToInterface())
 	}
+	return arr
+}
+
+func (arr *VArray) NewEmptyIArray() IArray {
+	panic("NewEmptyIArray: not Implement")
+}
+
+func (arr *VArray) Filter(f func(obj interface{}, index int) bool) IArray {
+	ret := arr.Parent.NewEmptyIArray()
+	l := arr.Parent.Len()
+	for i := 0; i < l; i++ {
+		obj := arr.Parent.Index(i).ToInterface()
+		if f(obj, i) == true {
+			ret.Append(obj)
+		}
+	}
+	return ret
+}
+
+func (arr *VArray) First(f func(obj interface{}, index int) bool) *Mix {
+	l := arr.Parent.Len()
+	for i := 0; i < l; i++ {
+		obj := arr.Parent.Index(i).ToInterface()
+		if f(obj, i) == true {
+			return NewMix(obj)
+		}
+	}
+	return nil
 }

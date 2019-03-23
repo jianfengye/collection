@@ -69,3 +69,20 @@ func (arr *Int64Array) Len() int {
 	return len(arr.objs)
 }
 
+func (arr *Int64Array) NewEmptyIArray() IArray {
+	return NewInt64Array([]int64{})
+}
+
+
+func (arr *Int64Array) Unique() IArray {
+	objs := arr.ToInt64()
+	ret := NewInt64Array([]int64{})
+
+	for _, s := range objs {
+		if ret.Search(s) < 0 {
+			ret.Append(s)
+		}
+	}
+
+	return ret
+}

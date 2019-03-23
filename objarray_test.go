@@ -2,7 +2,6 @@ package collection
 
 import (
 	"testing"
-	"reflect"
 )
 
 type Foo struct {
@@ -23,7 +22,7 @@ func TestObjArray(t *testing.T) {
 		C : 2,
 	}
 	foos := []Foo{foo1, foo2}
-	objArr := NewObjArray(reflect.ValueOf(foos))
+	objArr := NewObjArray(foos)
 	as := objArr.Column("A").ToString()
 	if len(as) != 2 {
 		t.Fatal("Column len error")
@@ -54,4 +53,45 @@ func TestObjArray(t *testing.T) {
 	if min != 1 {
 		t.Fatal("get min error")
 	}
+
+	tmp := objArr.NewEmptyIArray()
+	if tmp.Len() != 0 {
+		t.Fatal("New EmptyIArray 错误")
+	}
+
+	objArr.Append(foo1)
+	if objArr.Len() != 3 {
+		t.Fatal("Append 错误")
+	}
+
+	t.Log(objArr.Len())
+	tmp = objArr.Filter(func(obj interface{}, index int) bool {
+		if foo, ok := obj.(Foo); ok == true {
+			if foo.C == 1 {
+				return true
+			}
+		}
+		return false
+	})
+
+	if tmp.Len() != 2 {
+		t.Fatal("Filter 错误")
+	}
+
+	if _, ok := tmp.Index(0).ToInterface().(Foo); !ok {
+		t.Fatal("Filter还原 错误")
+	}
+
+	first := objArr.First(func(obj interface{}, index int) bool {
+		if foo, ok := obj.(Foo); ok == true {
+			if foo.C == 1 {
+				return true
+			}
+		}
+		return false
+	})
+	if first == nil {
+		t.Fatal("First 错误")
+	}
+
 }

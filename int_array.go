@@ -76,3 +76,20 @@ func (arr *IntArray) Slice(start, end int) IArray {
 func (arr *IntArray) Len() int {
 	return len(arr.objs)
 }
+
+func (arr *IntArray) NewEmptyIArray() IArray {
+	return NewIntArray([]int{})
+}
+
+func (arr *IntArray) Unique() IArray {
+	objs := arr.ToInt()
+	ret := NewIntArray([]int{})
+
+	for _, s := range objs {
+		if ret.Search(s) < 0 {
+			ret.Append(s)
+		}
+	}
+
+	return ret
+}

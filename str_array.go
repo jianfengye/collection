@@ -1,8 +1,8 @@
 package collection
 
 import (
-	"strings"
 	"github.com/derekparker/trie"
+	"strings"
 )
 
 type StrArray struct{
@@ -10,10 +10,6 @@ type StrArray struct{
 	objs []string
 	tri *trie.Trie // 使用trie树增加查找效率，但是仅仅用于Has函数
 
-}
-
-func NewStrEmptyArray() *StrArray {
-	return NewStrArray([]string{})
 }
 
 func NewStrArray(objs []string) *StrArray {
@@ -85,4 +81,8 @@ func (arr *StrArray) Has(obj interface{}) bool {
 	ob := arr.mustBeString(obj)
 	_, isExist := arr.tri.Find(ob)
 	return isExist
+}
+
+func (arr *StrArray) NewEmptyIArray() IArray {
+	return NewStrArray([]string{})
 }

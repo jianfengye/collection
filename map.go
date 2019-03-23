@@ -74,7 +74,7 @@ func (m *Map) Remove(key interface{}) {
 	m.mustBeKeyType(key)
 	kParam := NewMix(key)
 
-	for k, _ := range m.objs {
+	for k := range m.objs {
 		if k.Equal(kParam) {
 			delete(m.objs, k)
 		}
@@ -98,7 +98,7 @@ func (m *Map) Keys() IArray {
 		panic("ObjArray.Column: not support kind")
 	}
 
-	for k, _ := range m.objs {
+	for k := range m.objs {
 		objs.Append(k)
 	}
 	return objs
