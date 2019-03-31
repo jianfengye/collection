@@ -2,6 +2,19 @@ package collection
 
 import "reflect"
 
+// IMix是一个混合结构
+type IMix interface {
+	Equal(n IMix) bool // 两个IMix结构是否相同
+	Type() reflect.Type // 获取类型
+
+	ToString() string
+	ToInt64() int64
+	ToInt() int
+	ToFloat64() float64
+	ToFloat32() float32
+	ToInterface() interface{} // 所有函数可用
+}
+
 type Mix struct {
 	real interface{}
 	typ reflect.Type
@@ -14,9 +27,13 @@ func NewMix(real interface{}) *Mix {
 	}
 }
 
+func (m *Mix)Type() reflect.Type {
+	return m.typ
+}
+
 // Equal 判断两个Mix是否相等
-func (m *Mix) Equal(n *Mix) bool {
-	if m.typ == n.typ {
+func (m *Mix) Equal(n IMix) bool {
+	if m.typ == reflect.TypeOf(n) {
 		switch m.typ.Kind() {
 		case reflect.String:
 			return m.ToString() == n.ToString()

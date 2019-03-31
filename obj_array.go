@@ -5,7 +5,7 @@ import (
 )
 
 type ObjArray struct{
-	VArray
+	AbsArray
 	objs reflect.Value // 数组对象，是一个slice
 	typ reflect.Type // 数组对象每个元素类型
 	ptr reflect.Value // 指向数组对象的指针
@@ -19,7 +19,7 @@ func NewObjArray(objs interface{}) *ObjArray {
 		objs: vals,
 		typ: typ,
 	}
-	arr.VArray.Parent = arr
+	arr.AbsArray.Parent = arr
 	return arr
 }
 
@@ -29,7 +29,7 @@ func NewObjArrayWithValType(vals reflect.Value, typ reflect.Type) *ObjArray {
 		objs: vals,
 		typ: typ,
 	}
-	arr.VArray.Parent = arr
+	arr.AbsArray.Parent = arr
 	return arr
 }
 
@@ -98,6 +98,6 @@ func (arr *ObjArray) NewEmptyIArray() IArray {
 		objs: objs,
 		typ: arr.typ,
 	}
-	ret.VArray.Parent = ret
+	ret.AbsArray.Parent = ret
 	return ret
 }

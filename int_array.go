@@ -5,7 +5,7 @@ import (
 )
 
 type IntArray struct{
-	VArray
+	AbsArray
 	objs []int
 }
 
@@ -13,7 +13,7 @@ func NewIntArray(objs []int) *IntArray {
 	arr := &IntArray{
 		objs:objs,
 	}
-	arr.VArray.Parent = arr
+	arr.AbsArray.Parent = arr
 	return arr
 }
 

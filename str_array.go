@@ -6,7 +6,7 @@ import (
 )
 
 type StrArray struct{
-	VArray
+	AbsArray
 	objs []string
 	tri *trie.Trie // 使用trie树增加查找效率，但是仅仅用于Has函数
 
@@ -22,7 +22,7 @@ func NewStrArray(objs []string) *StrArray {
 		tri: tri,
 	}
 
-	arr.VArray.Parent = arr
+	arr.AbsArray.Parent = arr
 	return arr
 }
 func (arr *StrArray) mustBeString(obj interface{}) string {

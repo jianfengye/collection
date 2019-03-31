@@ -13,10 +13,22 @@ type IMap interface {
 	// 获取一个Map的长度
 	Len() int
 
+	// key和value进行对调
+	Flip() (IMap, error)
+	// 判断是否有这个key，或者多个key
+	Has(keys ...interface{}) bool
+
 	// 获取Map的所有key组成的集合
 	Keys() IArray
 	// 获取Map的所有value组成的集合
 	Values() IArray
+
+	Only(keys ...interface{}) IMap
+
+	// 根据Key进行升序排列
+	SortKeys() IMap
+	// 根据key进行降序排列
+	SortKeysDesc() IMap
 }
 
 type Map struct {
