@@ -7,15 +7,15 @@ type IArray interface {
 	下面的方法对所有Array都生效
 	 */
 	// 复制一份当前相同类型的IArray结构，但是数据是空的
-	NewEmptyIArray() IArray
+	NewEmpty() IArray
 	// 判断是否是空数组
 	IsEmpty() bool
 	// 判断是否是空数组
 	IsNotEmpty() bool
 	// 放入一个元素到数组中，对所有Array生效
-	Append(interface{}) error
+	Append(item interface{}) error
 	// 查找数据中是否包含，-1不包含，>=0 返回数组中元素下标，对所有Array生效
-	Search(interface{}) (int, error)
+	Search(item interface{}) int
 	// 过滤数组中重复的元素，仅对基础Array生效
 	Unique() IArray
 	// 按照某个方法进行过滤, 保留符合的
@@ -83,6 +83,7 @@ type IArray interface {
 	Pluck(val string, key string) (IMap, error)
 	// 按照某个字段进行排序
 	SortBy(key string) (IArray, error)
+	// 按照某个字段进行排序,倒序
 	SortByDesc(key string) (IArray, error)
 
 
@@ -135,7 +136,9 @@ type IArray interface {
 	// 转化为golang原生的Int数组，仅对IntArray生效
 	ToInt() ([]int, error)
 	// 转化为obj数组
-	//ToMix() []*Mix
-
-
+	ToMix() []IMix
+	// 转化为float64数组
+	ToFloat64() ([]float64, error)
+	// 转化为float32数组
+	ToFloat32() ([]float32, error)
 }
