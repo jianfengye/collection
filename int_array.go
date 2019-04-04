@@ -1,7 +1,8 @@
 package collection
 
 import (
-	"math"
+	"fmt"
+	"github.com/pkg/errors"
 )
 
 type IntArray struct{
@@ -14,82 +15,47 @@ func NewIntArray(objs []int) *IntArray {
 		objs:objs,
 	}
 	arr.AbsArray.Parent = arr
+	arr.AbsArray.compare = func(i interface{}, i2 interface{}) int {
+		int1 := i.(int)
+		int2 := i2.(int)
+		if int1 > int2 {
+			return 1
+		}
+		if int1 < int2 {
+			return -1
+		}
+		return 0
+	}
 	return arr
 }
 
-func (arr *IntArray) mustBeInt(obj interface{}) int {
+func (arr *IntArray) Append(obj interface{}) error {
 	if i, ok := obj.(int); ok {
-		return i
+		arr.objs = append(arr.objs, i)
 	} else {
-		panic("obj must be int")
+		return errors.New("append: type error")
 	}
+	return nil
 }
 
-func (arr *IntArray) Append(obj interface{}) {
-	param := arr.mustBeInt(obj)
-	arr.objs = append(arr.objs, param)
-}
-
-// Search find string in arr, -1 present not found, >=0 present index
-func (arr *IntArray) Search(obj interface{}) int {
-	param := arr.mustBeInt(obj)
-	for i, t := range arr.objs {
-		if t == param {
-			return i
-		}
-	}
-	return -1
-}
-
-func (arr *IntArray) Max() *Mix {
-	var max int = math.MinInt32
-	for _, obj := range arr.objs {
-		if obj > max {
-			max = obj
-		}
-	}
-	return NewMix(max)
-}
-
-func (arr *IntArray) Min() *Mix {
-	var min int = math.MaxInt32
-	for _, obj := range arr.objs {
-		if obj < min {
-			min = obj
-		}
-	}
-	return NewMix(min)
-}
-
-func (arr *IntArray) ToInt() []int{
-	return arr.objs
-}
-
-func (arr *IntArray) Index(i int) *Mix {
-	return NewMix(arr.objs[i])
-}
-
-func (arr *IntArray) Slice(start, end int) IArray {
-	return NewIntArray(arr.objs[start:end])
-}
-
-func (arr *IntArray) Len() int {
-	return len(arr.objs)
-}
-
-func (arr *IntArray) NewEmptyIArray() IArray {
+func (arr *IntArray) NewEmpty() IArray {
 	return NewIntArray([]int{})
 }
 
-func (arr *IntArray) Unique() IArray {
-	objs := arr.ToInt()
-	ret := NewIntArray([]int{})
 
-	for _, s := range objs {
-		if ret.Search(s) < 0 {
-			ret.Append(s)
-		}
+func (arr *IntArray) Index(i int) IMix {
+	return NewMix(arr.objs[i])
+}
+
+func (arr *IntArray) Count() int {
+	return len(arr.objs)
+}
+
+func (arr *IntArray) DD() {
+	ret := fmt.Sprintf("IntArray(%d):{\n", arr.Count())
+	for k, v := range arr.objs {
+		ret = ret + fmt.Sprintf("\t%d:\t%d\n",k, v)
 	}
-
-	return ret
+	ret = ret + "}\n"
+	fmt.Print(ret)
 }

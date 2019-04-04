@@ -1,6 +1,10 @@
 package collection
 
-import "reflect"
+import (
+	"fmt"
+	"github.com/pkg/errors"
+	"reflect"
+)
 
 // IMix是一个混合结构
 type IMix interface {
@@ -9,10 +13,12 @@ type IMix interface {
 
 	ToString() string
 	ToInt64() int64
-	ToInt() int
+	ToInt() (int, error)
 	ToFloat64() float64
 	ToFloat32() float32
 	ToInterface() interface{} // 所有函数可用
+
+	Format() string // 打印成string
 }
 
 type Mix struct {
@@ -38,7 +44,15 @@ func (m *Mix) Equal(n IMix) bool {
 		case reflect.String:
 			return m.ToString() == n.ToString()
 		case reflect.Int:
-			return m.ToInt() == n.ToInt()
+			int1, err := m.ToInt()
+			if err != nil {
+				return false
+			}
+			int2, err := n.ToInt()
+			if err != nil {
+				return false
+			}
+			return int1 == int2
 		case reflect.Int64:
 			return m.ToInt64() == n.ToInt64()
 		case reflect.Float64:
@@ -66,11 +80,11 @@ func (m *Mix) ToInt64() int64 {
 	panic("Mix can not convert to int64")
 }
 
-func (m *Mix) ToInt() int {
+func (m *Mix) ToInt() (int, error) {
 	if ret, ok := m.real.(int); ok {
-		return ret
+		return ret, nil
 	}
-	panic("Mix can not convert to int")
+	return 0, errors.New("Mix can not convert to int")
 }
 
 func (m *Mix) ToFloat64() float64 {
@@ -92,3 +106,6 @@ func (m *Mix) ToInterface() interface{} {
 	return m.real
 }
 
+func (m *Mix) Format() string {
+	return fmt.Sprintf("%v", m.ToInterface())
+}

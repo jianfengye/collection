@@ -1,5 +1,10 @@
 package collection
 
+import (
+	"errors"
+	"reflect"
+)
+
 // 这个是一个虚函数，能实现的都实现，不能实现的panic
 type AbsArray struct {
 	compare func(interface{}, interface{}) int // 比较函数
@@ -12,11 +17,31 @@ type AbsArray struct {
 下面的几个函数必须要实现
  */
 func (arr *AbsArray) NewEmpty() IArray {
-	panic("NewEmpty: not Implement")
+	if arr.Parent == nil {
+		panic("no parent")
+	}
+	return arr.Parent.NewEmpty()
 }
 
 func (arr *AbsArray) Append(item interface{}) error {
-	panic("Append: not Implement")
+	if arr.Parent == nil {
+		panic("no parent")
+	}
+	return arr.Parent.Append(item)
+}
+
+func (arr *AbsArray) Index(i int) IMix {
+	if arr.Parent == nil {
+		panic("no parent")
+	}
+	return arr.Parent.Index(i)
+}
+
+func (arr *AbsArray) Count() int {
+	if arr.Parent == nil {
+		panic("no parent")
+	}
+	return arr.Parent.Count()
 }
 
 /*
@@ -49,36 +74,74 @@ func (arr *AbsArray) Unique() IArray {
 	return newArr
 }
 
-func (arr *AbsArray) Reject(func(item interface{}, key int) bool) IArray {
-	panic("Reject: not Implement")
+func (arr *AbsArray) Reject(f func(item interface{}, key int) bool) IArray {
+	newArr := arr.NewEmpty()
+	for i := 0; i < arr.Count(); i++ {
+		if f(arr.Index(i).ToInterface(), i) == false {
+			newArr.Append(arr.Index(i).ToInterface())
+		}
+	}
+	return newArr
 }
 
-func (arr *AbsArray) Last(...func(item interface{}, key int) bool) IMix {
-	panic("Last: not Implement")
+func (arr *AbsArray) Last(fs ...func(item interface{}, key int) bool) IMix {
+	if len(fs) > 1 {
+		panic("Last 参数个数错误")
+	}
+
+	if len(fs) == 0 {
+		return arr.Index(arr.Count() - 1)
+	}
+
+	newArr := arr.Filter(fs[0])
+	return newArr.Last()
 }
 
-func (arr *AbsArray) Slice(start, end int) IArray {
-	panic("Slice: not Implement")
+func (arr *AbsArray) Slice(ps ...int) IArray {
+	if len(ps) > 2 || len(ps) == 0{
+		panic("Slice params count error")
+	}
+
+	start := ps[0]
+	count := arr.Count()
+	if len(ps) == 2 && ps[1] != -1 {
+		count = ps[1]
+	}
+
+	newArr := arr.NewEmpty()
+	for i := 0; i < arr.Count(); i++ {
+		if i >= start {
+			newArr.Append(arr.Index(i).ToInterface())
+			if newArr.Count() >= count {
+				break
+			}
+		}
+	}
+	return newArr
 }
 
-func (arr *AbsArray) Index(i int) IMix {
-	panic("Index: not Implement")
+func (arr *AbsArray) Merge(arr2 IArray) {
+	for i := 0; i < arr2.Count(); i++ {
+		arr.Append(arr2.Index(i).ToInterface())
+	}
 }
 
-func (arr *AbsArray) Count() int {
-	panic("Count: not Implement")
-}
+func (arr *AbsArray) Combine(arr2 IArray) (IMap, error) {
+	if arr.Count() == 0 {
+		return nil, errors.New("combine: count can not be zero")
+	}
 
-func (arr *AbsArray) Merge(arr2 IArray) IArray {
-	panic("Merge: not Implement")
-}
+	if arr.Count() != arr2.Count() {
+		return nil, errors.New("combine: count not match")
+	}
 
-func (arr *AbsArray) Chunk(count int) {
-	panic("Chunk: not Implement")
-}
-
-func (arr *AbsArray) Combine(arr2 IArray) IMap {
-	panic("Combine: not Implement")
+	ret := NewEmptyMap(reflect.TypeOf(arr.Index(0).ToInterface()), reflect.TypeOf(arr2.Index(0).ToInterface()))
+	for i := 0; i < arr.Count(); i++ {
+		key := arr.Index(i).ToInterface()
+		val := arr2.Index(i).ToInterface()
+		ret.Set(key, val)
+	}
+	return ret, nil
 }
 
 func (arr *AbsArray) CrossJoin(arr2 IArray) IMap {
@@ -137,7 +200,7 @@ func (arr *AbsArray) Shuffle() IArray {
 	panic("Shuffle: not Implement")
 }
 
-func (arr *AbsArray) DD() string {
+func (arr *AbsArray) DD()  {
 	panic("DD: not Implement")
 }
 
@@ -178,7 +241,12 @@ func (arr *AbsArray) Min() IMix {
 }
 
 func (arr *AbsArray) Contains(obj interface{}) bool {
-	panic("Contains: not Implement")
+	for i := 0; i < arr.Count(); i++ {
+		if arr.compare(arr.Index(i).ToInterface(), obj) == 0 {
+			return true
+		}
+	}
+	return false
 }
 
 func (arr *AbsArray) CountBy() IMap {
@@ -230,11 +298,16 @@ func (arr *AbsArray) Filter(f func(obj interface{}, index int) bool) IArray {
 }
 
 func (arr *AbsArray) First(f ...func(obj interface{}, index int) bool) IMix {
+	if len(f) == 0 {
+		return arr.Parent.Index(0)
+	}
+	fun := f[0]
+
 	l := arr.Parent.Count()
 	for i := 0; i < l; i++ {
 		obj := arr.Parent.Index(i).ToInterface()
-		if f[0](obj, i) == true {
-			return NewMix(obj)
+		if fun(obj, i) == true {
+			return arr.Parent.Index(i)
 		}
 	}
 	return nil

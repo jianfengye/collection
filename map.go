@@ -1,6 +1,9 @@
 package collection
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+)
 
 type IMap interface {
 
@@ -29,6 +32,8 @@ type IMap interface {
 	SortKeys() IMap
 	// 根据key进行降序排列
 	SortKeysDesc() IMap
+
+	DD()
 }
 
 type Map struct {
@@ -133,5 +138,14 @@ func (m *Map) Values() IArray {
 		objs.Append(v)
 	}
 	return objs
+}
+
+func (m *Map) DD() {
+	ret := fmt.Sprintf("Map(%d):{\n", len(m.objs))
+	for k, v := range m.objs {
+		ret = ret + fmt.Sprintf("\t%s:\t%s\n",k.Format(), v.Format())
+	}
+	ret = ret + "}\n"
+	fmt.Print(ret)
 }
 

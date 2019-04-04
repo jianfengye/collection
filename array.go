@@ -27,17 +27,15 @@ type IArray interface {
 	// 获取满足条件的最后一个，如果没有填写过滤条件，就获取所有的最后一个
 	Last(...func(item interface{}, key int) bool) IMix
 	// 获取数组片段，对所有Array生效
-	Slice(start, end int) IArray
+	Slice(...int) IArray
 	// 获取某个下标，对所有Array生效
 	Index(i int) IMix
 	// 获取数组长度，对所有Array生效
 	Count() int
 	// 将两个数组进行合并，参数的数据挂在当前数组中，返回当前数组，对所有Array生效
-	Merge(arr IArray) IArray
-	// 制造一个二维数组，每个数组长度最大是count
-	Chunk(count int)
+	Merge(arr IArray)
 	// 合并，将当前数组每个元素作为key，传入参数每个元素作为value，组成一个map
-	Combine(arr IArray) IMap
+	Combine(arr IArray) (IMap, error)
 	// 进行笛卡尔乘积组成数组
 	CrossJoin(arr IArray) IMap
 
@@ -68,7 +66,7 @@ type IArray interface {
 	// 随机乱置
 	Shuffle() IArray
 	// 打印出当前数组结构
-	DD() string
+	DD()
 	// 打印出json
 	ToJson() string
 
