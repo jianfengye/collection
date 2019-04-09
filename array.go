@@ -37,12 +37,12 @@ type IArray interface {
 	// 合并，将当前数组每个元素作为key，传入参数每个元素作为value，组成一个map
 	Combine(arr IArray) (IMap, error)
 	// 进行笛卡尔乘积组成数组
-	CrossJoin(arr IArray) IMap
+	CrossJoin(arr IArray) (IMap, error)
 
 	// 每个元素都调用一次的方法
 	Each(func(item interface{}, key int))
 	// 每个元素都调用一次的方法, 并组成一个新的元素
-	Map(func(item interface{}, key int)) IArray
+	Map(func(item interface{}, key int) IMix) IArray
 	// 合并一些元素，并组成一个新的元素
 	Reduce(func(carry IMix, item IMix) IMix) IMix
 	// 判断每个对象是否都满足

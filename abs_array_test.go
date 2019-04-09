@@ -172,3 +172,63 @@ func TestAbsArray_Combine(t *testing.T) {
 	}
 }
 
+func TestAbsArray_CrossJoin(t *testing.T) {
+	intColl := NewIntArray([]int{1, 2 })
+
+	intColl2 := NewIntArray([]int{3, 4})
+
+	m, err := intColl.CrossJoin(intColl2)
+	if err != nil {
+		t.Error("CrossJoin错误: " + err.Error())
+	}
+
+	if m.Len() != 4 {
+		t.Error("CrossJoin错误: " + err.Error())
+	}
+
+	m.DD()
+}
+
+func TestAbsArray_Each(t *testing.T) {
+	intColl := NewIntArray([]int{1, 2, 3, 4})
+	sum := 0
+	intColl.Each(func(item interface{}, key int) {
+		v := item.(int)
+		sum = sum + v
+	})
+	if sum != 10 {
+		t.Error("Each 错误")
+	}
+}
+
+func TestAbsArray_Map(t *testing.T) {
+	intColl := NewIntArray([]int{1, 2, 3, 4})
+	newIntColl := intColl.Map(func(item interface{}, key int) IMix {
+		v := item.(int)
+		return NewMix(v * 2)
+	})
+	newIntColl.DD()
+
+	if newIntColl.Count() != 4 {
+		t.Error("Map错误")
+	}
+}
+
+func TestAbsArray_Reduce(t *testing.T) {
+	intColl := NewIntArray([]int{1, 2, 3, 4})
+	sumMix := intColl.Reduce(func(carry IMix, item IMix) IMix {
+		carryInt, _ := carry.ToInt()
+		itemInt, _ := item.ToInt()
+		return NewMix(carryInt + itemInt)
+	})
+
+	sumMix.DD()
+
+	sum, err := sumMix.ToInt()
+	if err != nil {
+		t.Error(err.Error())
+	}
+	if sum != 10 {
+		t.Error("Reduce计算错误")
+	}
+}

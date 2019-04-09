@@ -144,20 +144,68 @@ func (arr *AbsArray) Combine(arr2 IArray) (IMap, error) {
 	return ret, nil
 }
 
-func (arr *AbsArray) CrossJoin(arr2 IArray) IMap {
-	panic("CrossJoin: not Implement")
+func (arr *AbsArray) CrossJoin(arr2 IArray) (IMap, error) {
+	if arr.Count() == 0 || arr2.Count() == 0 {
+		return nil, errors.New("CrossJoin: count can not be zero")
+	}
+
+	ret := NewEmptyMap(reflect.TypeOf(arr.Index(0).ToInterface()), reflect.TypeOf(arr2.Index(0).ToInterface()))
+	for i := 0; i < arr.Count(); i++ {
+		for j := 0; j < arr2.Count(); j++ {
+			key := arr.Index(i).ToInterface()
+			val := arr2.Index(j).ToInterface()
+			ret.Set(key, val)
+		}
+	}
+	return ret, nil
 }
 
 func (arr *AbsArray) Each(f func(item interface{}, key int)) {
-	panic("Each: not Implement")
+	for i := 0; i < arr.Count(); i++ {
+		f(arr.Index(i).ToInterface(), i)
+	}
 }
 
-func (arr *AbsArray) Map(func(item interface{}, key int)) IArray {
-	panic("Map: not Implement")
+func newMixArray(mix IMix) IArray {
+	switch mix.Type().Kind() {
+	case reflect.String:
+		return NewStrArray([]string{})
+	case reflect.Int:
+		return NewIntArray([]int{})
+	}
+	return nil
 }
 
-func (arr *AbsArray) Reduce(func(carry IMix, item IMix) IMix) IMix {
-	panic("Reduce: not Implement")
+func (arr *AbsArray) Map(f func(item interface{}, key int) IMix) IArray {
+	// call first f for map type
+	if arr.Count() == 0 {
+		return nil
+	}
+
+	first := f(arr.Index(0).ToInterface(), 0)
+	ret := newMixArray(first)
+	ret.Append(first.ToInterface())
+	for i := 1; i < arr.Count(); i++ {
+		ret.Append(f(arr.Index(i).ToInterface(), 0).ToInterface())
+	}
+	return ret
+}
+
+func (arr *AbsArray) Reduce(f func(carry IMix, item IMix) IMix) IMix {
+	if arr.Count() == 0 {
+		return nil
+	}
+
+	if arr.Count() == 1 {
+		return NewMix(arr.Index(0).ToInterface())
+	}
+
+	carry := f(NewMix(arr.Index(0).ToInterface()), NewMix(arr.Index(1).ToInterface()))
+
+	for i := 2; i < arr.Count(); i++ {
+		carry = f(carry, NewMix(arr.Index(i).ToInterface()))
+	}
+	return carry
 }
 
 func (arr *AbsArray) Every(func(item interface{}, key int) bool) {

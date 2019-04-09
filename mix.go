@@ -19,6 +19,7 @@ type IMix interface {
 	ToInterface() interface{} // 所有函数可用
 
 	Format() string // 打印成string
+	DD()
 }
 
 type Mix struct {
@@ -108,4 +109,9 @@ func (m *Mix) ToInterface() interface{} {
 
 func (m *Mix) Format() string {
 	return fmt.Sprintf("%v", m.ToInterface())
+}
+
+func (m *Mix) DD() {
+	ret := fmt.Sprintf("IMix(%s): %v \n", m.typ.Kind(), m.real)
+	fmt.Print(ret)
 }
