@@ -11,11 +11,16 @@ type IMix interface {
 	Equal(n IMix) bool // 两个IMix结构是否相同
 	Type() reflect.Type // 获取类型
 
-	ToString() string
-	ToInt64() int64
+	Add(mix IMix) (IMix, error) // 加法操作
+	Sub(mix IMix) (IMix, error) // 减法操作
+	Div(n int) (IMix, error) // 除法操作
+	Multi(n int) (IMix, error) // 乘法操作
+
+	ToString() (string, error)
+	ToInt64() (int64, error)
 	ToInt() (int, error)
-	ToFloat64() float64
-	ToFloat32() float32
+	ToFloat64() (float64, error)
+	ToFloat32() (float32, error)
 	ToInterface() interface{} // 所有函数可用
 
 	Format() string // 打印成string
@@ -23,6 +28,7 @@ type IMix interface {
 }
 
 type Mix struct {
+	IMix
 	real interface{}
 	typ reflect.Type
 }
@@ -67,18 +73,34 @@ func (m *Mix) Equal(n IMix) bool {
 	return false
 }
 
-func (m *Mix) ToString() string {
-	if ret, ok := m.real.(string); ok{
-		return ret
-	}
-	panic("Mix can not covert to string")
+func (m *Mix) Add(n IMix) (IMix, error) {
+	panic("not implement")
 }
 
-func (m *Mix) ToInt64() int64 {
-	if ret, ok := m.real.(int64); ok {
-		return ret
+func (m *Mix) Sub(n IMix) (IMix, error) {
+	panic("not implement")
+}
+
+func (m *Mix) Div(n int) (IMix, error) {
+	panic("not implement")
+}
+
+func (m *Mix) Multi(n int) (IMix, error) {
+	panic("not implement")
+}
+
+func (m *Mix) ToString() (string, error){
+	if ret, ok := m.real.(string); ok{
+		return ret, nil
 	}
-	panic("Mix can not convert to int64")
+	return "", errors.New("Mix can not covert to string")
+}
+
+func (m *Mix) ToInt64() (int64, error) {
+	if ret, ok := m.real.(int64); ok {
+		return ret, nil
+	}
+	return 0, errors.New("Mix can not covert to int64")
 }
 
 func (m *Mix) ToInt() (int, error) {
@@ -88,18 +110,18 @@ func (m *Mix) ToInt() (int, error) {
 	return 0, errors.New("Mix can not convert to int")
 }
 
-func (m *Mix) ToFloat64() float64 {
+func (m *Mix) ToFloat64() (float64, error) {
 	if ret, ok := m.real.(float64); ok {
-		return ret
+		return ret, nil
 	}
-	panic("Mix can not convert to float64")
+	return 0, errors.New("Mix can not covert to float64")
 }
 
-func (m *Mix) ToFloat32() float32 {
+func (m *Mix) ToFloat32() (float32, error) {
 	if ret, ok := m.real.(float32); ok {
-		return ret
+		return ret, nil
 	}
-	panic("Mix can not convert to float64")
+	return 0, errors.New("Mix can not covert to float32")
 }
 
 

@@ -16,6 +16,9 @@ type IMap interface {
 	// 获取一个Map的长度
 	Len() int
 
+	// 查询一个Value，返回第一个key
+	Search(val interface{}) *Mix
+
 	// key和value进行对调
 	Flip() (IMap, error)
 	// 判断是否有这个key，或者多个key
@@ -45,7 +48,7 @@ type Map struct {
 	valType reflect.Type
 }
 
-func NewEmptyMap(key, val reflect.Type) *Map {
+func NewEmptyMap(key reflect.Type, val reflect.Type, compare ...func(key1, key2 interface{}) bool) *Map {
 	m := make(map[*Mix]*Mix)
 	return &Map{
 		objs: m,
@@ -53,6 +56,8 @@ func NewEmptyMap(key, val reflect.Type) *Map {
 		valType: val,
 	}
 }
+
+
 
 func (m *Map) mustBeKeyType(key interface{}) {
 	if reflect.TypeOf(key) != m.keyType {
@@ -85,6 +90,11 @@ func (m *Map) Get(key interface{}) *Mix {
 		}
 	}
 	return nil
+}
+
+
+func (m *Map) Search(value interface{}) IMix {
+	panic("not implement")
 }
 
 func (m *Map) Remove(key interface{}) {

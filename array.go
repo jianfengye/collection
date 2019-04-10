@@ -45,20 +45,20 @@ type IArray interface {
 	Map(func(item interface{}, key int) IMix) IArray
 	// 合并一些元素，并组成一个新的元素
 	Reduce(func(carry IMix, item IMix) IMix) IMix
-	// 判断每个对象是否都满足
-	Every(func(item interface{}, key int) bool)
+	// 判断每个对象是否都满足, 如果colleciton是空，返回true
+	Every(func(item interface{}, key int) bool) bool
 	// 按照分页进行返回
 	ForPage(page int, perPage int) IArray
 	// 获取第n位值组成数组
-	Nth(n int) IArray
+	Nth(n int, offset int) IArray
 	// 组成的个数
-	Pad(start int, def interface{}) IArray
+	Pad(start int, def interface{}) (IArray, error)
 	// 弹出结构
 	Pop() IMix
 	// 推入元素
-	Push(item interface{})
+	Push(item interface{}) error
 	// 前面插入一个元素
-	Prepend(item interface{}) IArray
+	Prepend(item interface{}) (IArray, error)
 	// 随机获取一个元素
 	Random() IMix
 	// 倒置
@@ -68,7 +68,7 @@ type IArray interface {
 	// 打印出当前数组结构
 	DD()
 	// 打印出json
-	ToJson() string
+	ToJson() []byte
 
 	/*
 	下面的方法对ObjArray生效
@@ -77,8 +77,8 @@ type IArray interface {
 	Column(string) (IArray, error)
 	// 将数组中对象某个key作为map的key，整个对象作为value，作为map返回，如果key有重复会进行覆盖，仅对ObjectArray生效
 	KeyBy(key string) (IMap, error)
-	// 将对象的某个key作为map的key，对象的val作为map的value，作为map返回
-	Pluck(val string, key string) (IMap, error)
+	// 将对象的某个key作为Slice的value，作为slice返回
+	Pluck(key string) (IArray, error)
 	// 按照某个字段进行排序
 	SortBy(key string) (IArray, error)
 	// 按照某个字段进行排序,倒序
@@ -100,16 +100,13 @@ type IArray interface {
 	// 根据key对象计数
 	CountBy() IMap
 	// 比较两个数组，获取第一个数组不在第二个数组中的元素，组成新数组
-	Diff(arr IArray) (IArray, error)
+	Diff(arr IArray) IArray
 	// 进行排序, 升序
 	Sort() IArray
 	// 进行排序，倒序
 	SortDesc() IArray
-
-	/*
-	下面方法对stringArray起作用
-	 */
-	Join(split string) string
+	// 进行拼接
+	Join(split string, format ...func(item interface{}) string) string
 
 	/*
 	下面的方法对基础Array生效
