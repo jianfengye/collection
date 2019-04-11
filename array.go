@@ -14,6 +14,10 @@ type IArray interface {
 	IsNotEmpty() bool
 	// 放入一个元素到数组中，对所有Array生效
 	Append(item interface{}) error
+	// 删除一个元素, 需要自类实现
+	Remove(index int) error
+	// 增加一个元素。
+	Insert(index int, item interface{}) error
 	// 查找数据中是否包含，-1不包含，>=0 返回数组中元素下标，对所有Array生效
 	Search(item interface{}) int
 	// 过滤数组中重复的元素，仅对基础Array生效
@@ -53,12 +57,12 @@ type IArray interface {
 	Nth(n int, offset int) IArray
 	// 组成的个数
 	Pad(start int, def interface{}) (IArray, error)
-	// 弹出结构
+	// 从队列右侧弹出结构
 	Pop() IMix
 	// 推入元素
 	Push(item interface{}) error
 	// 前面插入一个元素
-	Prepend(item interface{}) (IArray, error)
+	Prepend(item interface{}) error
 	// 随机获取一个元素
 	Random() IMix
 	// 倒置
@@ -114,7 +118,7 @@ type IArray interface {
 	// 获取平均值
 	Avg() IMix
 	// 获取中位值
-	Median() IMix
+	Median() (IMix, error)
 	// 获取Mode值
 	Mode() IMix
 	// 获取sum值

@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"reflect"
 	"strings"
+	"time"
 )
 
 // 这个是一个虚函数，能实现的都实现，不能实现的panic
@@ -26,11 +27,19 @@ func (arr *AbsArray) NewEmpty() IArray {
 	return arr.Parent.NewEmpty()
 }
 
-func (arr *AbsArray) Append(item interface{}) error {
+func (arr *AbsArray) Insert(index int, obj interface{}) error {
 	if arr.Parent == nil {
 		panic("no parent")
 	}
-	return arr.Parent.Append(item)
+	return arr.Parent.Insert(index, obj)
+}
+
+
+func (arr *AbsArray) Remove(index int) error {
+	if arr.Parent == nil {
+		panic("no parent")
+	}
+	return arr.Parent.Remove(index)
 }
 
 func (arr *AbsArray) Index(i int) IMix {
@@ -58,6 +67,11 @@ func (arr *AbsArray) ToJson() []byte {
 /*
 下面这些函数是所有函数体都一样
  */
+
+func (arr *AbsArray) Append(item interface{}) error {
+	return arr.Parent.Insert(arr.Count(), item)
+}
+
 func (arr *AbsArray) IsEmpty() bool {
 	return arr.Count() == 0
 }
@@ -290,13 +304,8 @@ func (arr *AbsArray) Pad(start int, def interface{}) (IArray, error) {
 
 func (arr *AbsArray) Pop() IMix {
 	ret := arr.Index(arr.Count() - 1)
+	arr.Remove(arr.Count() - 1)
 
-	newArr := arr.NewEmpty()
-	for i := 0; i < newArr.Count() - 1; i++ {
-		newArr.Append(arr.Index(i).ToInterface())
-	}
-
-	arr.Parent = newArr
 	return ret
 }
 
@@ -304,21 +313,15 @@ func (arr *AbsArray) Push(item interface{}) error {
 	return arr.Append(item)
 }
 
-func (arr *AbsArray) Prepend(item interface{}) (IArray, error) {
-	newArr := arr.NewEmpty()
-	err := newArr.Append(item)
-	if err != nil {
-		return newArr, err
-	}
-	for i := 0; i < newArr.Count() - 1; i++ {
-		newArr.Append(arr.Index(i).ToInterface())
-	}
-	return newArr, nil
+func (arr *AbsArray) Prepend(item interface{}) error {
+	return arr.Insert(0, item)
 }
 
 func (arr *AbsArray) Random() IMix {
-	r := rand.Intn(arr.Count())
-	return arr.Index(r)
+	s := rand.NewSource(time.Now().Unix())
+	r := rand.New(s)
+	index := r.Intn(arr.Count())
+	return arr.Index(index)
 }
 
 func (arr *AbsArray) Reverse() IArray {
@@ -426,11 +429,11 @@ func (arr *AbsArray) Sort() IArray {
 	}
 
 
-	sorteds := make([]int, 0, arr.Count())
+	sorted := make([]int, 0, arr.Count())
 	for i := 0; i < arr.Count(); i++ {
 		min := -1
 		for j := 0; j < arr.Count(); j++ {
-			if isContained(sorteds, j) {
+			if isContained(sorted, j) {
 				continue
 			}
 
@@ -445,7 +448,7 @@ func (arr *AbsArray) Sort() IArray {
 			}
 		}
 
-		sorteds = append(sorteds, min)
+		sorted = append(sorted, min)
 		newArr.Append(arr.Index(min).ToInterface())
 	}
 	return newArr
@@ -464,11 +467,11 @@ func (arr *AbsArray) SortDesc() IArray {
 	}
 
 
-	sorteds := make([]int, 0, arr.Count())
+	sorted := make([]int, 0, arr.Count())
 	for i := 0; i < arr.Count(); i++ {
 		max := -1
 		for j := 0; j < arr.Count(); j++ {
-			if isContained(sorteds, j) {
+			if isContained(sorted, j) {
 				continue
 			}
 
@@ -483,7 +486,7 @@ func (arr *AbsArray) SortDesc() IArray {
 			}
 		}
 
-		sorteds = append(sorteds, max)
+		sorted = append(sorted, max)
 		newArr.Append(arr.Index(max).ToInterface())
 	}
 	return newArr

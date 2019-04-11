@@ -49,7 +49,15 @@ func (m *Mix) Equal(n IMix) bool {
 	if m.typ == reflect.TypeOf(n) {
 		switch m.typ.Kind() {
 		case reflect.String:
-			return m.ToString() == n.ToString()
+			item1, err := m.ToString()
+			if err != nil {
+				return false
+			}
+			item2, err := n.ToString()
+			if err != nil {
+				return false
+			}
+			return item1 == item2
 		case reflect.Int:
 			int1, err := m.ToInt()
 			if err != nil {
@@ -61,11 +69,35 @@ func (m *Mix) Equal(n IMix) bool {
 			}
 			return int1 == int2
 		case reflect.Int64:
-			return m.ToInt64() == n.ToInt64()
+			item1, err := m.ToInt64()
+			if err != nil {
+				return false
+			}
+			item2, err := n.ToInt64()
+			if err != nil {
+				return false
+			}
+			return item1 == item2
 		case reflect.Float64:
-			return m.ToFloat64() == n.ToFloat64()
+			item1, err := m.ToFloat64()
+			if err != nil {
+				return false
+			}
+			item2, err := n.ToFloat64()
+			if err != nil {
+				return false
+			}
+			return item1 == item2
 		case reflect.Float32:
-			return m.ToFloat32() == n.ToFloat32()
+			item1, err := m.ToFloat32()
+			if err != nil {
+				return false
+			}
+			item2, err := n.ToFloat32()
+			if err != nil {
+				return false
+			}
+			return item1 == item2
 		default:
 			panic("Mix.Equal: not support kind")
 		}

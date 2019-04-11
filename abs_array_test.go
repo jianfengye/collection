@@ -232,3 +232,118 @@ func TestAbsArray_Reduce(t *testing.T) {
 		t.Error("Reduce计算错误")
 	}
 }
+
+func TestAbsArray_Every(t *testing.T) {
+	intColl := NewIntArray([]int{1, 2, 3, 4})
+	if intColl.Every(func(item interface{}, key int) bool {
+		i := item.(int)
+		return i > 1
+	}) != false {
+		t.Error("Every错误")
+	}
+
+	if intColl.Every(func(item interface{}, key int) bool {
+		i := item.(int)
+		return i > 0
+	}) != true {
+		t.Error("Every错误")
+	}
+}
+
+func TestAbsArray_ForPage(t *testing.T) {
+	intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
+	ret := intColl.ForPage(1, 2)
+	ret.DD()
+
+	if ret.Count() != 2 {
+		t.Error("For page错误")
+	}
+}
+
+func TestAbsArray_Nth(t *testing.T) {
+	intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
+	ret := intColl.Nth(4, 1)
+	ret.DD()
+
+	if ret.Count() != 2 {
+		t.Error("Nth 错误")
+	}
+}
+
+func TestAbsArray_Pad(t *testing.T) {
+	intColl := NewIntArray([]int{1, 2, 3})
+	ret, err := intColl.Pad(5, 0)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	ret.DD()
+	if ret.Count() != 5 {
+		t.Error("Pad 错误")
+	}
+
+	ret, err = intColl.Pad(-5, 0)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	ret.DD()
+	if ret.Count() != 5 {
+		t.Error("Pad 错误")
+	}
+}
+
+func TestAbsArray_Pop(t *testing.T) {
+	intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
+	pop := intColl.Pop()
+	in, err :=  pop.ToInt()
+	if err != nil {
+		t.Error(err.Error())
+	}
+	if in != 6 {
+		t.Error("Pop 错误")
+	}
+	intColl.DD()
+	if intColl.Count() != 5 {
+		t.Error("Pop 后本体错误")
+	}
+}
+
+func TestAbsArray_Push(t *testing.T) {
+	intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
+	intColl.Push(7)
+	intColl.DD()
+	if intColl.Count() != 7 {
+		t.Error("Push 后本体错误")
+	}
+}
+
+func TestAbsArray_Prepend(t *testing.T) {
+	intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
+	err := intColl.Prepend(0)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	intColl.DD()
+	if intColl.Count() != 7 {
+		t.Error("Prepend错误")
+	}
+}
+
+func TestAbsArray_Random(t *testing.T) {
+	intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
+	out := intColl.Random()
+	out.DD()
+
+	_, err := out.ToInt()
+	if err != nil {
+		t.Error(err.Error())
+	}
+}
+
+func TestAbsArray_Reverse(t *testing.T) {
+	intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
+	vs := intColl.Reverse()
+	vs.DD()
+
+}

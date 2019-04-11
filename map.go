@@ -12,12 +12,12 @@ type IMap interface {
 	// 删除一个Map的key
 	Remove(key interface{})
 	// 根据key获取一个Map的value
-	Get(key interface{}) *Mix
+	Get(key interface{}) IMix
 	// 获取一个Map的长度
 	Len() int
 
 	// 查询一个Value，返回第一个key
-	Search(val interface{}) *Mix
+	Search(val interface{}) IMix
 
 	// key和value进行对调
 	Flip() (IMap, error)
@@ -81,7 +81,7 @@ func (m *Map) Set(key interface{}, value interface{}) {
 	m.objs[k] = v
 }
 
-func (m *Map) Get(key interface{}) *Mix {
+func (m *Map) Get(key interface{}) IMix {
 	m.mustBeKeyType(key)
 	kParam := NewMix(key)
 	for k, v := range m.objs {
