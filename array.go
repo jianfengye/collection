@@ -2,22 +2,26 @@ package collection
 
 // IArray表示数组结构，有几种类型
 type IArray interface {
+	// IArray错误信息，链式调用的时候需要检查下这个error是否存在，每次调用之后都检查一下
+	Err() error
+	// 设置IArray的错误信息
+	SetErr(error) IArray
 
 	/*
 	下面的方法对所有Array都生效
 	 */
 	// 复制一份当前相同类型的IArray结构，但是数据是空的
-	NewEmpty() IArray
+	NewEmpty(err ...error) IArray
 	// 判断是否是空数组
 	IsEmpty() bool
 	// 判断是否是空数组
 	IsNotEmpty() bool
 	// 放入一个元素到数组中，对所有Array生效, 仅当item和array结构不一致的时候返回错误
-	Append(item interface{}) (IArray, error)
+	Append(item interface{}) IArray
 	// 删除一个元素, 需要自类实现
-	Remove(index int) (IArray, error)
+	Remove(index int) IArray
 	// 增加一个元素。
-	Insert(index int, item interface{}) (IArray, error)
+	Insert(index int, item interface{}) IArray
 	// 查找数据中是否包含，-1不包含，>=0 返回数组中元素下标，对所有Array生效
 	Search(item interface{}) int
 	// 过滤数组中重复的元素，仅对基础Array生效
@@ -37,7 +41,7 @@ type IArray interface {
 	// 获取数组长度，对所有Array生效
 	Count() int
 	// 将两个数组进行合并，参数的数据挂在当前数组中，返回当前数组，对所有Array生效
-	Merge(arr IArray) (IArray, error)
+	Merge(arr IArray) IArray
 	// 合并，将当前数组每个元素作为key，传入参数每个元素作为value，组成一个map
 	Combine(arr IArray) (IMap, error)
 	// 进行笛卡尔乘积组成数组
@@ -56,13 +60,13 @@ type IArray interface {
 	// 获取第n位值组成数组
 	Nth(n int, offset int) IArray
 	// 组成的个数
-	Pad(start int, def interface{}) (IArray, error)
+	Pad(start int, def interface{}) IArray
 	// 从队列右侧弹出结构
 	Pop() IMix
 	// 推入元素
-	Push(item interface{}) (IArray, error)
+	Push(item interface{}) IArray
 	// 前面插入一个元素
-	Prepend(item interface{}) (IArray, error)
+	Prepend(item interface{}) IArray
 	// 随机获取一个元素
 	Random() IMix
 	// 倒置
@@ -78,15 +82,15 @@ type IArray interface {
 	下面的方法对ObjArray生效
 	 */
 	// 返回数组中对象的某个key组成的数组，仅对ObjectArray生效, key为对象属性名称，必须为public的属性
-	Column(string) (IArray, error)
+	Column(string) IArray
 	// 将数组中对象某个key作为map的key，整个对象作为value，作为map返回，如果key有重复会进行覆盖，仅对ObjectArray生效
 	KeyBy(key string) (IMap, error)
 	// 将对象的某个key作为Slice的value，作为slice返回
-	Pluck(key string) (IArray, error)
+	Pluck(key string) IArray
 	// 按照某个字段进行排序
-	SortBy(key string) (IArray, error)
+	SortBy(key string) IArray
 	// 按照某个字段进行排序,倒序
-	SortByDesc(key string) (IArray, error)
+	SortByDesc(key string) IArray
 
 
 	/*
@@ -135,7 +139,7 @@ type IArray interface {
 	// 转化为golang原生的Int数组，仅对IntArray生效
 	ToInts() ([]int, error)
 	// 转化为obj数组
-	ToMixs() []IMix
+	ToMixs() ([]IMix, error)
 	// 转化为float64数组
 	ToFloat64s() ([]float64, error)
 	// 转化为float32数组

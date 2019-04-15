@@ -272,9 +272,9 @@ func TestAbsArray_Nth(t *testing.T) {
 
 func TestAbsArray_Pad(t *testing.T) {
 	intColl := NewIntArray([]int{1, 2, 3})
-	ret, err := intColl.Pad(5, 0)
-	if err != nil {
-		t.Error(err.Error())
+	ret := intColl.Pad(5, 0)
+	if ret.Err() != nil {
+		t.Error(ret.Err().Error())
 	}
 
 	ret.DD()
@@ -282,9 +282,9 @@ func TestAbsArray_Pad(t *testing.T) {
 		t.Error("Pad 错误")
 	}
 
-	ret, err = intColl.Pad(-5, 0)
-	if err != nil {
-		t.Error(err.Error())
+	ret = intColl.Pad(-5, 0)
+	if ret.Err() != nil {
+		t.Error(ret.Err().Error())
 	}
 	ret.DD()
 	if ret.Count() != 5 {
@@ -319,9 +319,9 @@ func TestAbsArray_Push(t *testing.T) {
 
 func TestAbsArray_Prepend(t *testing.T) {
 	intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
-	_, err := intColl.Prepend(0)
-	if err != nil {
-		t.Error(err.Error())
+	intColl.Prepend(0)
+	if intColl.Err() != nil {
+		t.Error(intColl.Err().Error())
 	}
 
 	intColl.DD()

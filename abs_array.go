@@ -12,22 +12,32 @@ import (
 // 这个是一个虚函数，能实现的都实现，不能实现的panic
 type AbsArray struct {
 	compare func(interface{}, interface{}) int // 比较函数
+	err error // 错误信息
 
 	IArray
 	Parent IArray
 }
 
+func (arr *AbsArray) Err() error {
+	return arr.err
+}
+
+func (arr *AbsArray) SetErr(err error) IArray {
+	arr.err = err
+	return arr
+}
+
 /*
 下面的几个函数必须要实现
  */
-func (arr *AbsArray) NewEmpty() IArray {
+func (arr *AbsArray) NewEmpty(err ...error) IArray {
 	if arr.Parent == nil {
 		panic("no parent")
 	}
-	return arr.Parent.NewEmpty()
+	return arr.Parent.NewEmpty(err...)
 }
 
-func (arr *AbsArray) Insert(index int, obj interface{}) (IArray, error) {
+func (arr *AbsArray) Insert(index int, obj interface{}) IArray {
 	if arr.Parent == nil {
 		panic("no parent")
 	}
@@ -36,7 +46,7 @@ func (arr *AbsArray) Insert(index int, obj interface{}) (IArray, error) {
 }
 
 
-func (arr *AbsArray) Remove(index int) (IArray, error) {
+func (arr *AbsArray) Remove(index int) IArray {
 	if arr.Parent == nil {
 		panic("no parent")
 	}
@@ -58,18 +68,27 @@ func (arr *AbsArray) Count() int {
 }
 
 func (arr *AbsArray) DD()  {
-	panic("DD: not Implement")
+	if arr.Parent == nil {
+		panic("DD: not Implement")
+	}
+	arr.Parent.DD()
 }
 
 func (arr *AbsArray) ToJson() []byte {
-	panic("ToJson: not Implement")
+	if arr.Parent == nil {
+		panic("ToJson: not Implement")
+	}
+	return arr.Parent.ToJson()
 }
 
 /*
 下面这些函数是所有函数体都一样
  */
 
-func (arr *AbsArray) Append(item interface{}) (IArray,error) {
+func (arr *AbsArray) Append(item interface{}) IArray {
+	if arr.Err() != nil {
+		return arr
+	}
 	return arr.Parent.Insert(arr.Count(), item)
 }
 
@@ -91,6 +110,9 @@ func (arr *AbsArray) Search(item interface{}) int {
 }
 
 func (arr *AbsArray) Unique() IArray {
+	if arr.Err() != nil {
+		return arr
+	}
 	newArr := arr.NewEmpty()
 	for i := 0; i < arr.Count(); i++ {
 		if newArr.Contains(arr.Index(i).ToInterface()) == false {
@@ -101,7 +123,10 @@ func (arr *AbsArray) Unique() IArray {
 }
 
 func (arr *AbsArray) Reject(f func(item interface{}, key int) bool) IArray {
-	newArr := arr.NewEmpty()
+	if arr.Err() != nil {
+		return arr
+	}
+	newArr := arr.NewEmpty().SetErr(arr.err)
 	for i := 0; i < arr.Count(); i++ {
 		if f(arr.Index(i).ToInterface(), i) == false {
 			newArr.Append(arr.Index(i).ToInterface())
@@ -124,6 +149,9 @@ func (arr *AbsArray) Last(fs ...func(item interface{}, key int) bool) IMix {
 }
 
 func (arr *AbsArray) Slice(ps ...int) IArray {
+	if arr.Err() != nil {
+		return arr
+	}
 	if len(ps) > 2 || len(ps) == 0{
 		panic("Slice params count error")
 	}
@@ -146,17 +174,22 @@ func (arr *AbsArray) Slice(ps ...int) IArray {
 	return newArr
 }
 
-func (arr *AbsArray) Merge(arr2 IArray) (IArray, error) {
-	for i := 0; i < arr2.Count(); i++ {
-		_, err := arr.Append(arr2.Index(i).ToInterface())
-		if err != nil {
-			return nil, err
-		}
+func (arr *AbsArray) Merge(arr2 IArray) IArray {
+	if arr.Err() != nil {
+		return arr
 	}
-	return arr, nil
+
+	for i := 0; i < arr2.Count(); i++ {
+		arr.Append(arr2.Index(i).ToInterface())
+	}
+	return arr
 }
 
 func (arr *AbsArray) Combine(arr2 IArray) (IMap, error) {
+	if arr.Err() != nil {
+		return nil, arr.Err()
+	}
+
 	if arr.Count() == 0 {
 		return nil, errors.New("combine: count can not be zero")
 	}
@@ -175,6 +208,10 @@ func (arr *AbsArray) Combine(arr2 IArray) (IMap, error) {
 }
 
 func (arr *AbsArray) CrossJoin(arr2 IArray) (IMap, error) {
+	if arr.Err() != nil {
+		return nil, arr.Err()
+	}
+
 	if arr.Count() == 0 || arr2.Count() == 0 {
 		return nil, errors.New("CrossJoin: count can not be zero")
 	}
@@ -207,6 +244,10 @@ func newMixArray(mix IMix) IArray {
 }
 
 func (arr *AbsArray) Map(f func(item interface{}, key int) IMix) IArray {
+	if arr.Err() != nil {
+		return arr
+	}
+
 	// call first f for map type
 	if arr.Count() == 0 {
 		return nil
@@ -222,6 +263,10 @@ func (arr *AbsArray) Map(f func(item interface{}, key int) IMix) IArray {
 }
 
 func (arr *AbsArray) Reduce(f func(carry IMix, item IMix) IMix) IMix {
+	if arr.Err() != nil {
+		return nil
+	}
+
 	if arr.Count() == 0 {
 		return nil
 	}
@@ -252,11 +297,19 @@ func (arr *AbsArray) Every(f func(item interface{}, key int) bool) bool {
 }
 
 func (arr *AbsArray) ForPage(page int, perPage int) IArray {
+	if arr.Err() != nil {
+		return arr
+	}
+
 	start := page * perPage
 	return arr.Slice(start, perPage)
 }
 
 func (arr *AbsArray) Nth(n int, offset int) IArray {
+	if arr.Err() != nil {
+		return arr
+	}
+
 	newArr := arr.NewEmpty()
 	for i := 0; i < arr.Count(); i++ {
 		if (i - offset) % n == 0 {
@@ -266,37 +319,35 @@ func (arr *AbsArray) Nth(n int, offset int) IArray {
 	return newArr
 }
 
-func (arr *AbsArray) Pad(start int, def interface{}) (IArray, error) {
+func (arr *AbsArray) Pad(start int, def interface{}) IArray {
+	if arr.Err() != nil {
+		return arr
+	}
+
 	newArr := arr.NewEmpty()
 
 	if start > 0 {
 		if start <= arr.Count() {
-			return arr.Slice(0, start), nil
+			return arr.Slice(0, start)
 		}
 
 		for i:=0; i < arr.Count(); i++ {
 			newArr.Append(arr.Index(i).ToInterface())
 		}
 		for i := arr.Count(); i < start; i++ {
-			_, err := newArr.Append(def)
-			if err != nil {
-				return nil, err
-			}
+			newArr = newArr.Append(def)
 		}
 
-		return newArr, nil
+		return newArr
 	}
 
 	if start < 0 {
 		if start >= -arr.Count() {
-			return arr.Slice(arr.Count() + start, arr.Count()), nil
+			return arr.Slice(arr.Count() + start, arr.Count())
 		}
 
 		for i := start; i < -arr.Count(); i++ {
-			_, err := newArr.Append(def)
-			if err != nil {
-				return nil, err
-			}
+			newArr.Append(def)
 		}
 
 		for i := 0; i < arr.Count(); i++ {
@@ -304,25 +355,41 @@ func (arr *AbsArray) Pad(start int, def interface{}) (IArray, error) {
 		}
 	}
 
-	return newArr, nil
+	return newArr
 }
 
 func (arr *AbsArray) Pop() IMix {
+	if arr.Err() != nil {
+		return nil
+	}
+
 	ret := arr.Index(arr.Count() - 1)
 	arr.Remove(arr.Count() - 1)
 
 	return ret
 }
 
-func (arr *AbsArray) Push(item interface{}) (IArray, error) {
+func (arr *AbsArray) Push(item interface{}) IArray {
+	if arr.Err() != nil {
+		return arr
+	}
+
 	return arr.Append(item)
 }
 
-func (arr *AbsArray) Prepend(item interface{}) (IArray, error) {
+func (arr *AbsArray) Prepend(item interface{}) IArray {
+	if arr.Err() != nil {
+		return arr
+	}
+
 	return arr.Insert(0, item)
 }
 
 func (arr *AbsArray) Random() IMix {
+	if arr.Err() != nil {
+		return nil
+	}
+
 	s := rand.NewSource(time.Now().Unix())
 	r := rand.New(s)
 	index := r.Intn(arr.Count())
@@ -330,6 +397,10 @@ func (arr *AbsArray) Random() IMix {
 }
 
 func (arr *AbsArray) Reverse() IArray {
+	if arr.Err() != nil {
+		return arr
+	}
+
 	newArr := arr.NewEmpty()
 	for i := 0; i < newArr.Count() - 1; i++ {
 		newArr.Append(arr.Index(newArr.Count() - 1 - i).ToInterface())
@@ -338,6 +409,10 @@ func (arr *AbsArray) Reverse() IArray {
 }
 
 func (arr *AbsArray) Shuffle() IArray {
+	if arr.Err() != nil {
+		return arr
+	}
+
 	indexs := make([]int, arr.Count())
 	for i := 0; i < arr.Count(); i++ {
 		indexs[i] = i
@@ -353,24 +428,48 @@ func (arr *AbsArray) Shuffle() IArray {
 	return newArr
 }
 
-func (arr *AbsArray) Column(string) (IArray, error) {
-	return nil, errors.New("format not support")
+func (arr *AbsArray) Column(string) IArray {
+	if arr.Err() != nil {
+		return arr
+	}
+
+	arr.SetErr(errors.New("format not support"))
+	return arr
 }
 
 func (arr *AbsArray) KeyBy(key string) (IMap, error) {
+	if arr.Err() != nil {
+		return nil, arr.Err()
+	}
+
 	return nil, errors.New("format not support")
 }
 
-func (arr *AbsArray) Pluck(key string) (IArray, error) {
-	return nil, errors.New("format not support")
+func (arr *AbsArray) Pluck(key string) IArray {
+	if arr.Err() != nil {
+		return arr
+	}
+
+	arr.SetErr(errors.New("format not support"))
+	return arr
 }
 
-func (arr *AbsArray) SortBy(key string) (IArray, error) {
-	return nil, errors.New("format not support")
+func (arr *AbsArray) SortBy(key string) IArray {
+	if arr.Err() != nil {
+		return arr
+	}
+
+	arr.SetErr(errors.New("format not support"))
+	return arr
 }
 
-func (arr *AbsArray) SortByDesc(key string) (IArray, error) {
-	return nil, errors.New("format not support")
+func (arr *AbsArray) SortByDesc(key string) IArray {
+	if arr.Err() != nil {
+		return arr
+	}
+
+	arr.SetErr(errors.New("format not support"))
+	return arr
 }
 
 func (arr *AbsArray) SetCompare(func(a interface{}, b interface{}) int) {
@@ -378,6 +477,10 @@ func (arr *AbsArray) SetCompare(func(a interface{}, b interface{}) int) {
 }
 
 func (arr *AbsArray) Max() IMix {
+	if arr.Err() != nil {
+		return nil
+	}
+
 	max := 0
 	for i := 0; i < arr.Count(); i++ {
 		if arr.compare(arr.Index(i).ToInterface(), arr.Index(max).ToInterface()) > 0 {
@@ -388,6 +491,10 @@ func (arr *AbsArray) Max() IMix {
 }
 
 func (arr *AbsArray) Min() IMix {
+	if arr.Err() != nil {
+		return nil
+	}
+
 	min := 0
 	for i := 0; i < arr.Count(); i++ {
 		if arr.compare(arr.Index(i).ToInterface(), arr.Index(min).ToInterface()) < 0 {
@@ -407,11 +514,19 @@ func (arr *AbsArray) Contains(obj interface{}) bool {
 }
 
 func (arr *AbsArray) CountBy() IMap {
+	if arr.Err() != nil {
+		return nil
+	}
+
 	// TODO: 这个等map思考清楚再进行开发
 	panic("CountBy: not Implement")
 }
 
 func (arr *AbsArray) Diff(arr2 IArray) IArray {
+	if arr.Err() != nil {
+		return arr
+	}
+
 	newArr := arr.NewEmpty()
 	for i := 0; i < arr.Count(); i++ {
 		if arr2.Contains(arr.Index(i).ToInterface()) == false {
@@ -422,6 +537,10 @@ func (arr *AbsArray) Diff(arr2 IArray) IArray {
 }
 
 func (arr *AbsArray) Sort() IArray {
+	if arr.Err() != nil {
+		return arr
+	}
+
 	newArr := arr.NewEmpty()
 
 	isContained := func(arr []int, item int) bool {
@@ -460,6 +579,10 @@ func (arr *AbsArray) Sort() IArray {
 }
 
 func (arr *AbsArray) SortDesc() IArray {
+	if arr.Err() != nil {
+		return arr
+	}
+
 	newArr := arr.NewEmpty()
 
 	isContained := func(arr []int, item int) bool {
@@ -498,6 +621,10 @@ func (arr *AbsArray) SortDesc() IArray {
 }
 
 func (arr *AbsArray) Join(split string, format ...func(item interface{}) string) string {
+	if arr.Err() != nil {
+		return ""
+	}
+
 	var ret strings.Builder
 	for i := 0; i < arr.Count(); i++ {
 		if len(format) == 0 {
@@ -515,10 +642,16 @@ func (arr *AbsArray) Join(split string, format ...func(item interface{}) string)
 }
 
 func (arr *AbsArray) Avg() IMix{
+	if arr.Err() != nil {
+		return nil
+	}
 	panic("Avg: not Implement")
 }
 
 func (arr *AbsArray) Median() (IMix, error) {
+	if arr.Err() != nil {
+		return nil, arr.Err()
+	}
 	newArr := arr.Sort()
 	if newArr.Count() % 2 == 0 {
 		imax, err := newArr.Index(newArr.Count() / 2 - 1).Add(newArr.Index(newArr.Count() / 2 + 1))
@@ -532,6 +665,10 @@ func (arr *AbsArray) Median() (IMix, error) {
 }
 
 func (arr *AbsArray) Mode() IMix {
+	if arr.Err() != nil {
+		return nil
+	}
+
 	m := arr.CountBy()
 	maxCount, _ := m.Values().Max().ToInt()
 	k := m.Search(maxCount)
@@ -539,6 +676,10 @@ func (arr *AbsArray) Mode() IMix {
 }
 
 func (arr *AbsArray) Sum() IMix {
+	if arr.Err() != nil {
+		return nil
+	}
+
 	mix := NewMix(arr.Index(0).ToInterface())
 	for i := 0; i < arr.Count(); i++ {
 		mix.Add(arr.Index(i))
@@ -547,6 +688,10 @@ func (arr *AbsArray) Sum() IMix {
 }
 
 func (arr *AbsArray) Filter(f func(obj interface{}, index int) bool) IArray {
+	if arr.Err() != nil {
+		return arr
+	}
+
 	ret := arr.Parent.NewEmpty()
 	l := arr.Parent.Count()
 	for i := 0; i < l; i++ {
@@ -559,6 +704,10 @@ func (arr *AbsArray) Filter(f func(obj interface{}, index int) bool) IArray {
 }
 
 func (arr *AbsArray) First(f ...func(obj interface{}, index int) bool) IMix {
+	if arr.Err() != nil {
+		return nil
+	}
+
 	if len(f) == 0 {
 		return arr.Parent.Index(0)
 	}
@@ -575,6 +724,10 @@ func (arr *AbsArray) First(f ...func(obj interface{}, index int) bool) IMix {
 }
 
 func (arr *AbsArray) ToStrings() ([]string, error) {
+	if arr.Err() != nil {
+		return nil, arr.Err()
+	}
+
 	ret := make([]string, arr.Count())
 	for i := 0; i < arr.Count(); i++ {
 		t , err := arr.Index(i).ToString()
@@ -587,6 +740,9 @@ func (arr *AbsArray) ToStrings() ([]string, error) {
 }
 
 func (arr *AbsArray) ToInt64s() ([]int64, error) {
+	if arr.Err() != nil {
+		return nil, arr.Err()
+	}
 	ret := make([]int64, arr.Count())
 	for i := 0; i < arr.Count(); i++ {
 		t , err := arr.Index(i).ToInt64()
@@ -599,6 +755,9 @@ func (arr *AbsArray) ToInt64s() ([]int64, error) {
 }
 
 func (arr *AbsArray) ToInts() ([]int, error) {
+	if arr.Err() != nil {
+		return nil, arr.Err()
+	}
 	ret := make([]int, arr.Count())
 	for i := 0; i < arr.Count(); i++ {
 		t , err := arr.Index(i).ToInt()
@@ -610,15 +769,21 @@ func (arr *AbsArray) ToInts() ([]int, error) {
 	return ret, nil
 }
 
-func (arr *AbsArray) ToMixs() []IMix {
+func (arr *AbsArray) ToMixs() ([]IMix, error) {
+	if arr.Err() != nil {
+		return nil, arr.Err()
+	}
 	ret := make([]IMix, arr.Count())
 	for i := 0; i < arr.Count(); i++ {
 		ret[i] = arr.Index(i)
 	}
-	return ret
+	return ret, nil
 }
 
 func (arr *AbsArray) ToFloat64s() ([]float64, error) {
+	if arr.Err() != nil {
+		return nil, arr.Err()
+	}
 	ret := make([]float64, arr.Count())
 	for i := 0; i < arr.Count(); i++ {
 		t , err := arr.Index(i).ToFloat64()
@@ -631,6 +796,9 @@ func (arr *AbsArray) ToFloat64s() ([]float64, error) {
 }
 
 func (arr *AbsArray) ToFloat32s() ([]float32, error) {
+	if arr.Err() != nil {
+		return nil, arr.Err()
+	}
 	ret := make([]float32, arr.Count())
 	for i := 0; i < arr.Count(); i++ {
 		t , err := arr.Index(i).ToFloat32()

@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"fmt"
 	"github.com/derekparker/trie"
 	"github.com/pkg/errors"
 	"strings"
@@ -33,37 +34,57 @@ func NewStrArray(objs []string) *StrArray {
 	return arr
 }
 
-func (arr *StrArray) NewEmpty() IArray {
-	return NewStrArray(arr.objs)
+func (arr *StrArray) NewEmpty(err ...error) IArray {
+	arr2 := NewStrArray(arr.objs)
+	if len(err) != 0 {
+		arr2.SetErr(err[0])
+	}
+	return arr2
 }
 
-func (arr *StrArray) mustBeString(obj interface{}) string {
-	if i, ok := obj.(string); ok {
-		return i
+func (arr *StrArray) Insert(index int, item interface{}) IArray {
+	if arr.Err() != nil {
+		return arr
+	}
+	if i, ok := item.(string); ok {
+		length := len(arr.objs)
+		tail := arr.objs[index:length]
+		arr.objs = append(arr.objs[0:index], i)
+		arr.objs = append(arr.objs, tail...)
 	} else {
-		panic("obj must be int")
+		return arr.SetErr(errors.New("Insert: type error"))
 	}
+	return arr
 }
 
-func (arr *StrArray) Append(obj interface{}) (IArray,error) {
-	if str, ok := obj.(string); ok {
-		arr.objs = append(arr.objs, str)
-		arr.tri.Add(str, 1)
-		return arr, nil
+
+func (arr *StrArray) Remove(i int) IArray {
+	if arr.Err() != nil {
+		return arr
 	}
-	return arr, errors.New("can not append none string to StrArray")
+
+	len := arr.Count()
+	if i >= len {
+		return arr.SetErr(errors.New("index exceeded"))
+	}
+	arr.objs = append(arr.objs[0:i], arr.objs[i+1: len]...)
+	return arr
 }
 
-func (arr *StrArray) ToString() ([]string, error) {
-	return arr.objs, nil
+
+func (arr *StrArray) Index(i int) IMix {
+	return NewMix(arr.objs[i])
 }
 
-func (arr *StrArray) Len() int {
+func (arr *StrArray) Count() int {
 	return len(arr.objs)
 }
 
-func (arr *StrArray) Has(obj interface{}) bool {
-	ob := arr.mustBeString(obj)
-	_, isExist := arr.tri.Find(ob)
-	return isExist
+func (arr *StrArray) DD() {
+	ret := fmt.Sprintf("StrArray(%d):{\n", arr.Count())
+	for k, v := range arr.objs {
+		ret = ret + fmt.Sprintf("\t%d:\t%s\n",k, v)
+	}
+	ret = ret + "}\n"
+	fmt.Print(ret)
 }
