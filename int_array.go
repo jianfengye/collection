@@ -1,11 +1,12 @@
 package collection
 
 import (
-	"math"
+	"fmt"
+	"github.com/pkg/errors"
 )
 
 type IntArray struct{
-	VArray
+	AbsArray
 	objs []int
 }
 
@@ -13,83 +14,71 @@ func NewIntArray(objs []int) *IntArray {
 	arr := &IntArray{
 		objs:objs,
 	}
-	arr.VArray.Parent = arr
+	arr.AbsArray.Parent = arr
+	arr.AbsArray.compare = func(i interface{}, i2 interface{}) int {
+		int1 := i.(int)
+		int2 := i2.(int)
+		if int1 > int2 {
+			return 1
+		}
+		if int1 < int2 {
+			return -1
+		}
+		return 0
+	}
 	return arr
 }
 
-func (arr *IntArray) mustBeInt(obj interface{}) int {
+func (arr *IntArray) Insert(index int, obj interface{}) IArray {
+	if arr.Err() != nil {
+		return arr
+	}
 	if i, ok := obj.(int); ok {
-		return i
+		length := len(arr.objs)
+		tail := arr.objs[index:length]
+		arr.objs = append(arr.objs[0:index], i)
+		arr.objs = append(arr.objs, tail...)
 	} else {
-		panic("obj must be int")
+		return arr.SetErr(errors.New("Insert: type error"))
 	}
+	return arr
 }
 
-func (arr *IntArray) Append(obj interface{}) {
-	param := arr.mustBeInt(obj)
-	arr.objs = append(arr.objs, param)
-}
-
-// Search find string in arr, -1 present not found, >=0 present index
-func (arr *IntArray) Search(obj interface{}) int {
-	param := arr.mustBeInt(obj)
-	for i, t := range arr.objs {
-		if t == param {
-			return i
-		}
+func (arr *IntArray) Remove(i int) IArray {
+	if arr.Err() != nil {
+		return arr
 	}
-	return -1
-}
 
-func (arr *IntArray) Max() *Mix {
-	var max int = math.MinInt32
-	for _, obj := range arr.objs {
-		if obj > max {
-			max = obj
-		}
+	len := arr.Count()
+	if i >= len {
+		return arr.SetErr(errors.New("index exceeded"))
 	}
-	return NewMix(max)
+	arr.objs = append(arr.objs[0:i], arr.objs[i+1: len]...)
+	return arr
 }
 
-func (arr *IntArray) Min() *Mix {
-	var min int = math.MaxInt32
-	for _, obj := range arr.objs {
-		if obj < min {
-			min = obj
-		}
+func (arr *IntArray) NewEmpty(err ...error) IArray {
+	intArr := NewIntArray([]int{})
+	if len(err) != 0 {
+		intArr.err = err[0]
 	}
-	return NewMix(min)
+	return intArr
 }
 
-func (arr *IntArray) ToInt() []int{
-	return arr.objs
-}
 
-func (arr *IntArray) Index(i int) *Mix {
+func (arr *IntArray) Index(i int) IMix {
 	return NewMix(arr.objs[i])
 }
 
-func (arr *IntArray) Slice(start, end int) IArray {
-	return NewIntArray(arr.objs[start:end])
-}
-
-func (arr *IntArray) Len() int {
+func (arr *IntArray) Count() int {
 	return len(arr.objs)
 }
 
-func (arr *IntArray) NewEmptyIArray() IArray {
-	return NewIntArray([]int{})
-}
-
-func (arr *IntArray) Unique() IArray {
-	objs := arr.ToInt()
-	ret := NewIntArray([]int{})
-
-	for _, s := range objs {
-		if ret.Search(s) < 0 {
-			ret.Append(s)
-		}
+func (arr *IntArray) DD() {
+	ret := fmt.Sprintf("IntArray(%d):{\n", arr.Count())
+	for k, v := range arr.objs {
+		ret = ret + fmt.Sprintf("\t%d:\t%d\n",k, v)
 	}
-
-	return ret
+	ret = ret + "}\n"
+	fmt.Print(ret)
 }

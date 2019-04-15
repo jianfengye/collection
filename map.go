@@ -1,6 +1,9 @@
 package collection
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+)
 
 type IMap interface {
 
@@ -9,14 +12,31 @@ type IMap interface {
 	// 删除一个Map的key
 	Remove(key interface{})
 	// 根据key获取一个Map的value
-	Get(key interface{}) *Mix
+	Get(key interface{}) IMix
 	// 获取一个Map的长度
 	Len() int
+
+	// 查询一个Value，返回第一个key
+	Search(val interface{}) IMix
+
+	// key和value进行对调
+	Flip() (IMap, error)
+	// 判断是否有这个key，或者多个key
+	Has(keys ...interface{}) bool
 
 	// 获取Map的所有key组成的集合
 	Keys() IArray
 	// 获取Map的所有value组成的集合
 	Values() IArray
+
+	Only(keys ...interface{}) IMap
+
+	// 根据Key进行升序排列
+	SortKeys() IMap
+	// 根据key进行降序排列
+	SortKeysDesc() IMap
+
+	DD()
 }
 
 type Map struct {
@@ -28,7 +48,7 @@ type Map struct {
 	valType reflect.Type
 }
 
-func NewEmptyMap(key, val reflect.Type) *Map {
+func NewEmptyMap(key reflect.Type, val reflect.Type, compare ...func(key1, key2 interface{}) bool) *Map {
 	m := make(map[*Mix]*Mix)
 	return &Map{
 		objs: m,
@@ -36,6 +56,8 @@ func NewEmptyMap(key, val reflect.Type) *Map {
 		valType: val,
 	}
 }
+
+
 
 func (m *Map) mustBeKeyType(key interface{}) {
 	if reflect.TypeOf(key) != m.keyType {
@@ -59,7 +81,7 @@ func (m *Map) Set(key interface{}, value interface{}) {
 	m.objs[k] = v
 }
 
-func (m *Map) Get(key interface{}) *Mix {
+func (m *Map) Get(key interface{}) IMix {
 	m.mustBeKeyType(key)
 	kParam := NewMix(key)
 	for k, v := range m.objs {
@@ -68,6 +90,11 @@ func (m *Map) Get(key interface{}) *Mix {
 		}
 	}
 	return nil
+}
+
+
+func (m *Map) Search(value interface{}) IMix {
+	panic("not implement")
 }
 
 func (m *Map) Remove(key interface{}) {
@@ -89,7 +116,7 @@ func (m *Map) Keys() IArray {
 	var objs IArray
 	switch m.keyType.Kind() {
 	case reflect.String:
-		objs = NewStrArray([]string{})
+		//objs = NewStrArray([]string{})
 	case reflect.Int64:
 		objs = NewInt64Array([]int64{})
 	case reflect.Int:
@@ -108,7 +135,7 @@ func (m *Map) Values() IArray {
 	var objs IArray
 	switch m.valType.Kind() {
 	case reflect.String:
-		objs = NewStrArray([]string{})
+		//objs = NewStrArray([]string{})
 	case reflect.Int64:
 		objs = NewInt64Array([]int64{})
 	case reflect.Int:
@@ -121,5 +148,14 @@ func (m *Map) Values() IArray {
 		objs.Append(v)
 	}
 	return objs
+}
+
+func (m *Map) DD() {
+	ret := fmt.Sprintf("Map(%d):{\n", len(m.objs))
+	for k, v := range m.objs {
+		ret = ret + fmt.Sprintf("\t%s:\t%s\n",k.Format(), v.Format())
+	}
+	ret = ret + "}\n"
+	fmt.Print(ret)
 }
 

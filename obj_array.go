@@ -1,11 +1,13 @@
 package collection
 
 import (
+	"errors"
+	"fmt"
 	"reflect"
 )
 
 type ObjArray struct{
-	VArray
+	AbsArray
 	objs reflect.Value // 数组对象，是一个slice
 	typ reflect.Type // 数组对象每个元素类型
 	ptr reflect.Value // 指向数组对象的指针
@@ -19,24 +21,77 @@ func NewObjArray(objs interface{}) *ObjArray {
 		objs: vals,
 		typ: typ,
 	}
-	arr.VArray.Parent = arr
+	arr.AbsArray.Parent = arr
 	return arr
 }
 
-// 根据Values和单个元素的type创建
-func NewObjArrayWithValType(vals reflect.Value, typ reflect.Type) *ObjArray {
-	arr := &ObjArray{
-		objs: vals,
-		typ: typ,
+func (arr *ObjArray) Insert(index int, obj interface{}) IArray {
+	if arr.Err() != nil {
+		return arr
 	}
-	arr.VArray.Parent = arr
+
+	ret := arr.objs.Slice(0, index)
+	length := arr.objs.Len()
+	tail := arr.objs.Slice(index, length)
+	ret = reflect.Append(ret, reflect.ValueOf(obj))
+	for i := 0; i < tail.Len(); i++ {
+		ret = reflect.Append(ret, tail.Index(i))
+	}
+	arr.objs = ret
+	arr.AbsArray.Parent = arr
 	return arr
 }
 
-func (arr *ObjArray) Append(obj interface{}) {
-	arr.objs = reflect.Append(arr.objs, reflect.ValueOf(obj))
+func (arr *ObjArray) Index(i int) IMix {
+	return NewMix(arr.objs.Index(i).Interface())
 }
 
+func (arr *ObjArray) NewEmpty(err ...error) IArray {
+	objs := reflect.MakeSlice(arr.objs.Type(), 0, 0)
+	ret := &ObjArray{
+		objs: objs,
+		typ: arr.typ,
+	}
+	ret.AbsArray.Parent = ret
+	if len(err) != 0 {
+		ret.SetErr(err[0])
+	}
+	return ret
+}
+
+func (arr *ObjArray) Remove(i int) IArray {
+	if arr.Err() != nil {
+		return arr
+	}
+
+	len := arr.Count()
+	if i >= len {
+		return arr.SetErr(errors.New("index exceeded"))
+	}
+
+	ret := arr.objs.Slice(0, i)
+	length := arr.objs.Len()
+	tail := arr.objs.Slice(i + 1, length)
+	for i := 0; i < tail.Len(); i++ {
+		ret = reflect.Append(ret, tail.Index(i))
+	}
+	arr.objs = ret
+	arr.AbsArray.Parent = arr
+	return arr
+}
+
+func (arr *ObjArray) Count() int {
+	return arr.objs.Len()
+}
+
+func (arr *ObjArray) DD() {
+	ret := fmt.Sprintf("ObjArray(%d):{\n", arr.Count())
+	for i:= 0; i< arr.objs.Len(); i++ {
+		ret = ret + fmt.Sprintf("\t%d:\t%v\n", i, arr.objs.Index(i))
+	}
+	ret = ret + "}\n"
+	fmt.Print(ret)
+}
 
 // Column return some key by column
 func (arr *ObjArray) Column(key string) IArray {
@@ -54,8 +109,14 @@ func (arr *ObjArray) Column(key string) IArray {
 		objs = NewInt64Array([]int64{})
 	case reflect.Int:
 		objs = NewIntArray([]int{})
+	case reflect.Float32:
+		objs = NewFloat32Array([]float32{})
+	case reflect.Float64:
+		objs = NewFloat64Array([]float64{})
 	default:
-		panic("ObjArray.Column: not support kind")
+		err := errors.New("ObjArray.Column: not support kind")
+		arr.SetErr(err)
+		return arr
 	}
 
 	for i := 0; i < arr.objs.Len(); i++ {
@@ -66,38 +127,36 @@ func (arr *ObjArray) Column(key string) IArray {
 	return objs
 }
 
-func (arr *ObjArray) KeyBy(key string) *Map {
+func (arr *ObjArray) KeyBy(key string) (IMap, error) {
 
 	field, found := arr.typ.FieldByName(key)
 	if !found  {
-		panic("ObjArray.KeyBy: key not found")
+		err := errors.New("ObjArray.KeyBy: key not found")
+		arr.SetErr(err)
+		return nil, err
 	}
 	m := NewEmptyMap(field.Type, arr.typ)
 	for i := 0; i < arr.objs.Len(); i++ {
 		v := arr.objs.Index(i).FieldByName(key).Interface()
 		m.Set(v, arr.objs.Index(i).Interface())
 	}
-	return m
+	return m, nil
 }
 
-func (arr *ObjArray) Index(i int) *Mix {
-	return NewMix(arr.objs.Index(i).Interface())
+// 将对象的某个key作为Slice的value，作为slice返回
+func (arr *ObjArray) Pluck(key string) IArray {
+	//TODO: not implement
+	panic(1)
 }
 
-func (arr *ObjArray) Slice(start, end int) IArray {
-	return NewObjArrayWithValType(arr.objs.Slice(start, end), arr.typ)
+// 按照某个字段进行排序
+func (arr *ObjArray) SortBy(key string) IArray {
+	//TODO: not implement
+	panic(1)
 }
 
-func (arr *ObjArray) Len() int {
-	return arr.objs.Len()
-}
-
-func (arr *ObjArray) NewEmptyIArray() IArray {
-	objs := reflect.MakeSlice(arr.objs.Type(), 0, 0)
-	ret := &ObjArray{
-		objs: objs,
-		typ: arr.typ,
-	}
-	ret.VArray.Parent = ret
-	return ret
+// 按照某个字段进行排序,倒序
+func (arr *ObjArray) SortByDesc(key string) IArray {
+	//TODO: not implement
+	panic(1)
 }

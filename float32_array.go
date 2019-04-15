@@ -1,23 +1,23 @@
 package collection
 
 import (
-	"errors"
 	"fmt"
+	"github.com/pkg/errors"
 )
 
-type Int64Array struct{
+type Float32Array struct{
 	AbsArray
-	objs []int64
+	objs []float32
 }
 
-func NewInt64Array(objs []int64) *Int64Array {
-	arr := &Int64Array{
+func NewFloat32Array(objs []float32) *Float32Array {
+	arr := &Float32Array{
 		objs:objs,
 	}
 	arr.AbsArray.Parent = arr
 	arr.AbsArray.compare = func(i interface{}, i2 interface{}) int {
-		int1 := i.(int64)
-		int2 := i2.(int64)
+		int1 := i.(float32)
+		int2 := i2.(float32)
 		if int1 > int2 {
 			return 1
 		}
@@ -29,11 +29,11 @@ func NewInt64Array(objs []int64) *Int64Array {
 	return arr
 }
 
-func (arr *Int64Array) Insert(index int, obj interface{}) IArray {
+func (arr *Float32Array) Insert(index int, obj interface{}) IArray {
 	if arr.Err() != nil {
 		return arr
 	}
-	if i, ok := obj.(int64); ok {
+	if i, ok := obj.(float32); ok {
 		length := len(arr.objs)
 		tail := arr.objs[index:length]
 		arr.objs = append(arr.objs[0:index], i)
@@ -44,7 +44,7 @@ func (arr *Int64Array) Insert(index int, obj interface{}) IArray {
 	return arr
 }
 
-func (arr *Int64Array) Remove(i int) IArray {
+func (arr *Float32Array) Remove(i int) IArray {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -57,8 +57,8 @@ func (arr *Int64Array) Remove(i int) IArray {
 	return arr
 }
 
-func (arr *Int64Array) NewEmpty(err ...error) IArray {
-	intArr := NewInt64Array([]int64{})
+func (arr *Float32Array) NewEmpty(err ...error) IArray {
+	intArr := NewFloat32Array([]float32{})
 	if len(err) != 0 {
 		intArr.err = err[0]
 	}
@@ -66,18 +66,18 @@ func (arr *Int64Array) NewEmpty(err ...error) IArray {
 }
 
 
-func (arr *Int64Array) Index(i int) IMix {
+func (arr *Float32Array) Index(i int) IMix {
 	return NewMix(arr.objs[i])
 }
 
-func (arr *Int64Array) Count() int {
+func (arr *Float32Array) Count() int {
 	return len(arr.objs)
 }
 
-func (arr *Int64Array) DD() {
+func (arr *Float32Array) DD() {
 	ret := fmt.Sprintf("IntArray(%d):{\n", arr.Count())
 	for k, v := range arr.objs {
-		ret = ret + fmt.Sprintf("\t%d:\t%d\n",k, v)
+		ret = ret + fmt.Sprintf("\t%d:\t%v\n",k, v)
 	}
 	ret = ret + "}\n"
 	fmt.Print(ret)
