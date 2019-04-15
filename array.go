@@ -12,12 +12,12 @@ type IArray interface {
 	IsEmpty() bool
 	// 判断是否是空数组
 	IsNotEmpty() bool
-	// 放入一个元素到数组中，对所有Array生效
-	Append(item interface{}) error
+	// 放入一个元素到数组中，对所有Array生效, 仅当item和array结构不一致的时候返回错误
+	Append(item interface{}) (IArray, error)
 	// 删除一个元素, 需要自类实现
-	Remove(index int) error
+	Remove(index int) (IArray, error)
 	// 增加一个元素。
-	Insert(index int, item interface{}) error
+	Insert(index int, item interface{}) (IArray, error)
 	// 查找数据中是否包含，-1不包含，>=0 返回数组中元素下标，对所有Array生效
 	Search(item interface{}) int
 	// 过滤数组中重复的元素，仅对基础Array生效
@@ -37,7 +37,7 @@ type IArray interface {
 	// 获取数组长度，对所有Array生效
 	Count() int
 	// 将两个数组进行合并，参数的数据挂在当前数组中，返回当前数组，对所有Array生效
-	Merge(arr IArray)
+	Merge(arr IArray) (IArray, error)
 	// 合并，将当前数组每个元素作为key，传入参数每个元素作为value，组成一个map
 	Combine(arr IArray) (IMap, error)
 	// 进行笛卡尔乘积组成数组
@@ -49,7 +49,7 @@ type IArray interface {
 	Map(func(item interface{}, key int) IMix) IArray
 	// 合并一些元素，并组成一个新的元素
 	Reduce(func(carry IMix, item IMix) IMix) IMix
-	// 判断每个对象是否都满足, 如果colleciton是空，返回true
+	// 判断每个对象是否都满足, 如果collection是空，返回true
 	Every(func(item interface{}, key int) bool) bool
 	// 按照分页进行返回
 	ForPage(page int, perPage int) IArray
@@ -60,9 +60,9 @@ type IArray interface {
 	// 从队列右侧弹出结构
 	Pop() IMix
 	// 推入元素
-	Push(item interface{}) error
+	Push(item interface{}) (IArray, error)
 	// 前面插入一个元素
-	Prepend(item interface{}) error
+	Prepend(item interface{}) (IArray, error)
 	// 随机获取一个元素
 	Random() IMix
 	// 倒置
@@ -129,15 +129,15 @@ type IArray interface {
 	下面的方法对根据不同的对象，进行不同的调用转换
 	 */
 	// 转化为golang原生的字符数组，仅对StrArray生效
-	ToString() ([]string, error)
+	ToStrings() ([]string, error)
 	// 转化为golang原生的Int64数组，仅对Int64Array生效
-	ToInt64() ([]int64, error)
+	ToInt64s() ([]int64, error)
 	// 转化为golang原生的Int数组，仅对IntArray生效
-	ToInt() ([]int, error)
+	ToInts() ([]int, error)
 	// 转化为obj数组
-	ToMix() []IMix
+	ToMixs() []IMix
 	// 转化为float64数组
-	ToFloat64() ([]float64, error)
+	ToFloat64s() ([]float64, error)
 	// 转化为float32数组
-	ToFloat32() ([]float32, error)
+	ToFloat32s() ([]float32, error)
 }

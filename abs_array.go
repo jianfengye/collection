@@ -27,15 +27,16 @@ func (arr *AbsArray) NewEmpty() IArray {
 	return arr.Parent.NewEmpty()
 }
 
-func (arr *AbsArray) Insert(index int, obj interface{}) error {
+func (arr *AbsArray) Insert(index int, obj interface{}) (IArray, error) {
 	if arr.Parent == nil {
 		panic("no parent")
 	}
+
 	return arr.Parent.Insert(index, obj)
 }
 
 
-func (arr *AbsArray) Remove(index int) error {
+func (arr *AbsArray) Remove(index int) (IArray, error) {
 	if arr.Parent == nil {
 		panic("no parent")
 	}
@@ -68,7 +69,7 @@ func (arr *AbsArray) ToJson() []byte {
 下面这些函数是所有函数体都一样
  */
 
-func (arr *AbsArray) Append(item interface{}) error {
+func (arr *AbsArray) Append(item interface{}) (IArray,error) {
 	return arr.Parent.Insert(arr.Count(), item)
 }
 
@@ -145,10 +146,14 @@ func (arr *AbsArray) Slice(ps ...int) IArray {
 	return newArr
 }
 
-func (arr *AbsArray) Merge(arr2 IArray) {
+func (arr *AbsArray) Merge(arr2 IArray) (IArray, error) {
 	for i := 0; i < arr2.Count(); i++ {
-		arr.Append(arr2.Index(i).ToInterface())
+		_, err := arr.Append(arr2.Index(i).ToInterface())
+		if err != nil {
+			return nil, err
+		}
 	}
+	return arr, nil
 }
 
 func (arr *AbsArray) Combine(arr2 IArray) (IMap, error) {
@@ -194,7 +199,7 @@ func (arr *AbsArray) Each(f func(item interface{}, key int)) {
 func newMixArray(mix IMix) IArray {
 	switch mix.Type().Kind() {
 	case reflect.String:
-		return NewStrArray([]string{})
+		//return NewStrArray([]string{})
 	case reflect.Int:
 		return NewIntArray([]int{})
 	}
@@ -273,7 +278,7 @@ func (arr *AbsArray) Pad(start int, def interface{}) (IArray, error) {
 			newArr.Append(arr.Index(i).ToInterface())
 		}
 		for i := arr.Count(); i < start; i++ {
-			err := newArr.Append(def)
+			_, err := newArr.Append(def)
 			if err != nil {
 				return nil, err
 			}
@@ -288,7 +293,7 @@ func (arr *AbsArray) Pad(start int, def interface{}) (IArray, error) {
 		}
 
 		for i := start; i < -arr.Count(); i++ {
-			err := newArr.Append(def)
+			_, err := newArr.Append(def)
 			if err != nil {
 				return nil, err
 			}
@@ -309,11 +314,11 @@ func (arr *AbsArray) Pop() IMix {
 	return ret
 }
 
-func (arr *AbsArray) Push(item interface{}) error {
+func (arr *AbsArray) Push(item interface{}) (IArray, error) {
 	return arr.Append(item)
 }
 
-func (arr *AbsArray) Prepend(item interface{}) error {
+func (arr *AbsArray) Prepend(item interface{}) (IArray, error) {
 	return arr.Insert(0, item)
 }
 
@@ -569,7 +574,7 @@ func (arr *AbsArray) First(f ...func(obj interface{}, index int) bool) IMix {
 	return nil
 }
 
-func (arr *AbsArray) ToString() ([]string, error) {
+func (arr *AbsArray) ToStrings() ([]string, error) {
 	ret := make([]string, arr.Count())
 	for i := 0; i < arr.Count(); i++ {
 		t , err := arr.Index(i).ToString()
@@ -581,7 +586,7 @@ func (arr *AbsArray) ToString() ([]string, error) {
 	return ret, nil
 }
 
-func (arr *AbsArray) ToInt64() ([]int64, error) {
+func (arr *AbsArray) ToInt64s() ([]int64, error) {
 	ret := make([]int64, arr.Count())
 	for i := 0; i < arr.Count(); i++ {
 		t , err := arr.Index(i).ToInt64()
@@ -593,7 +598,7 @@ func (arr *AbsArray) ToInt64() ([]int64, error) {
 	return ret, nil
 }
 
-func (arr *AbsArray) ToInt() ([]int, error) {
+func (arr *AbsArray) ToInts() ([]int, error) {
 	ret := make([]int, arr.Count())
 	for i := 0; i < arr.Count(); i++ {
 		t , err := arr.Index(i).ToInt()
@@ -605,7 +610,7 @@ func (arr *AbsArray) ToInt() ([]int, error) {
 	return ret, nil
 }
 
-func (arr *AbsArray) ToMix() []IMix {
+func (arr *AbsArray) ToMixs() []IMix {
 	ret := make([]IMix, arr.Count())
 	for i := 0; i < arr.Count(); i++ {
 		ret[i] = arr.Index(i)
@@ -613,7 +618,7 @@ func (arr *AbsArray) ToMix() []IMix {
 	return ret
 }
 
-func (arr *AbsArray) ToFloat64() ([]float64, error) {
+func (arr *AbsArray) ToFloat64s() ([]float64, error) {
 	ret := make([]float64, arr.Count())
 	for i := 0; i < arr.Count(); i++ {
 		t , err := arr.Index(i).ToFloat64()
@@ -625,7 +630,7 @@ func (arr *AbsArray) ToFloat64() ([]float64, error) {
 	return ret, nil
 }
 
-func (arr *AbsArray) ToFloat32() ([]float32, error) {
+func (arr *AbsArray) ToFloat32s() ([]float32, error) {
 	ret := make([]float32, arr.Count())
 	for i := 0; i < arr.Count(); i++ {
 		t , err := arr.Index(i).ToFloat32()

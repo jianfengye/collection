@@ -116,7 +116,7 @@ func (m *Map) Keys() IArray {
 	var objs IArray
 	switch m.keyType.Kind() {
 	case reflect.String:
-		objs = NewStrArray([]string{})
+		//objs = NewStrArray([]string{})
 	case reflect.Int64:
 		objs = NewInt64Array([]int64{})
 	case reflect.Int:
@@ -135,7 +135,7 @@ func (m *Map) Values() IArray {
 	var objs IArray
 	switch m.valType.Kind() {
 	case reflect.String:
-		objs = NewStrArray([]string{})
+		//objs = NewStrArray([]string{})
 	case reflect.Int64:
 		objs = NewInt64Array([]int64{})
 	case reflect.Int:

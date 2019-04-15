@@ -45,13 +45,13 @@ func (arr *StrArray) mustBeString(obj interface{}) string {
 	}
 }
 
-func (arr *StrArray) Append(obj interface{}) error {
+func (arr *StrArray) Append(obj interface{}) (IArray,error) {
 	if str, ok := obj.(string); ok {
 		arr.objs = append(arr.objs, str)
 		arr.tri.Add(str, 1)
-		return nil
+		return arr, nil
 	}
-	return errors.New("can not append none string to StrArray")
+	return arr, errors.New("can not append none string to StrArray")
 }
 
 func (arr *StrArray) ToString() ([]string, error) {

@@ -319,7 +319,7 @@ func TestAbsArray_Push(t *testing.T) {
 
 func TestAbsArray_Prepend(t *testing.T) {
 	intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
-	err := intColl.Prepend(0)
+	_, err := intColl.Prepend(0)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -345,5 +345,9 @@ func TestAbsArray_Reverse(t *testing.T) {
 	intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
 	vs := intColl.Reverse()
 	vs.DD()
+}
 
+func TestAppend(t *testing.T) {
+	a := []int{1, 2}
+	a = append(a, 4)
 }

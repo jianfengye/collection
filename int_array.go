@@ -29,25 +29,25 @@ func NewIntArray(objs []int) *IntArray {
 	return arr
 }
 
-func (arr *IntArray) Insert(index int, obj interface{}) error {
+func (arr *IntArray) Insert(index int, obj interface{}) (IArray, error) {
 	if i, ok := obj.(int); ok {
 		length := len(arr.objs)
 		tail := arr.objs[index:length]
 		arr.objs = append(arr.objs[0:index], i)
 		arr.objs = append(arr.objs, tail...)
 	} else {
-		return errors.New("Insert: type error")
+		return arr, errors.New("Insert: type error")
 	}
-	return nil
+	return arr, nil
 }
 
-func (arr *IntArray) Remove(i int) error {
+func (arr *IntArray) Remove(i int) (IArray, error) {
 	len := arr.Count()
 	if i >= len {
-		return errors.New("index exceeded")
+		return arr, errors.New("index exceeded")
 	}
 	arr.objs = append(arr.objs[0:i], arr.objs[i+1: len]...)
-	return nil
+	return arr, nil
 }
 
 func (arr *IntArray) NewEmpty() IArray {
