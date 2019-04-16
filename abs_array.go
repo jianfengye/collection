@@ -113,7 +113,7 @@ func (arr *AbsArray) Unique() IArray {
 	if arr.Err() != nil {
 		return arr
 	}
-	newArr := arr.NewEmpty()
+	newArr := arr.NewEmpty(arr.Err())
 	for i := 0; i < arr.Count(); i++ {
 		if newArr.Contains(arr.Index(i).ToInterface()) == false {
 			newArr.Append(arr.Index(i).ToInterface())
@@ -126,7 +126,7 @@ func (arr *AbsArray) Reject(f func(item interface{}, key int) bool) IArray {
 	if arr.Err() != nil {
 		return arr
 	}
-	newArr := arr.NewEmpty().SetErr(arr.err)
+	newArr := arr.NewEmpty(arr.Err())
 	for i := 0; i < arr.Count(); i++ {
 		if f(arr.Index(i).ToInterface(), i) == false {
 			newArr.Append(arr.Index(i).ToInterface())
@@ -162,7 +162,7 @@ func (arr *AbsArray) Slice(ps ...int) IArray {
 		count = ps[1]
 	}
 
-	newArr := arr.NewEmpty()
+	newArr := arr.NewEmpty(arr.Err())
 	for i := 0; i < arr.Count(); i++ {
 		if i >= start {
 			newArr.Append(arr.Index(i).ToInterface())
@@ -236,9 +236,15 @@ func (arr *AbsArray) Each(f func(item interface{}, key int)) {
 func newMixArray(mix IMix) IArray {
 	switch mix.Type().Kind() {
 	case reflect.String:
-		//return NewStrArray([]string{})
+		return NewStrArray([]string{})
 	case reflect.Int:
 		return NewIntArray([]int{})
+	case reflect.Int64:
+		return NewInt64Array([]int64{})
+	case reflect.Float32:
+		return NewFloat32Array([]float32{})
+	case reflect.Float64:
+		return NewFloat64Array([]float64{})
 	}
 	return nil
 }
@@ -310,7 +316,7 @@ func (arr *AbsArray) Nth(n int, offset int) IArray {
 		return arr
 	}
 
-	newArr := arr.NewEmpty()
+	newArr := arr.NewEmpty(arr.Err())
 	for i := 0; i < arr.Count(); i++ {
 		if (i - offset) % n == 0 {
 			newArr.Append(arr.Index(i).ToInterface())
@@ -324,7 +330,7 @@ func (arr *AbsArray) Pad(start int, def interface{}) IArray {
 		return arr
 	}
 
-	newArr := arr.NewEmpty()
+	newArr := arr.NewEmpty(arr.Err())
 
 	if start > 0 {
 		if start <= arr.Count() {
@@ -401,7 +407,7 @@ func (arr *AbsArray) Reverse() IArray {
 		return arr
 	}
 
-	newArr := arr.NewEmpty()
+	newArr := arr.NewEmpty(arr.Err())
 	for i := 0; i < newArr.Count() - 1; i++ {
 		newArr.Append(arr.Index(newArr.Count() - 1 - i).ToInterface())
 	}
@@ -421,20 +427,11 @@ func (arr *AbsArray) Shuffle() IArray {
 		indexs[i], indexs[j] = indexs[j], indexs[i]
 	})
 
-	newArr := arr.NewEmpty()
+	newArr := arr.NewEmpty(arr.Err())
 	for i := 0; i < len(indexs); i ++ {
 		newArr.Append(arr.Index(indexs[i]).ToInterface())
 	}
 	return newArr
-}
-
-func (arr *AbsArray) Column(string) IArray {
-	if arr.Err() != nil {
-		return arr
-	}
-
-	arr.SetErr(errors.New("format not support"))
-	return arr
 }
 
 func (arr *AbsArray) KeyBy(key string) (IMap, error) {
@@ -472,8 +469,9 @@ func (arr *AbsArray) SortByDesc(key string) IArray {
 	return arr
 }
 
-func (arr *AbsArray) SetCompare(func(a interface{}, b interface{}) int) {
-	panic("SetCompare: not Implement")
+func (arr *AbsArray) SetCompare(compare func(a interface{}, b interface{}) int) IArray {
+	arr.compare = compare
+	return arr
 }
 
 func (arr *AbsArray) Max() IMix {
@@ -527,7 +525,7 @@ func (arr *AbsArray) Diff(arr2 IArray) IArray {
 		return arr
 	}
 
-	newArr := arr.NewEmpty()
+	newArr := arr.NewEmpty(arr.Err())
 	for i := 0; i < arr.Count(); i++ {
 		if arr2.Contains(arr.Index(i).ToInterface()) == false {
 			newArr.Append(arr.Index(i).ToInterface())
@@ -541,7 +539,7 @@ func (arr *AbsArray) Sort() IArray {
 		return arr
 	}
 
-	newArr := arr.NewEmpty()
+	newArr := arr.NewEmpty(arr.Err())
 
 	isContained := func(arr []int, item int) bool {
 		for i := 0; i < len(arr); i++ {
@@ -583,7 +581,7 @@ func (arr *AbsArray) SortDesc() IArray {
 		return arr
 	}
 
-	newArr := arr.NewEmpty()
+	newArr := arr.NewEmpty(arr.Err())
 
 	isContained := func(arr []int, item int) bool {
 		for i := 0; i < len(arr); i++ {
@@ -692,7 +690,7 @@ func (arr *AbsArray) Filter(f func(obj interface{}, index int) bool) IArray {
 		return arr
 	}
 
-	ret := arr.Parent.NewEmpty()
+	ret := arr.Parent.NewEmpty(arr.Err())
 	l := arr.Parent.Count()
 	for i := 0; i < l; i++ {
 		obj := arr.Parent.Index(i).ToInterface()

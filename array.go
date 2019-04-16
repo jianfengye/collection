@@ -81,11 +81,9 @@ type IArray interface {
 	/*
 	下面的方法对ObjArray生效
 	 */
-	// 返回数组中对象的某个key组成的数组，仅对ObjectArray生效, key为对象属性名称，必须为public的属性
-	Column(string) IArray
 	// 将数组中对象某个key作为map的key，整个对象作为value，作为map返回，如果key有重复会进行覆盖，仅对ObjectArray生效
 	KeyBy(key string) (IMap, error)
-	// 将对象的某个key作为Slice的value，作为slice返回
+	// 返回数组中对象的某个key组成的数组，仅对ObjectArray生效, key为对象属性名称，必须为public的属性
 	Pluck(key string) IArray
 	// 按照某个字段进行排序
 	SortBy(key string) IArray
@@ -98,7 +96,7 @@ type IArray interface {
 	 */
 	// 比较a和b，如果a>b, 返回1，如果a<b, 返回-1，如果a=b, 返回0
 	// 设置比较函数，理论上所有Array都能设置比较函数，但是强烈不建议基础Array设置。
-	SetCompare(func(a interface{}, b interface{}) int)
+	SetCompare(func(a interface{}, b interface{}) int) IArray
 	// 数组中最大的元素，仅对基础Array生效, 可以传递一个比较函数
 	Max() IMix
 	// 数组中最小的元素，仅对基础Array生效

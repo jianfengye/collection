@@ -8,6 +8,9 @@ import (
 
 // IMix是一个混合结构
 type IMix interface {
+	Err() error
+	SetErr(err error) IMix
+
 	Equal(n IMix) bool // 两个IMix结构是否相同
 	Type() reflect.Type // 获取类型
 
@@ -29,6 +32,8 @@ type IMix interface {
 
 type Mix struct {
 	IMix
+
+	err error
 	real interface{}
 	typ reflect.Type
 }
@@ -38,6 +43,15 @@ func NewMix(real interface{}) *Mix {
 		real: real,
 		typ: reflect.TypeOf(real),
 	}
+}
+
+func (m *Mix) Err() error {
+	return m.err
+}
+
+func (m *Mix) SetErr(err error) IMix {
+	m.err = err
+	return m
 }
 
 func (m *Mix)Type() reflect.Type {
@@ -106,22 +120,181 @@ func (m *Mix) Equal(n IMix) bool {
 }
 
 func (m *Mix) Add(n IMix) (IMix, error) {
-	panic("not implement")
+	switch m.typ.Kind() {
+	case reflect.String:
+		item1, err := m.ToString()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		item2, err := n.ToString()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		return NewMix(item1 + item2), nil
+	case reflect.Int:
+		item1, err := m.ToInt()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		item2, err := n.ToInt()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		return NewMix(item1 + item2), nil
+	case reflect.Int64:
+		item1, err := m.ToInt64()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		item2, err := n.ToInt64()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		return NewMix(item1 + item2), nil
+	case reflect.Float64:
+		item1, err := m.ToFloat64()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		item2, err := n.ToFloat64()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		return NewMix(item1 + item2), nil
+	case reflect.Float32:
+		item1, err := m.ToFloat32()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		item2, err := n.ToFloat32()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		return NewMix(item1 + item2), nil
+	default:
+		return nil, errors.New("format not support")
+	}
 }
 
 func (m *Mix) Sub(n IMix) (IMix, error) {
-	panic("not implement")
+	switch m.typ.Kind() {
+	case reflect.String:
+		return nil, errors.New("format not support")
+	case reflect.Int:
+		item1, err := m.ToInt()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		item2, err := n.ToInt()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		return NewMix(item1 - item2), nil
+	case reflect.Int64:
+		item1, err := m.ToInt64()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		item2, err := n.ToInt64()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		return NewMix(item1 - item2), nil
+	case reflect.Float64:
+		item1, err := m.ToFloat64()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		item2, err := n.ToFloat64()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		return NewMix(item1 - item2), nil
+	case reflect.Float32:
+		item1, err := m.ToFloat32()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		item2, err := n.ToFloat32()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		return NewMix(item1 - item2), nil
+	default:
+		return nil, errors.New("format not support")
+	}
 }
 
 func (m *Mix) Div(n int) (IMix, error) {
-	panic("not implement")
+	switch m.typ.Kind() {
+	case reflect.String:
+		return nil, errors.New("format not support")
+	case reflect.Int:
+		item1, err := m.ToInt()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		return NewMix(item1 / n), nil
+	case reflect.Int64:
+		item1, err := m.ToInt64()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		return NewMix(item1 / int64(n)), nil
+	case reflect.Float64:
+		item1, err := m.ToFloat64()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		return NewMix(item1 - float64(n)), nil
+	case reflect.Float32:
+		item1, err := m.ToFloat32()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		return NewMix(item1 / float32(n)), nil
+	default:
+		return nil, errors.New("format not support")
+	}
 }
 
 func (m *Mix) Multi(n int) (IMix, error) {
-	panic("not implement")
+	switch m.typ.Kind() {
+	case reflect.String:
+		return nil, errors.New("format not support")
+	case reflect.Int:
+		item1, err := m.ToInt()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		return NewMix(item1 * n), nil
+	case reflect.Int64:
+		item1, err := m.ToInt64()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		return NewMix(item1 * int64(n)), nil
+	case reflect.Float64:
+		item1, err := m.ToFloat64()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		return NewMix(item1 * float64(n)), nil
+	case reflect.Float32:
+		item1, err := m.ToFloat32()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		return NewMix(item1 * float32(n)), nil
+	default:
+		return nil, errors.New("format not support")
+	}
 }
 
 func (m *Mix) ToString() (string, error){
+	if m.err != nil {
+		return "", m.err
+	}
 	if ret, ok := m.real.(string); ok{
 		return ret, nil
 	}
@@ -129,6 +302,9 @@ func (m *Mix) ToString() (string, error){
 }
 
 func (m *Mix) ToInt64() (int64, error) {
+	if m.err != nil {
+		return 0, m.err
+	}
 	if ret, ok := m.real.(int64); ok {
 		return ret, nil
 	}
@@ -136,6 +312,9 @@ func (m *Mix) ToInt64() (int64, error) {
 }
 
 func (m *Mix) ToInt() (int, error) {
+	if m.err != nil {
+		return 0, m.err
+	}
 	if ret, ok := m.real.(int); ok {
 		return ret, nil
 	}
@@ -143,6 +322,9 @@ func (m *Mix) ToInt() (int, error) {
 }
 
 func (m *Mix) ToFloat64() (float64, error) {
+	if m.err != nil {
+		return 0.0, m.err
+	}
 	if ret, ok := m.real.(float64); ok {
 		return ret, nil
 	}
@@ -150,12 +332,14 @@ func (m *Mix) ToFloat64() (float64, error) {
 }
 
 func (m *Mix) ToFloat32() (float32, error) {
+	if m.err != nil {
+		return 0.0, m.err
+	}
 	if ret, ok := m.real.(float32); ok {
 		return ret, nil
 	}
 	return 0, errors.New("Mix can not covert to float32")
 }
-
 
 func (m *Mix) ToInterface() interface{} {
 	return m.real
@@ -166,6 +350,6 @@ func (m *Mix) Format() string {
 }
 
 func (m *Mix) DD() {
-	ret := fmt.Sprintf("IMix(%s): %v \n", m.typ.Kind(), m.real)
+	ret := fmt.Sprintf("IMix(%s): %+v \n", m.typ.Kind(), m.real)
 	fmt.Print(ret)
 }

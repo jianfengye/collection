@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"sort"
 )
 
 type ObjArray struct{
@@ -85,46 +86,12 @@ func (arr *ObjArray) Count() int {
 }
 
 func (arr *ObjArray) DD() {
-	ret := fmt.Sprintf("ObjArray(%d):{\n", arr.Count())
+	ret := fmt.Sprintf("ObjArray(%d)(%s):{\n", arr.Count(), arr.typ.String())
 	for i:= 0; i< arr.objs.Len(); i++ {
-		ret = ret + fmt.Sprintf("\t%d:\t%v\n", i, arr.objs.Index(i))
+		ret = ret + fmt.Sprintf("\t%d:\t%+v\n", i, arr.objs.Index(i))
 	}
 	ret = ret + "}\n"
 	fmt.Print(ret)
-}
-
-// Column return some key by column
-func (arr *ObjArray) Column(key string) IArray {
-	var objs IArray
-
-	field, found := arr.typ.FieldByName(key)
-	if !found  {
-		panic("ObjArray.Column:key not found")
-	}
-
-	switch field.Type.Kind() {
-	case reflect.String:
-		objs = NewStrArray([]string{})
-	case reflect.Int64:
-		objs = NewInt64Array([]int64{})
-	case reflect.Int:
-		objs = NewIntArray([]int{})
-	case reflect.Float32:
-		objs = NewFloat32Array([]float32{})
-	case reflect.Float64:
-		objs = NewFloat64Array([]float64{})
-	default:
-		err := errors.New("ObjArray.Column: not support kind")
-		arr.SetErr(err)
-		return arr
-	}
-
-	for i := 0; i < arr.objs.Len(); i++ {
-		v := arr.objs.Index(i).FieldByName(key).Interface()
-		objs.Append(v)
-	}
-
-	return objs
 }
 
 func (arr *ObjArray) KeyBy(key string) (IMap, error) {
@@ -145,18 +112,102 @@ func (arr *ObjArray) KeyBy(key string) (IMap, error) {
 
 // 将对象的某个key作为Slice的value，作为slice返回
 func (arr *ObjArray) Pluck(key string) IArray {
-	//TODO: not implement
-	panic(1)
+	if arr.Err() != nil {
+		return arr
+	}
+
+	var objs IArray
+
+	field, found := arr.typ.FieldByName(key)
+	if !found  {
+		err := errors.New("ObjArray.Pluck:key not found")
+		arr.SetErr(err)
+		return arr
+	}
+
+	switch field.Type.Kind() {
+	case reflect.String:
+		objs = NewStrArray([]string{})
+	case reflect.Int64:
+		objs = NewInt64Array([]int64{})
+	case reflect.Int:
+		objs = NewIntArray([]int{})
+	case reflect.Float32:
+		objs = NewFloat32Array([]float32{})
+	case reflect.Float64:
+		objs = NewFloat64Array([]float64{})
+	default:
+		err := errors.New("ObjArray.Pluck: not support kind")
+		arr.SetErr(err)
+		return arr
+	}
+
+	for i := 0; i < arr.objs.Len(); i++ {
+		v := arr.objs.Index(i).FieldByName(key).Interface()
+		objs.Append(v)
+	}
+
+	return objs
+}
+
+func (a *ObjArray) Len() int { return a.objs.Len() }
+func (a *ObjArray) Swap(i, j int) {
+	pt := a.objs.Index(i).Interface()
+	val := reflect.ValueOf(pt)
+	reflect.Copy(a.objs.Index(i), a.objs.Index(j))
+	reflect.Copy(a.objs.Index(j), val)
+}
+func (a *ObjArray) Less(i, j int) bool {
+	iInterface := a.objs.Index(i).Interface()
+	jInterface := a.objs.Index(j).Interface()
+
+	if a.compare == nil {
+		panic("Less compare does not exist")
+	}
+
+	if  a.compare(iInterface, jInterface) < 0 {
+		return true
+	}
+	return false
+}
+
+type ByFieldSortDesc ObjArray
+func (a ByFieldSortDesc) Len() int { return a.objs.Len() }
+func (a ByFieldSortDesc) Swap(i, j int) {
+	t := a.objs.Index(i)
+	a.objs.Index(i).Set(a.objs.Index(j))
+	a.objs.Index(j).Set(t)
+}
+func (a ByFieldSortDesc) Less(i, j int) bool {
+	iInterface := a.objs.Index(i).Interface()
+	jInterface := a.objs.Index(j).Interface()
+
+	if a.compare == nil {
+		panic("Less compare does not exist")
+	}
+
+	if  a.compare(iInterface, jInterface) < 0 {
+		return true
+	}
+	return false
 }
 
 // 按照某个字段进行排序
 func (arr *ObjArray) SortBy(key string) IArray {
-	//TODO: not implement
-	panic(1)
+	if arr.Err() != nil {
+		return arr
+	}
+
+	sort.Sort(arr)
+	return arr
 }
 
 // 按照某个字段进行排序,倒序
 func (arr *ObjArray) SortByDesc(key string) IArray {
-	//TODO: not implement
-	panic(1)
+	if arr.Err() != nil {
+		return arr
+	}
+
+	sort.Sort(ByFieldSortDesc(*arr))
+	return arr
 }
