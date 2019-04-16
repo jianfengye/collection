@@ -1,23 +1,23 @@
 package collection
 
 import (
+	"errors"
 	"fmt"
-	"github.com/pkg/errors"
 )
 
-type Float32Array struct{
-	AbsArray
-	objs []float32
+type Int64Collection struct{
+	AbsCollection
+	objs []int64
 }
 
-func NewFloat32Array(objs []float32) *Float32Array {
-	arr := &Float32Array{
+func NewInt64Collection(objs []int64) *Int64Collection {
+	arr := &Int64Collection{
 		objs:objs,
 	}
-	arr.AbsArray.Parent = arr
-	arr.AbsArray.compare = func(i interface{}, i2 interface{}) int {
-		int1 := i.(float32)
-		int2 := i2.(float32)
+	arr.AbsCollection.Parent = arr
+	arr.AbsCollection.compare = func(i interface{}, i2 interface{}) int {
+		int1 := i.(int64)
+		int2 := i2.(int64)
 		if int1 > int2 {
 			return 1
 		}
@@ -29,11 +29,11 @@ func NewFloat32Array(objs []float32) *Float32Array {
 	return arr
 }
 
-func (arr *Float32Array) Insert(index int, obj interface{}) IArray {
+func (arr *Int64Collection) Insert(index int, obj interface{}) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
-	if i, ok := obj.(float32); ok {
+	if i, ok := obj.(int64); ok {
 		length := len(arr.objs)
 		tail := arr.objs[index:length]
 		arr.objs = append(arr.objs[0:index], i)
@@ -44,7 +44,7 @@ func (arr *Float32Array) Insert(index int, obj interface{}) IArray {
 	return arr
 }
 
-func (arr *Float32Array) Remove(i int) IArray {
+func (arr *Int64Collection) Remove(i int) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -57,8 +57,8 @@ func (arr *Float32Array) Remove(i int) IArray {
 	return arr
 }
 
-func (arr *Float32Array) NewEmpty(err ...error) IArray {
-	intArr := NewFloat32Array([]float32{})
+func (arr *Int64Collection) NewEmpty(err ...error) ICollection {
+	intArr := NewInt64Collection([]int64{})
 	if len(err) != 0 {
 		intArr.err = err[0]
 	}
@@ -66,18 +66,18 @@ func (arr *Float32Array) NewEmpty(err ...error) IArray {
 }
 
 
-func (arr *Float32Array) Index(i int) IMix {
+func (arr *Int64Collection) Index(i int) IMix {
 	return NewMix(arr.objs[i])
 }
 
-func (arr *Float32Array) Count() int {
+func (arr *Int64Collection) Count() int {
 	return len(arr.objs)
 }
 
-func (arr *Float32Array) DD() {
-	ret := fmt.Sprintf("IntArray(%d):{\n", arr.Count())
+func (arr *Int64Collection) DD() {
+	ret := fmt.Sprintf("Int64Collection(%d):{\n", arr.Count())
 	for k, v := range arr.objs {
-		ret = ret + fmt.Sprintf("\t%d:\t%v\n",k, v)
+		ret = ret + fmt.Sprintf("\t%d:\t%d\n",k, v)
 	}
 	ret = ret + "}\n"
 	fmt.Print(ret)

@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-type StrArray struct{
-	AbsArray
+type StrCollection struct{
+	AbsCollection
 	objs []string
 
 	tri *trie.Trie // 使用trie树增加查找效率
@@ -20,29 +20,29 @@ func compareString(a interface{}, b interface{}) int {
 	return strings.Compare(as, bs)
 }
 
-func NewStrArray(objs []string) *StrArray {
+func NewStrCollection(objs []string) *StrCollection {
 	tri := trie.New()
 	for i, obj := range objs {
 		tri.Add(obj, i)
 	}
-	arr := &StrArray{
+	arr := &StrCollection{
 		objs:objs,
 		tri: tri,
 	}
-	arr.AbsArray.compare = compareString
-	arr.AbsArray.Parent = arr
+	arr.AbsCollection.compare = compareString
+	arr.AbsCollection.Parent = arr
 	return arr
 }
 
-func (arr *StrArray) NewEmpty(err ...error) IArray {
-	arr2 := NewStrArray(arr.objs)
+func (arr *StrCollection) NewEmpty(err ...error) ICollection {
+	arr2 := NewStrCollection(arr.objs)
 	if len(err) != 0 {
 		arr2.SetErr(err[0])
 	}
 	return arr2
 }
 
-func (arr *StrArray) Insert(index int, item interface{}) IArray {
+func (arr *StrCollection) Insert(index int, item interface{}) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -58,7 +58,7 @@ func (arr *StrArray) Insert(index int, item interface{}) IArray {
 }
 
 
-func (arr *StrArray) Remove(i int) IArray {
+func (arr *StrCollection) Remove(i int) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -72,16 +72,16 @@ func (arr *StrArray) Remove(i int) IArray {
 }
 
 
-func (arr *StrArray) Index(i int) IMix {
+func (arr *StrCollection) Index(i int) IMix {
 	return NewMix(arr.objs[i])
 }
 
-func (arr *StrArray) Count() int {
+func (arr *StrCollection) Count() int {
 	return len(arr.objs)
 }
 
-func (arr *StrArray) DD() {
-	ret := fmt.Sprintf("StrArray(%d):{\n", arr.Count())
+func (arr *StrCollection) DD() {
+	ret := fmt.Sprintf("StrCollection(%d):{\n", arr.Count())
 	for k, v := range arr.objs {
 		ret = ret + fmt.Sprintf("\t%d:\t%s\n",k, v)
 	}

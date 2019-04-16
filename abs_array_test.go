@@ -5,14 +5,15 @@ import (
 	"testing"
 )
 
-func TestAbsArray_DD(t *testing.T) {
-	intColl := NewIntArray([]int{1,2})
+func TestAbsCollection_DD(t *testing.T) {
+	intColl := NewIntCollection([]int{1,2})
 	intColl.DD()
 }
 
-func TestAbsArray_NewEmpty(t *testing.T) {
-	intColl := NewIntArray([]int{1,2})
+func TestAbsCollection_NewEmpty(t *testing.T) {
+	intColl := NewIntCollection([]int{1,2})
 	intColl2 := intColl.NewEmpty()
+	intColl2.DD()
 	if intColl2.Count() != 0 {
 		t.Error("NewEmpty失败")
 	}
@@ -21,18 +22,23 @@ func TestAbsArray_NewEmpty(t *testing.T) {
 	}
 }
 
-func TestAbsArray_Append(t *testing.T) {
-	intColl := NewIntArray([]int{1,2})
+func TestAbsCollection_Append(t *testing.T) {
+	intColl := NewIntCollection([]int{1,2})
 	intColl.Append(3)
+	if intColl.Err() == nil {
+		intColl.DD()
+	}
+
 	if intColl.Count() != 3 {
 		t.Error("Append 失败")
 	}
 	intColl.DD()
 }
 
-func TestAbsArray_Index(t *testing.T) {
-	intColl := NewIntArray([]int{1,2})
+func TestAbsCollection_Index(t *testing.T) {
+	intColl := NewIntCollection([]int{1,2})
 	foo := intColl.Index(1)
+	foo.DD()
 	i, err := foo.ToInt()
 	if err != nil {
 		t.Error("Index 类型错误")
@@ -42,34 +48,34 @@ func TestAbsArray_Index(t *testing.T) {
 	}
 }
 
-func TestAbsArray_IsEmpty(t *testing.T) {
-	intColl := NewIntArray([]int{1,2})
+func TestAbsCollection_IsEmpty(t *testing.T) {
+	intColl := NewIntCollection([]int{1,2})
 	if intColl.IsEmpty() != false {
 		t.Error("IsEmpty 错误")
 	}
 }
 
-func TestAbsArray_IsNotEmpty(t *testing.T) {
-	intColl := NewIntArray([]int{1,2})
+func TestAbsCollection_IsNotEmpty(t *testing.T) {
+	intColl := NewIntCollection([]int{1,2})
 	if intColl.IsNotEmpty() != true {
 		t.Error("IsNotEmpty 错误")
 	}
 }
 
-func TestAbsArray_Search(t *testing.T) {
-	intColl := NewIntArray([]int{1,2})
+func TestAbsCollection_Search(t *testing.T) {
+	intColl := NewIntCollection([]int{1,2})
 	if intColl.Search(2) != 1 {
 		t.Error("Search 错误")
 	}
 
-	intColl = NewIntArray([]int{1,2, 3, 3, 2})
+	intColl = NewIntCollection([]int{1,2, 3, 3, 2})
 	if intColl.Search(3) != 2 {
 		t.Error("Search 重复错误")
 	}
 }
 
-func TestAbsArray_Unique(t *testing.T) {
-	intColl := NewIntArray([]int{1,2, 3, 3, 2})
+func TestAbsCollection_Unique(t *testing.T) {
+	intColl := NewIntCollection([]int{1,2, 3, 3, 2})
 	uniqColl := intColl.Unique()
 	if uniqColl.Count() != 3 {
 		t.Error("Unique 重复错误")
@@ -78,8 +84,8 @@ func TestAbsArray_Unique(t *testing.T) {
 	uniqColl.DD()
 }
 
-func TestAbsArray_Reject(t *testing.T) {
-	intColl := NewIntArray([]int{1, 2, 3, 4, 5})
+func TestAbsCollection_Reject(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 3, 4, 5})
 	retColl := intColl.Reject(func(item interface{}, key int) bool {
 		i := item.(int)
 		return i > 3
@@ -91,8 +97,8 @@ func TestAbsArray_Reject(t *testing.T) {
 	retColl.DD()
 }
 
-func TestAbsArray_Last(t *testing.T) {
-	intColl := NewIntArray([]int{1, 2, 3, 4, 3, 2})
+func TestAbsCollection_Last(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 3, 4, 3, 2})
 	last, err := intColl.Last().ToInt()
 	if err != nil {
 		t.Error("last get error")
@@ -114,8 +120,8 @@ func TestAbsArray_Last(t *testing.T) {
 	}
 }
 
-func TestAbsArray_Slice(t *testing.T) {
-	intColl := NewIntArray([]int{1, 2, 3, 4, 5})
+func TestAbsCollection_Slice(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 3, 4, 5})
 	retColl := intColl.Slice(2)
 	if retColl.Count() != 3 {
 		t.Error("Slice 错误")
@@ -138,10 +144,10 @@ func TestAbsArray_Slice(t *testing.T) {
 	retColl.DD()
 }
 
-func TestAbsArray_Merge(t *testing.T) {
-	intColl := NewIntArray([]int{1, 2 })
+func TestAbsCollection_Merge(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2 })
 
-	intColl2 := NewIntArray([]int{3, 4})
+	intColl2 := NewIntCollection([]int{3, 4})
 
 	intColl.Merge(intColl2)
 
@@ -153,8 +159,8 @@ func TestAbsArray_Merge(t *testing.T) {
 }
 
 
-func TestAbsArray_Each(t *testing.T) {
-	intColl := NewIntArray([]int{1, 2, 3, 4})
+func TestAbsCollection_Each(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 3, 4})
 	sum := 0
 	intColl.Each(func(item interface{}, key int) {
 		v := item.(int)
@@ -165,8 +171,8 @@ func TestAbsArray_Each(t *testing.T) {
 	}
 }
 
-func TestAbsArray_Map(t *testing.T) {
-	intColl := NewIntArray([]int{1, 2, 3, 4})
+func TestAbsCollection_Map(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 3, 4})
 	newIntColl := intColl.Map(func(item interface{}, key int) IMix {
 		v := item.(int)
 		return NewMix(v * 2)
@@ -178,8 +184,8 @@ func TestAbsArray_Map(t *testing.T) {
 	}
 }
 
-func TestAbsArray_Reduce(t *testing.T) {
-	intColl := NewIntArray([]int{1, 2, 3, 4})
+func TestAbsCollection_Reduce(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 3, 4})
 	sumMix := intColl.Reduce(func(carry IMix, item IMix) IMix {
 		carryInt, _ := carry.ToInt()
 		itemInt, _ := item.ToInt()
@@ -197,8 +203,8 @@ func TestAbsArray_Reduce(t *testing.T) {
 	}
 }
 
-func TestAbsArray_Every(t *testing.T) {
-	intColl := NewIntArray([]int{1, 2, 3, 4})
+func TestAbsCollection_Every(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 3, 4})
 	if intColl.Every(func(item interface{}, key int) bool {
 		i := item.(int)
 		return i > 1
@@ -214,8 +220,8 @@ func TestAbsArray_Every(t *testing.T) {
 	}
 }
 
-func TestAbsArray_ForPage(t *testing.T) {
-	intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
+func TestAbsCollection_ForPage(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
 	ret := intColl.ForPage(1, 2)
 	ret.DD()
 
@@ -224,8 +230,8 @@ func TestAbsArray_ForPage(t *testing.T) {
 	}
 }
 
-func TestAbsArray_Nth(t *testing.T) {
-	intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
+func TestAbsCollection_Nth(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
 	ret := intColl.Nth(4, 1)
 	ret.DD()
 
@@ -234,8 +240,8 @@ func TestAbsArray_Nth(t *testing.T) {
 	}
 }
 
-func TestAbsArray_Pad(t *testing.T) {
-	intColl := NewIntArray([]int{1, 2, 3})
+func TestAbsCollection_Pad(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 3})
 	ret := intColl.Pad(5, 0)
 	if ret.Err() != nil {
 		t.Error(ret.Err().Error())
@@ -256,8 +262,8 @@ func TestAbsArray_Pad(t *testing.T) {
 	}
 }
 
-func TestAbsArray_Pop(t *testing.T) {
-	intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
+func TestAbsCollection_Pop(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
 	pop := intColl.Pop()
 	in, err :=  pop.ToInt()
 	if err != nil {
@@ -272,8 +278,8 @@ func TestAbsArray_Pop(t *testing.T) {
 	}
 }
 
-func TestAbsArray_Push(t *testing.T) {
-	intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
+func TestAbsCollection_Push(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
 	intColl.Push(7)
 	intColl.DD()
 	if intColl.Count() != 7 {
@@ -281,8 +287,8 @@ func TestAbsArray_Push(t *testing.T) {
 	}
 }
 
-func TestAbsArray_Prepend(t *testing.T) {
-	intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
+func TestAbsCollection_Prepend(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
 	intColl.Prepend(0)
 	if intColl.Err() != nil {
 		t.Error(intColl.Err().Error())
@@ -294,8 +300,8 @@ func TestAbsArray_Prepend(t *testing.T) {
 	}
 }
 
-func TestAbsArray_Random(t *testing.T) {
-	intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
+func TestAbsCollection_Random(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
 	out := intColl.Random()
 	out.DD()
 
@@ -305,14 +311,14 @@ func TestAbsArray_Random(t *testing.T) {
 	}
 }
 
-func TestAbsArray_Reverse(t *testing.T) {
-	intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
+func TestAbsCollection_Reverse(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
 	vs := intColl.Reverse()
 	vs.DD()
 }
 
-func TestAbsArray_Mode(t *testing.T) {
-	intColl := NewIntArray([]int{1, 2, 2, 3, 4, 5, 6})
+func TestAbsCollection_Mode(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 2, 3, 4, 5, 6})
 	mode, err := intColl.Mode().ToInt()
 	if err != nil {
 		t.Error(err.Error())
@@ -322,8 +328,8 @@ func TestAbsArray_Mode(t *testing.T) {
 	}
 }
 
-func TestAbsArray_Avg(t *testing.T) {
-	intColl := NewIntArray([]int{1, 2, 2, 3})
+func TestAbsCollection_Avg(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 2, 3})
 	mode, err := intColl.Avg().ToFloat64()
 	if err != nil {
 		t.Error(err.Error())

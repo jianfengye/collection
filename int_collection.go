@@ -1,23 +1,23 @@
 package collection
 
 import (
-	"errors"
 	"fmt"
+	"github.com/pkg/errors"
 )
 
-type Int64Array struct{
-	AbsArray
-	objs []int64
+type IntCollection struct{
+	AbsCollection
+	objs []int
 }
 
-func NewInt64Array(objs []int64) *Int64Array {
-	arr := &Int64Array{
+func NewIntCollection(objs []int) *IntCollection {
+	arr := &IntCollection{
 		objs:objs,
 	}
-	arr.AbsArray.Parent = arr
-	arr.AbsArray.compare = func(i interface{}, i2 interface{}) int {
-		int1 := i.(int64)
-		int2 := i2.(int64)
+	arr.AbsCollection.Parent = arr
+	arr.AbsCollection.compare = func(i interface{}, i2 interface{}) int {
+		int1 := i.(int)
+		int2 := i2.(int)
 		if int1 > int2 {
 			return 1
 		}
@@ -29,11 +29,11 @@ func NewInt64Array(objs []int64) *Int64Array {
 	return arr
 }
 
-func (arr *Int64Array) Insert(index int, obj interface{}) IArray {
+func (arr *IntCollection) Insert(index int, obj interface{}) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
-	if i, ok := obj.(int64); ok {
+	if i, ok := obj.(int); ok {
 		length := len(arr.objs)
 		tail := arr.objs[index:length]
 		arr.objs = append(arr.objs[0:index], i)
@@ -44,7 +44,7 @@ func (arr *Int64Array) Insert(index int, obj interface{}) IArray {
 	return arr
 }
 
-func (arr *Int64Array) Remove(i int) IArray {
+func (arr *IntCollection) Remove(i int) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -57,8 +57,8 @@ func (arr *Int64Array) Remove(i int) IArray {
 	return arr
 }
 
-func (arr *Int64Array) NewEmpty(err ...error) IArray {
-	intArr := NewInt64Array([]int64{})
+func (arr *IntCollection) NewEmpty(err ...error) ICollection {
+	intArr := NewIntCollection([]int{})
 	if len(err) != 0 {
 		intArr.err = err[0]
 	}
@@ -66,16 +66,16 @@ func (arr *Int64Array) NewEmpty(err ...error) IArray {
 }
 
 
-func (arr *Int64Array) Index(i int) IMix {
+func (arr *IntCollection) Index(i int) IMix {
 	return NewMix(arr.objs[i])
 }
 
-func (arr *Int64Array) Count() int {
+func (arr *IntCollection) Count() int {
 	return len(arr.objs)
 }
 
-func (arr *Int64Array) DD() {
-	ret := fmt.Sprintf("IntArray(%d):{\n", arr.Count())
+func (arr *IntCollection) DD() {
+	ret := fmt.Sprintf("IntCollection(%d):{\n", arr.Count())
 	for k, v := range arr.objs {
 		ret = ret + fmt.Sprintf("\t%d:\t%d\n",k, v)
 	}

@@ -9,11 +9,11 @@ type Foo struct {
 	A string
 }
 
-func TestObjArray_DD(t *testing.T) {
+func TestObjCollection_DD(t *testing.T) {
 	a1 := Foo{A: "a1"}
 	a2 := Foo{A: "a2"}
 
-	objColl := NewObjArray([]Foo{a1, a2})
+	objColl := NewObjCollection([]Foo{a1, a2})
 	objColl.DD()
 
 	if objColl.IsNotEmpty() != true {

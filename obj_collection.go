@@ -7,26 +7,26 @@ import (
 	"sort"
 )
 
-type ObjArray struct{
-	AbsArray
+type ObjCollection struct{
+	AbsCollection
 	objs reflect.Value // 数组对象，是一个slice
 	typ reflect.Type // 数组对象每个元素类型
 	ptr reflect.Value // 指向数组对象的指针
 }
 
 // 根据对象数组创建
-func NewObjArray(objs interface{}) *ObjArray {
+func NewObjCollection(objs interface{}) *ObjCollection {
 	vals := reflect.ValueOf(objs)
 	typ := reflect.TypeOf(objs).Elem()
-	arr := &ObjArray{
+	arr := &ObjCollection{
 		objs: vals,
 		typ: typ,
 	}
-	arr.AbsArray.Parent = arr
+	arr.AbsCollection.Parent = arr
 	return arr
 }
 
-func (arr *ObjArray) Insert(index int, obj interface{}) IArray {
+func (arr *ObjCollection) Insert(index int, obj interface{}) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -39,28 +39,28 @@ func (arr *ObjArray) Insert(index int, obj interface{}) IArray {
 		ret = reflect.Append(ret, tail.Index(i))
 	}
 	arr.objs = ret
-	arr.AbsArray.Parent = arr
+	arr.AbsCollection.Parent = arr
 	return arr
 }
 
-func (arr *ObjArray) Index(i int) IMix {
+func (arr *ObjCollection) Index(i int) IMix {
 	return NewMix(arr.objs.Index(i).Interface())
 }
 
-func (arr *ObjArray) NewEmpty(err ...error) IArray {
+func (arr *ObjCollection) NewEmpty(err ...error) ICollection {
 	objs := reflect.MakeSlice(arr.objs.Type(), 0, 0)
-	ret := &ObjArray{
+	ret := &ObjCollection{
 		objs: objs,
 		typ: arr.typ,
 	}
-	ret.AbsArray.Parent = ret
+	ret.AbsCollection.Parent = ret
 	if len(err) != 0 {
 		ret.SetErr(err[0])
 	}
 	return ret
 }
 
-func (arr *ObjArray) Remove(i int) IArray {
+func (arr *ObjCollection) Remove(i int) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -77,16 +77,16 @@ func (arr *ObjArray) Remove(i int) IArray {
 		ret = reflect.Append(ret, tail.Index(i))
 	}
 	arr.objs = ret
-	arr.AbsArray.Parent = arr
+	arr.AbsCollection.Parent = arr
 	return arr
 }
 
-func (arr *ObjArray) Count() int {
+func (arr *ObjCollection) Count() int {
 	return arr.objs.Len()
 }
 
-func (arr *ObjArray) DD() {
-	ret := fmt.Sprintf("ObjArray(%d)(%s):{\n", arr.Count(), arr.typ.String())
+func (arr *ObjCollection) DD() {
+	ret := fmt.Sprintf("ObjCollection(%d)(%s):{\n", arr.Count(), arr.typ.String())
 	for i:= 0; i< arr.objs.Len(); i++ {
 		ret = ret + fmt.Sprintf("\t%d:\t%+v\n", i, arr.objs.Index(i))
 	}
@@ -96,33 +96,33 @@ func (arr *ObjArray) DD() {
 
 
 // 将对象的某个key作为Slice的value，作为slice返回
-func (arr *ObjArray) Pluck(key string) IArray {
+func (arr *ObjCollection) Pluck(key string) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
 
-	var objs IArray
+	var objs ICollection
 
 	field, found := arr.typ.FieldByName(key)
 	if !found  {
-		err := errors.New("ObjArray.Pluck:key not found")
+		err := errors.New("ObjCollection.Pluck:key not found")
 		arr.SetErr(err)
 		return arr
 	}
 
 	switch field.Type.Kind() {
 	case reflect.String:
-		objs = NewStrArray([]string{})
+		objs = NewStrCollection([]string{})
 	case reflect.Int64:
-		objs = NewInt64Array([]int64{})
+		objs = NewInt64Collection([]int64{})
 	case reflect.Int:
-		objs = NewIntArray([]int{})
+		objs = NewIntCollection([]int{})
 	case reflect.Float32:
-		objs = NewFloat32Array([]float32{})
+		objs = NewFloat32Collection([]float32{})
 	case reflect.Float64:
-		objs = NewFloat64Array([]float64{})
+		objs = NewFloat64Collection([]float64{})
 	default:
-		err := errors.New("ObjArray.Pluck: not support kind")
+		err := errors.New("ObjCollection.Pluck: not support kind")
 		arr.SetErr(err)
 		return arr
 	}
@@ -136,7 +136,7 @@ func (arr *ObjArray) Pluck(key string) IArray {
 }
 
 
-type ByFieldSort ObjArray
+type ByFieldSort ObjCollection
 func (a ByFieldSort) Len() int { return a.objs.Len() }
 func (a ByFieldSort) Swap(i, j int) {
 	t := a.objs.Index(i).Interface()
@@ -157,7 +157,7 @@ func (a ByFieldSort) Less(i, j int) bool {
 	return false
 }
 
-type ByFieldSortDesc ObjArray
+type ByFieldSortDesc ObjCollection
 func (a ByFieldSortDesc) Len() int { return a.objs.Len() }
 func (a ByFieldSortDesc) Swap(i, j int) {
 	t := a.objs.Index(i).Interface()
@@ -179,7 +179,7 @@ func (a ByFieldSortDesc) Less(i, j int) bool {
 }
 
 // 按照某个字段进行排序
-func (arr *ObjArray) SortBy(key string) IArray {
+func (arr *ObjCollection) SortBy(key string) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -189,7 +189,7 @@ func (arr *ObjArray) SortBy(key string) IArray {
 }
 
 // 按照某个字段进行排序,倒序
-func (arr *ObjArray) SortByDesc(key string) IArray {
+func (arr *ObjCollection) SortByDesc(key string) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}

@@ -10,19 +10,19 @@ import (
 )
 
 // 这个是一个虚函数，能实现的都实现，不能实现的panic
-type AbsArray struct {
+type AbsCollection struct {
 	compare func(interface{}, interface{}) int // 比较函数
 	err error // 错误信息
 
-	IArray
-	Parent IArray
+	ICollection
+	Parent ICollection
 }
 
-func (arr *AbsArray) Err() error {
+func (arr *AbsCollection) Err() error {
 	return arr.err
 }
 
-func (arr *AbsArray) SetErr(err error) IArray {
+func (arr *AbsCollection) SetErr(err error) ICollection {
 	arr.err = err
 	return arr
 }
@@ -30,14 +30,14 @@ func (arr *AbsArray) SetErr(err error) IArray {
 /*
 下面的几个函数必须要实现
  */
-func (arr *AbsArray) NewEmpty(err ...error) IArray {
+func (arr *AbsCollection) NewEmpty(err ...error) ICollection {
 	if arr.Parent == nil {
 		panic("no parent")
 	}
 	return arr.Parent.NewEmpty(err...)
 }
 
-func (arr *AbsArray) Insert(index int, obj interface{}) IArray {
+func (arr *AbsCollection) Insert(index int, obj interface{}) ICollection {
 	if arr.Parent == nil {
 		panic("no parent")
 	}
@@ -46,35 +46,35 @@ func (arr *AbsArray) Insert(index int, obj interface{}) IArray {
 }
 
 
-func (arr *AbsArray) Remove(index int) IArray {
+func (arr *AbsCollection) Remove(index int) ICollection {
 	if arr.Parent == nil {
 		panic("no parent")
 	}
 	return arr.Parent.Remove(index)
 }
 
-func (arr *AbsArray) Index(i int) IMix {
+func (arr *AbsCollection) Index(i int) IMix {
 	if arr.Parent == nil {
 		panic("no parent")
 	}
 	return arr.Parent.Index(i)
 }
 
-func (arr *AbsArray) Count() int {
+func (arr *AbsCollection) Count() int {
 	if arr.Parent == nil {
 		panic("no parent")
 	}
 	return arr.Parent.Count()
 }
 
-func (arr *AbsArray) DD()  {
+func (arr *AbsCollection) DD()  {
 	if arr.Parent == nil {
 		panic("DD: not Implement")
 	}
 	arr.Parent.DD()
 }
 
-func (arr *AbsArray) ToJson() []byte {
+func (arr *AbsCollection) ToJson() []byte {
 	if arr.Parent == nil {
 		panic("ToJson: not Implement")
 	}
@@ -85,22 +85,22 @@ func (arr *AbsArray) ToJson() []byte {
 下面这些函数是所有函数体都一样
  */
 
-func (arr *AbsArray) Append(item interface{}) IArray {
+func (arr *AbsCollection) Append(item interface{}) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
 	return arr.Parent.Insert(arr.Count(), item)
 }
 
-func (arr *AbsArray) IsEmpty() bool {
+func (arr *AbsCollection) IsEmpty() bool {
 	return arr.Count() == 0
 }
 
-func (arr *AbsArray) IsNotEmpty() bool {
+func (arr *AbsCollection) IsNotEmpty() bool {
 	return arr.Count() != 0
 }
 
-func (arr *AbsArray) Search(item interface{}) int {
+func (arr *AbsCollection) Search(item interface{}) int {
 	for i := 0; i < arr.Count(); i++ {
 		if arr.compare(arr.Index(i).ToInterface(), item) == 0 {
 			return i
@@ -109,7 +109,7 @@ func (arr *AbsArray) Search(item interface{}) int {
 	return -1
 }
 
-func (arr *AbsArray) Unique() IArray {
+func (arr *AbsCollection) Unique() ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -122,7 +122,7 @@ func (arr *AbsArray) Unique() IArray {
 	return newArr
 }
 
-func (arr *AbsArray) Reject(f func(item interface{}, key int) bool) IArray {
+func (arr *AbsCollection) Reject(f func(item interface{}, key int) bool) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -135,7 +135,7 @@ func (arr *AbsArray) Reject(f func(item interface{}, key int) bool) IArray {
 	return newArr
 }
 
-func (arr *AbsArray) Last(fs ...func(item interface{}, key int) bool) IMix {
+func (arr *AbsCollection) Last(fs ...func(item interface{}, key int) bool) IMix {
 	if len(fs) > 1 {
 		panic("Last 参数个数错误")
 	}
@@ -148,7 +148,7 @@ func (arr *AbsArray) Last(fs ...func(item interface{}, key int) bool) IMix {
 	return newArr.Last()
 }
 
-func (arr *AbsArray) Slice(ps ...int) IArray {
+func (arr *AbsCollection) Slice(ps ...int) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -174,7 +174,7 @@ func (arr *AbsArray) Slice(ps ...int) IArray {
 	return newArr
 }
 
-func (arr *AbsArray) Merge(arr2 IArray) IArray {
+func (arr *AbsCollection) Merge(arr2 ICollection) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -186,29 +186,29 @@ func (arr *AbsArray) Merge(arr2 IArray) IArray {
 }
 
 
-func (arr *AbsArray) Each(f func(item interface{}, key int)) {
+func (arr *AbsCollection) Each(f func(item interface{}, key int)) {
 	for i := 0; i < arr.Count(); i++ {
 		f(arr.Index(i).ToInterface(), i)
 	}
 }
 
-func newMixArray(mix IMix) IArray {
+func newMixCollection(mix IMix) ICollection {
 	switch mix.Type().Kind() {
 	case reflect.String:
-		return NewStrArray([]string{})
+		return NewStrCollection([]string{})
 	case reflect.Int:
-		return NewIntArray([]int{})
+		return NewIntCollection([]int{})
 	case reflect.Int64:
-		return NewInt64Array([]int64{})
+		return NewInt64Collection([]int64{})
 	case reflect.Float32:
-		return NewFloat32Array([]float32{})
+		return NewFloat32Collection([]float32{})
 	case reflect.Float64:
-		return NewFloat64Array([]float64{})
+		return NewFloat64Collection([]float64{})
 	}
 	return nil
 }
 
-func (arr *AbsArray) Map(f func(item interface{}, key int) IMix) IArray {
+func (arr *AbsCollection) Map(f func(item interface{}, key int) IMix) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -219,7 +219,7 @@ func (arr *AbsArray) Map(f func(item interface{}, key int) IMix) IArray {
 	}
 
 	first := f(arr.Index(0).ToInterface(), 0)
-	ret := newMixArray(first)
+	ret := newMixCollection(first)
 	ret.Append(first.ToInterface())
 	for i := 1; i < arr.Count(); i++ {
 		ret.Append(f(arr.Index(i).ToInterface(), 0).ToInterface())
@@ -227,7 +227,7 @@ func (arr *AbsArray) Map(f func(item interface{}, key int) IMix) IArray {
 	return ret
 }
 
-func (arr *AbsArray) Reduce(f func(carry IMix, item IMix) IMix) IMix {
+func (arr *AbsCollection) Reduce(f func(carry IMix, item IMix) IMix) IMix {
 	if arr.Err() != nil {
 		return nil
 	}
@@ -248,7 +248,7 @@ func (arr *AbsArray) Reduce(f func(carry IMix, item IMix) IMix) IMix {
 	return carry
 }
 
-func (arr *AbsArray) Every(f func(item interface{}, key int) bool) bool {
+func (arr *AbsCollection) Every(f func(item interface{}, key int) bool) bool {
 	if arr.Count() == 0 {
 		return true
 	}
@@ -261,7 +261,7 @@ func (arr *AbsArray) Every(f func(item interface{}, key int) bool) bool {
 	return true
 }
 
-func (arr *AbsArray) ForPage(page int, perPage int) IArray {
+func (arr *AbsCollection) ForPage(page int, perPage int) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -270,7 +270,7 @@ func (arr *AbsArray) ForPage(page int, perPage int) IArray {
 	return arr.Slice(start, perPage)
 }
 
-func (arr *AbsArray) Nth(n int, offset int) IArray {
+func (arr *AbsCollection) Nth(n int, offset int) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -284,7 +284,7 @@ func (arr *AbsArray) Nth(n int, offset int) IArray {
 	return newArr
 }
 
-func (arr *AbsArray) Pad(start int, def interface{}) IArray {
+func (arr *AbsCollection) Pad(start int, def interface{}) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -323,7 +323,7 @@ func (arr *AbsArray) Pad(start int, def interface{}) IArray {
 	return newArr
 }
 
-func (arr *AbsArray) Pop() IMix {
+func (arr *AbsCollection) Pop() IMix {
 	if arr.Err() != nil {
 		return nil
 	}
@@ -334,7 +334,7 @@ func (arr *AbsArray) Pop() IMix {
 	return ret
 }
 
-func (arr *AbsArray) Push(item interface{}) IArray {
+func (arr *AbsCollection) Push(item interface{}) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -342,7 +342,7 @@ func (arr *AbsArray) Push(item interface{}) IArray {
 	return arr.Append(item)
 }
 
-func (arr *AbsArray) Prepend(item interface{}) IArray {
+func (arr *AbsCollection) Prepend(item interface{}) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -350,7 +350,7 @@ func (arr *AbsArray) Prepend(item interface{}) IArray {
 	return arr.Insert(0, item)
 }
 
-func (arr *AbsArray) Random() IMix {
+func (arr *AbsCollection) Random() IMix {
 	if arr.Err() != nil {
 		return nil
 	}
@@ -361,7 +361,7 @@ func (arr *AbsArray) Random() IMix {
 	return arr.Index(index)
 }
 
-func (arr *AbsArray) Reverse() IArray {
+func (arr *AbsCollection) Reverse() ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -373,7 +373,7 @@ func (arr *AbsArray) Reverse() IArray {
 	return newArr
 }
 
-func (arr *AbsArray) Shuffle() IArray {
+func (arr *AbsCollection) Shuffle() ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -393,7 +393,7 @@ func (arr *AbsArray) Shuffle() IArray {
 	return newArr
 }
 
-func (arr *AbsArray) Pluck(key string) IArray {
+func (arr *AbsCollection) Pluck(key string) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -402,7 +402,7 @@ func (arr *AbsArray) Pluck(key string) IArray {
 	return arr
 }
 
-func (arr *AbsArray) SortBy(key string) IArray {
+func (arr *AbsCollection) SortBy(key string) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -411,7 +411,7 @@ func (arr *AbsArray) SortBy(key string) IArray {
 	return arr
 }
 
-func (arr *AbsArray) SortByDesc(key string) IArray {
+func (arr *AbsCollection) SortByDesc(key string) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -420,12 +420,12 @@ func (arr *AbsArray) SortByDesc(key string) IArray {
 	return arr
 }
 
-func (arr *AbsArray) SetCompare(compare func(a interface{}, b interface{}) int) IArray {
+func (arr *AbsCollection) SetCompare(compare func(a interface{}, b interface{}) int) ICollection {
 	arr.compare = compare
 	return arr
 }
 
-func (arr *AbsArray) Max() IMix {
+func (arr *AbsCollection) Max() IMix {
 	if arr.Err() != nil {
 		return nil
 	}
@@ -439,7 +439,7 @@ func (arr *AbsArray) Max() IMix {
 	return arr.Index(max)
 }
 
-func (arr *AbsArray) Min() IMix {
+func (arr *AbsCollection) Min() IMix {
 	if arr.Err() != nil {
 		return nil
 	}
@@ -453,7 +453,7 @@ func (arr *AbsArray) Min() IMix {
 	return arr.Index(min)
 }
 
-func (arr *AbsArray) Contains(obj interface{}) bool {
+func (arr *AbsCollection) Contains(obj interface{}) bool {
 	for i := 0; i < arr.Count(); i++ {
 		if arr.compare(arr.Index(i).ToInterface(), obj) == 0 {
 			return true
@@ -462,7 +462,7 @@ func (arr *AbsArray) Contains(obj interface{}) bool {
 	return false
 }
 
-func (arr *AbsArray) Diff(arr2 IArray) IArray {
+func (arr *AbsCollection) Diff(arr2 ICollection) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -476,7 +476,7 @@ func (arr *AbsArray) Diff(arr2 IArray) IArray {
 	return newArr
 }
 
-func (arr *AbsArray) Sort() IArray {
+func (arr *AbsCollection) Sort() ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -518,7 +518,7 @@ func (arr *AbsArray) Sort() IArray {
 	return newArr
 }
 
-func (arr *AbsArray) SortDesc() IArray {
+func (arr *AbsCollection) SortDesc() ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -560,7 +560,7 @@ func (arr *AbsArray) SortDesc() IArray {
 	return newArr
 }
 
-func (arr *AbsArray) Join(split string, format ...func(item interface{}) string) string {
+func (arr *AbsCollection) Join(split string, format ...func(item interface{}) string) string {
 	if arr.Err() != nil {
 		return ""
 	}
@@ -581,7 +581,7 @@ func (arr *AbsArray) Join(split string, format ...func(item interface{}) string)
 	return ret.String()
 }
 
-func (arr *AbsArray) Avg() IMix {
+func (arr *AbsCollection) Avg() IMix {
 	if arr.Err() != nil {
 		return NewErrorMix(arr.Err())
 	}
@@ -605,7 +605,7 @@ func (arr *AbsArray) Avg() IMix {
 	return div
 }
 
-func (arr *AbsArray) Median() IMix {
+func (arr *AbsCollection) Median() IMix {
 	if arr.Err() != nil {
 		return NewErrorMix(arr.Err())
 	}
@@ -625,7 +625,7 @@ func (arr *AbsArray) Median() IMix {
 	return newArr.Index(newArr.Count() / 2 + 1)
 }
 
-func (arr *AbsArray) Mode() IMix {
+func (arr *AbsCollection) Mode() IMix {
 	if arr.Err() != nil {
 		return NewErrorMix(arr.Err())
 	}
@@ -649,7 +649,7 @@ func (arr *AbsArray) Mode() IMix {
 	return uniqColl.Index(retIndex)
 }
 
-func (arr *AbsArray) Sum() IMix {
+func (arr *AbsCollection) Sum() IMix {
 	if arr.Err() != nil {
 		return NewErrorMix(arr.Err())
 	}
@@ -661,7 +661,7 @@ func (arr *AbsArray) Sum() IMix {
 	return mix
 }
 
-func (arr *AbsArray) Filter(f func(obj interface{}, index int) bool) IArray {
+func (arr *AbsCollection) Filter(f func(obj interface{}, index int) bool) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -677,7 +677,7 @@ func (arr *AbsArray) Filter(f func(obj interface{}, index int) bool) IArray {
 	return ret
 }
 
-func (arr *AbsArray) First(f ...func(obj interface{}, index int) bool) IMix {
+func (arr *AbsCollection) First(f ...func(obj interface{}, index int) bool) IMix {
 	if arr.Err() != nil {
 		return NewErrorMix(arr.Err())
 	}
@@ -697,7 +697,7 @@ func (arr *AbsArray) First(f ...func(obj interface{}, index int) bool) IMix {
 	return nil
 }
 
-func (arr *AbsArray) ToStrings() ([]string, error) {
+func (arr *AbsCollection) ToStrings() ([]string, error) {
 	if arr.Err() != nil {
 		return nil, arr.Err()
 	}
@@ -713,7 +713,7 @@ func (arr *AbsArray) ToStrings() ([]string, error) {
 	return ret, nil
 }
 
-func (arr *AbsArray) ToInt64s() ([]int64, error) {
+func (arr *AbsCollection) ToInt64s() ([]int64, error) {
 	if arr.Err() != nil {
 		return nil, arr.Err()
 	}
@@ -728,7 +728,7 @@ func (arr *AbsArray) ToInt64s() ([]int64, error) {
 	return ret, nil
 }
 
-func (arr *AbsArray) ToInts() ([]int, error) {
+func (arr *AbsCollection) ToInts() ([]int, error) {
 	if arr.Err() != nil {
 		return nil, arr.Err()
 	}
@@ -743,7 +743,7 @@ func (arr *AbsArray) ToInts() ([]int, error) {
 	return ret, nil
 }
 
-func (arr *AbsArray) ToMixs() ([]IMix, error) {
+func (arr *AbsCollection) ToMixs() ([]IMix, error) {
 	if arr.Err() != nil {
 		return nil, arr.Err()
 	}
@@ -754,7 +754,7 @@ func (arr *AbsArray) ToMixs() ([]IMix, error) {
 	return ret, nil
 }
 
-func (arr *AbsArray) ToFloat64s() ([]float64, error) {
+func (arr *AbsCollection) ToFloat64s() ([]float64, error) {
 	if arr.Err() != nil {
 		return nil, arr.Err()
 	}
@@ -769,7 +769,7 @@ func (arr *AbsArray) ToFloat64s() ([]float64, error) {
 	return ret, nil
 }
 
-func (arr *AbsArray) ToFloat32s() ([]float32, error) {
+func (arr *AbsCollection) ToFloat32s() ([]float32, error) {
 	if arr.Err() != nil {
 		return nil, arr.Err()
 	}
