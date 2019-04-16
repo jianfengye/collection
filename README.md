@@ -148,6 +148,209 @@ type IArray interface {
 	ToFloat32s() ([]float32, error)
 }
 ```
+示例：
+
+```
+
+===================
+intColl := NewIntArray([]int{1,2})
+intColl.DD()
+
+===================
+intColl := NewIntArray([]int{1,2})
+intColl.Append(3)
+
+===================
+intColl := NewIntArray([]int{1,2})
+foo := intColl.Index(1)
+
+===================
+intColl := NewIntArray([]int{1,2})
+if intColl.IsEmpty() != false {
+    t.Error("IsEmpty 错误")
+}
+
+===================
+intColl := NewIntArray([]int{1,2})
+if intColl.IsNotEmpty() != true {
+    t.Error("IsNotEmpty 错误")
+}
+
+===================
+intColl := NewIntArray([]int{1,2})
+if intColl.Search(2) != 1 {
+    t.Error("Search 错误")
+}
+
+===================
+intColl = NewIntArray([]int{1,2, 3, 3, 2})
+if intColl.Search(3) != 2 {
+    t.Error("Search 重复错误")
+}
+
+===================
+intColl := NewIntArray([]int{1,2, 3, 3, 2})
+uniqColl := intColl.Unique()
+if uniqColl.Count() != 3 {
+    t.Error("Unique 重复错误")
+}
+
+
+===================
+intColl := NewIntArray([]int{1, 2, 3, 4, 5})
+retColl := intColl.Reject(func(item interface{}, key int) bool {
+    i := item.(int)
+    return i > 3
+})
+if retColl.Count() != 3 {
+    t.Error("Reject 重复错误")
+}
+
+
+===================
+intColl := NewIntArray([]int{1, 2, 3, 4, 3, 2})
+last, err := intColl.Last().ToInt()
+if err != nil {
+    t.Error("last get error")
+}
+if last != 2 {
+    t.Error("last 获取错误")
+}
+
+last, err = intColl.Last(func(item interface{}, key int) bool {
+    i := item.(int)
+    return i > 2
+}).ToInt()
+
+===================
+intColl := NewIntArray([]int{1, 2, 3, 4, 5})
+retColl := intColl.Slice(2)
+
+retColl = intColl.Slice(2,2)
+
+retColl = intColl.Slice(2, -1)
+
+===================
+intColl := NewIntArray([]int{1, 2 })
+
+intColl2 := NewIntArray([]int{3, 4})
+
+intColl.Merge(intColl2)
+
+===================
+intColl := NewIntArray([]int{1, 2 })
+
+intColl2 := NewIntArray([]int{3, 4})
+
+m, err := intColl.Combine(intColl2)
+
+===================
+intColl := NewIntArray([]int{1, 2 })
+
+intColl2 := NewIntArray([]int{3, 4})
+
+m, err := intColl.CrossJoin(intColl2)
+
+===================
+intColl := NewIntArray([]int{1, 2, 3, 4})
+sum := 0
+intColl.Each(func(item interface{}, key int) {
+    v := item.(int)
+    sum = sum + v
+})
+if sum != 10 {
+    t.Error("Each 错误")
+}
+===================
+intColl := NewIntArray([]int{1, 2, 3, 4})
+newIntColl := intColl.Map(func(item interface{}, key int) IMix {
+    v := item.(int)
+    return NewMix(v * 2)
+})
+
+===================
+intColl := NewIntArray([]int{1, 2, 3, 4})
+sumMix := intColl.Reduce(func(carry IMix, item IMix) IMix {
+    carryInt, _ := carry.ToInt()
+    itemInt, _ := item.ToInt()
+    return NewMix(carryInt + itemInt)
+})
+
+
+===================
+
+intColl := NewIntArray([]int{1, 2, 3, 4})
+if intColl.Every(func(item interface{}, key int) bool {
+    i := item.(int)
+    return i > 1
+}) != false {
+    t.Error("Every错误")
+}
+
+if intColl.Every(func(item interface{}, key int) bool {
+    i := item.(int)
+    return i > 0
+}) != true {
+    t.Error("Every错误")
+}
+
+===================
+intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
+ret := intColl.ForPage(1, 2)
+
+===================
+intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
+ret := intColl.Nth(4, 1)
+===================
+intColl := NewIntArray([]int{1, 2, 3})
+ret := intColl.Pad(5, 0)
+if ret.Err() != nil {
+    t.Error(ret.Err().Error())
+}
+
+ret.DD()
+if ret.Count() != 5 {
+    t.Error("Pad 错误")
+}
+
+ret = intColl.Pad(-5, 0)
+if ret.Err() != nil {
+    t.Error(ret.Err().Error())
+}
+ret.DD()
+if ret.Count() != 5 {
+    t.Error("Pad 错误")
+}
+===================
+intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
+pop := intColl.Pop()
+in, err :=  pop.ToInt()
+if err != nil {
+    t.Error(err.Error())
+}
+if in != 6 {
+    t.Error("Pop 错误")
+}
+intColl.DD()
+if intColl.Count() != 5 {
+    t.Error("Pop 后本体错误")
+}
+===================
+intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
+intColl.Push(7)
+===================
+intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
+intColl.Prepend(0)
+===================
+intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
+out := intColl.Random()
+===================
+intColl := NewIntArray([]int{1, 2, 3, 4, 5, 6})
+vs := intColl.Reverse()
+===================
+```
+
+
 ```
 type IMix interface {
 	Err() error
