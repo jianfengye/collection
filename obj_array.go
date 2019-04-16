@@ -150,14 +150,15 @@ func (arr *ObjArray) Pluck(key string) IArray {
 	return objs
 }
 
-func (a *ObjArray) Len() int { return a.objs.Len() }
-func (a *ObjArray) Swap(i, j int) {
-	pt := a.objs.Index(i).Interface()
-	val := reflect.ValueOf(pt)
-	reflect.Copy(a.objs.Index(i), a.objs.Index(j))
-	reflect.Copy(a.objs.Index(j), val)
+
+type ByFieldSort ObjArray
+func (a ByFieldSort) Len() int { return a.objs.Len() }
+func (a ByFieldSort) Swap(i, j int) {
+	t := a.objs.Index(i).Interface()
+	a.objs.Index(i).Set(a.objs.Index(j))
+	a.objs.Index(j).Set(reflect.ValueOf(t))
 }
-func (a *ObjArray) Less(i, j int) bool {
+func (a ByFieldSort) Less(i, j int) bool {
 	iInterface := a.objs.Index(i).Interface()
 	jInterface := a.objs.Index(j).Interface()
 
@@ -174,9 +175,9 @@ func (a *ObjArray) Less(i, j int) bool {
 type ByFieldSortDesc ObjArray
 func (a ByFieldSortDesc) Len() int { return a.objs.Len() }
 func (a ByFieldSortDesc) Swap(i, j int) {
-	t := a.objs.Index(i)
+	t := a.objs.Index(i).Interface()
 	a.objs.Index(i).Set(a.objs.Index(j))
-	a.objs.Index(j).Set(t)
+	a.objs.Index(j).Set(reflect.ValueOf(t))
 }
 func (a ByFieldSortDesc) Less(i, j int) bool {
 	iInterface := a.objs.Index(i).Interface()
@@ -186,7 +187,7 @@ func (a ByFieldSortDesc) Less(i, j int) bool {
 		panic("Less compare does not exist")
 	}
 
-	if  a.compare(iInterface, jInterface) < 0 {
+	if  a.compare(iInterface, jInterface) > 0 {
 		return true
 	}
 	return false
@@ -198,7 +199,7 @@ func (arr *ObjArray) SortBy(key string) IArray {
 		return arr
 	}
 
-	sort.Sort(arr)
+	sort.Sort(ByFieldSort(*arr))
 	return arr
 }
 

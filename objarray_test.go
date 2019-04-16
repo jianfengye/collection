@@ -97,5 +97,8 @@ func TestObjArray_DD(t *testing.T) {
 
 	objColl3 := objColl.SortBy("A")
 	objColl3.DD()
+
+	objColl3.SortByDesc("A")
+	objColl3.DD()
 }
 
