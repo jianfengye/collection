@@ -152,42 +152,6 @@ func TestAbsArray_Merge(t *testing.T) {
 	intColl.DD()
 }
 
-func TestAbsArray_Combine(t *testing.T) {
-	intColl := NewIntArray([]int{1, 2 })
-
-	intColl2 := NewIntArray([]int{3, 4})
-
-	m, err := intColl.Combine(intColl2)
-	if err != nil {
-		t.Error("Combine错误: " + err.Error())
-	}
-
-	m.DD()
-
-	intColl3 := NewIntArray([]int{3, 4, 5})
-
-	m, err = intColl.Combine(intColl3)
-	if err == nil {
-		t.Error("Combine应该出现个数错误")
-	}
-}
-
-func TestAbsArray_CrossJoin(t *testing.T) {
-	intColl := NewIntArray([]int{1, 2 })
-
-	intColl2 := NewIntArray([]int{3, 4})
-
-	m, err := intColl.CrossJoin(intColl2)
-	if err != nil {
-		t.Error("CrossJoin错误: " + err.Error())
-	}
-
-	if m.Len() != 4 {
-		t.Error("CrossJoin错误: " + err.Error())
-	}
-
-	m.DD()
-}
 
 func TestAbsArray_Each(t *testing.T) {
 	intColl := NewIntArray([]int{1, 2, 3, 4})
@@ -347,7 +311,24 @@ func TestAbsArray_Reverse(t *testing.T) {
 	vs.DD()
 }
 
-func TestAppend(t *testing.T) {
-	a := []int{1, 2}
-	a = append(a, 4)
+func TestAbsArray_Mode(t *testing.T) {
+	intColl := NewIntArray([]int{1, 2, 2, 3, 4, 5, 6})
+	mode, err := intColl.Mode().ToInt()
+	if err != nil {
+		t.Error(err.Error())
+	}
+	if mode != 2 {
+		t.Error("Mode error")
+	}
+}
+
+func TestAbsArray_Avg(t *testing.T) {
+	intColl := NewIntArray([]int{1, 2, 2, 3})
+	mode, err := intColl.Avg().ToFloat64()
+	if err != nil {
+		t.Error(err.Error())
+	}
+	if mode != 2.0 {
+		t.Error("Avg error")
+	}
 }

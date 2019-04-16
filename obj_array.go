@@ -94,21 +94,6 @@ func (arr *ObjArray) DD() {
 	fmt.Print(ret)
 }
 
-func (arr *ObjArray) KeyBy(key string) (IMap, error) {
-
-	field, found := arr.typ.FieldByName(key)
-	if !found  {
-		err := errors.New("ObjArray.KeyBy: key not found")
-		arr.SetErr(err)
-		return nil, err
-	}
-	m := NewEmptyMap(field.Type, arr.typ)
-	for i := 0; i < arr.objs.Len(); i++ {
-		v := arr.objs.Index(i).FieldByName(key).Interface()
-		m.Set(v, arr.objs.Index(i).Interface())
-	}
-	return m, nil
-}
 
 // 将对象的某个key作为Slice的value，作为slice返回
 func (arr *ObjArray) Pluck(key string) IArray {

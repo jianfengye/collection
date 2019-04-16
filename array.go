@@ -42,10 +42,6 @@ type IArray interface {
 	Count() int
 	// 将两个数组进行合并，参数的数据挂在当前数组中，返回当前数组，对所有Array生效
 	Merge(arr IArray) IArray
-	// 合并，将当前数组每个元素作为key，传入参数每个元素作为value，组成一个map
-	Combine(arr IArray) (IMap, error)
-	// 进行笛卡尔乘积组成数组
-	CrossJoin(arr IArray) (IMap, error)
 
 	// 每个元素都调用一次的方法
 	Each(func(item interface{}, key int))
@@ -81,8 +77,6 @@ type IArray interface {
 	/*
 	下面的方法对ObjArray生效
 	 */
-	// 将数组中对象某个key作为map的key，整个对象作为value，作为map返回，如果key有重复会进行覆盖，仅对ObjectArray生效
-	KeyBy(key string) (IMap, error)
 	// 返回数组中对象的某个key组成的数组，仅对ObjectArray生效, key为对象属性名称，必须为public的属性
 	Pluck(key string) IArray
 	// 按照某个字段进行排序
@@ -103,8 +97,6 @@ type IArray interface {
 	Min() IMix
 	// 判断是否包含某个元素，（并不进行定位），对基础Array生效
 	Contains(obj interface{}) bool
-	// 根据key对象计数
-	CountBy() IMap
 	// 比较两个数组，获取第一个数组不在第二个数组中的元素，组成新数组
 	Diff(arr IArray) IArray
 	// 进行排序, 升序
@@ -120,7 +112,7 @@ type IArray interface {
 	// 获取平均值
 	Avg() IMix
 	// 获取中位值
-	Median() (IMix, error)
+	Median() IMix
 	// 获取Mode值
 	Mode() IMix
 	// 获取sum值

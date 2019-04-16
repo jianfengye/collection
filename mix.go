@@ -38,6 +38,12 @@ type Mix struct {
 	typ reflect.Type
 }
 
+func NewErrorMix(err error) *Mix {
+	mix := &Mix{}
+	mix.SetErr(err)
+	return mix
+}
+
 func NewMix(real interface{}) *Mix {
 	return &Mix{
 		real: real,
@@ -120,6 +126,9 @@ func (m *Mix) Equal(n IMix) bool {
 }
 
 func (m *Mix) Add(n IMix) (IMix, error) {
+	if m.Err() != nil {
+		return m, m.Err()
+	}
 	switch m.typ.Kind() {
 	case reflect.String:
 		item1, err := m.ToString()
@@ -177,6 +186,9 @@ func (m *Mix) Add(n IMix) (IMix, error) {
 }
 
 func (m *Mix) Sub(n IMix) (IMix, error) {
+	if m.Err() != nil {
+		return m, m.Err()
+	}
 	switch m.typ.Kind() {
 	case reflect.String:
 		return nil, errors.New("format not support")
@@ -226,6 +238,9 @@ func (m *Mix) Sub(n IMix) (IMix, error) {
 }
 
 func (m *Mix) Div(n int) (IMix, error) {
+	if m.Err() != nil {
+		return m, m.Err()
+	}
 	switch m.typ.Kind() {
 	case reflect.String:
 		return nil, errors.New("format not support")
@@ -234,13 +249,13 @@ func (m *Mix) Div(n int) (IMix, error) {
 		if err != nil {
 			return nil, errors.New("format error")
 		}
-		return NewMix(item1 / n), nil
+		return NewMix(float64(item1) / float64(n)), nil
 	case reflect.Int64:
 		item1, err := m.ToInt64()
 		if err != nil {
 			return nil, errors.New("format error")
 		}
-		return NewMix(item1 / int64(n)), nil
+		return NewMix(float64(item1) / float64(n)), nil
 	case reflect.Float64:
 		item1, err := m.ToFloat64()
 		if err != nil {
@@ -259,6 +274,9 @@ func (m *Mix) Div(n int) (IMix, error) {
 }
 
 func (m *Mix) Multi(n int) (IMix, error) {
+	if m.Err() != nil {
+		return m, m.Err()
+	}
 	switch m.typ.Kind() {
 	case reflect.String:
 		return nil, errors.New("format not support")

@@ -11,7 +11,7 @@ type StrArray struct{
 	AbsArray
 	objs []string
 
-	tri *trie.Trie // 使用trie树增加查找效率，但是仅仅用于Has函数
+	tri *trie.Trie // 使用trie树增加查找效率
 }
 
 func compareString(a interface{}, b interface{}) int {

@@ -185,47 +185,6 @@ func (arr *AbsArray) Merge(arr2 IArray) IArray {
 	return arr
 }
 
-func (arr *AbsArray) Combine(arr2 IArray) (IMap, error) {
-	if arr.Err() != nil {
-		return nil, arr.Err()
-	}
-
-	if arr.Count() == 0 {
-		return nil, errors.New("combine: count can not be zero")
-	}
-
-	if arr.Count() != arr2.Count() {
-		return nil, errors.New("combine: count not match")
-	}
-
-	ret := NewEmptyMap(reflect.TypeOf(arr.Index(0).ToInterface()), reflect.TypeOf(arr2.Index(0).ToInterface()))
-	for i := 0; i < arr.Count(); i++ {
-		key := arr.Index(i).ToInterface()
-		val := arr2.Index(i).ToInterface()
-		ret.Set(key, val)
-	}
-	return ret, nil
-}
-
-func (arr *AbsArray) CrossJoin(arr2 IArray) (IMap, error) {
-	if arr.Err() != nil {
-		return nil, arr.Err()
-	}
-
-	if arr.Count() == 0 || arr2.Count() == 0 {
-		return nil, errors.New("CrossJoin: count can not be zero")
-	}
-
-	ret := NewEmptyMap(reflect.TypeOf(arr.Index(0).ToInterface()), reflect.TypeOf(arr2.Index(0).ToInterface()))
-	for i := 0; i < arr.Count(); i++ {
-		for j := 0; j < arr2.Count(); j++ {
-			key := arr.Index(i).ToInterface()
-			val := arr2.Index(j).ToInterface()
-			ret.Set(key, val)
-		}
-	}
-	return ret, nil
-}
 
 func (arr *AbsArray) Each(f func(item interface{}, key int)) {
 	for i := 0; i < arr.Count(); i++ {
@@ -434,14 +393,6 @@ func (arr *AbsArray) Shuffle() IArray {
 	return newArr
 }
 
-func (arr *AbsArray) KeyBy(key string) (IMap, error) {
-	if arr.Err() != nil {
-		return nil, arr.Err()
-	}
-
-	return nil, errors.New("format not support")
-}
-
 func (arr *AbsArray) Pluck(key string) IArray {
 	if arr.Err() != nil {
 		return arr
@@ -509,15 +460,6 @@ func (arr *AbsArray) Contains(obj interface{}) bool {
 		}
 	}
 	return false
-}
-
-func (arr *AbsArray) CountBy() IMap {
-	if arr.Err() != nil {
-		return nil
-	}
-
-	// TODO: 这个等map思考清楚再进行开发
-	panic("CountBy: not Implement")
 }
 
 func (arr *AbsArray) Diff(arr2 IArray) IArray {
@@ -639,43 +581,77 @@ func (arr *AbsArray) Join(split string, format ...func(item interface{}) string)
 	return ret.String()
 }
 
-func (arr *AbsArray) Avg() IMix{
+func (arr *AbsArray) Avg() IMix {
 	if arr.Err() != nil {
-		return nil
+		return NewErrorMix(arr.Err())
 	}
-	panic("Avg: not Implement")
+	if arr.Count() == 0 {
+		return NewErrorMix(errors.New("arr count can not be empty"))
+	}
+
+	var sum IMix
+	var err error
+	sum = NewMix(arr.Index(0).ToInterface())
+	for i:= 1; i < arr.Count(); i++ {
+		sum, err = sum.Add(arr.Index(i))
+		if err != nil {
+			return NewErrorMix(err)
+		}
+	}
+	div, err := sum.Div(arr.Count())
+	if err != nil {
+		return NewErrorMix(err)
+	}
+	return div
 }
 
-func (arr *AbsArray) Median() (IMix, error) {
+func (arr *AbsArray) Median() IMix {
 	if arr.Err() != nil {
-		return nil, arr.Err()
+		return NewErrorMix(arr.Err())
 	}
 	newArr := arr.Sort()
 	if newArr.Count() % 2 == 0 {
 		imax, err := newArr.Index(newArr.Count() / 2 - 1).Add(newArr.Index(newArr.Count() / 2 + 1))
 		if err != nil {
-			return nil, err
+			return NewErrorMix(err)
 		}
-		return imax.Div(2)
+		div, err := imax.Div(2)
+		if err != nil {
+			return NewErrorMix(err)
+		}
+		return div
 	}
 
-	return newArr.Index(newArr.Count() / 2 + 1), nil
+	return newArr.Index(newArr.Count() / 2 + 1)
 }
 
 func (arr *AbsArray) Mode() IMix {
 	if arr.Err() != nil {
-		return nil
+		return NewErrorMix(arr.Err())
 	}
 
-	m := arr.CountBy()
-	maxCount, _ := m.Values().Max().ToInt()
-	k := m.Search(maxCount)
-	return k
+	uniqColl := arr.Unique()
+	max := 0
+	retIndex := 0
+	uniqColl.Each(func(item interface{}, key int) {
+		sum := 0
+		arr.Each(func(obj interface{}, index int) {
+			if arr.compare(item, obj) == 0 {
+				sum++
+			}
+		})
+		if sum > max {
+			max = sum
+			retIndex = key
+		}
+	})
+
+	return uniqColl.Index(retIndex)
 }
 
 func (arr *AbsArray) Sum() IMix {
 	if arr.Err() != nil {
-		return nil
+		return NewErrorMix(arr.Err())
 	}
 
 	mix := NewMix(arr.Index(0).ToInterface())
@@ -703,7 +679,7 @@ func (arr *AbsArray) Filter(f func(obj interface{}, index int) bool) IArray {
 
 func (arr *AbsArray) First(f ...func(obj interface{}, index int) bool) IMix {
 	if arr.Err() != nil {
-		return nil
+		return NewErrorMix(arr.Err())
 	}
 
 	if len(f) == 0 {
