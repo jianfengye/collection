@@ -89,7 +89,7 @@ type ICollection interface {
 	下面的方法对基础Collection生效，但是ObjCollection一旦设置了Compare函数也生效
 	 */
 	// 比较a和b，如果a>b, 返回1，如果a<b, 返回-1，如果a=b, 返回0
-	// 设置比较函数，理论上所有Collection都能设置比较函数，但是强烈不建议基础Collection设置。
+	// 设置比较函数，理论上所有Collection都能设置比较函数，但是强烈不建议基础Collection设置
 	SetCompare(func(a interface{}, b interface{}) int) ICollection
 	// 数组中最大的元素，仅对基础Collection生效, 可以传递一个比较函数
 	Max() IMix

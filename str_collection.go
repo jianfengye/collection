@@ -10,8 +10,6 @@ import (
 type StrCollection struct{
 	AbsCollection
 	objs []string
-
-	tri *trie.Trie // 使用trie树增加查找效率
 }
 
 func compareString(a interface{}, b interface{}) int {
@@ -27,7 +25,6 @@ func NewStrCollection(objs []string) *StrCollection {
 	}
 	arr := &StrCollection{
 		objs:objs,
-		tri: tri,
 	}
 	arr.AbsCollection.compare = compareString
 	arr.AbsCollection.Parent = arr

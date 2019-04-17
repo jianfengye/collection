@@ -11,7 +11,6 @@ type ObjCollection struct{
 	AbsCollection
 	objs reflect.Value // 数组对象，是一个slice
 	typ reflect.Type // 数组对象每个元素类型
-	ptr reflect.Value // 指向数组对象的指针
 }
 
 // 根据对象数组创建
