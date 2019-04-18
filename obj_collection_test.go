@@ -56,8 +56,8 @@ func TestObjCollection_DD(t *testing.T) {
 		t.Error("Filter Error")
 	}
 
-	obj := objColl.Last()
-	if foo, ok := obj.ToInterface().(Foo); !ok || foo.A != "a4" {
+	obj, _ := objColl.Last().ToInterface()
+	if foo, ok := obj.(Foo); !ok || foo.A != "a4" {
 		t.Error("Last error")
 	}
 

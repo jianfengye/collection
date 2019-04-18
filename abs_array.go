@@ -74,13 +74,6 @@ func (arr *AbsCollection) DD()  {
 	arr.Parent.DD()
 }
 
-func (arr *AbsCollection) ToJson() []byte {
-	if arr.Parent == nil {
-		panic("ToJson: not Implement")
-	}
-	return arr.Parent.ToJson()
-}
-
 /*
 下面这些函数是所有函数体都一样
  */
@@ -101,8 +94,12 @@ func (arr *AbsCollection) IsNotEmpty() bool {
 }
 
 func (arr *AbsCollection) Search(item interface{}) int {
+	if arr.Err() != nil {
+		return -1
+	}
 	for i := 0; i < arr.Count(); i++ {
-		if arr.compare(arr.Index(i).ToInterface(), item) == 0 {
+		o, _ := arr.Index(i).ToInterface()
+		if arr.compare(o, item) == 0 {
 			return i
 		}
 	}
@@ -115,8 +112,9 @@ func (arr *AbsCollection) Unique() ICollection {
 	}
 	newArr := arr.NewEmpty(arr.Err())
 	for i := 0; i < arr.Count(); i++ {
-		if newArr.Contains(arr.Index(i).ToInterface()) == false {
-			newArr.Append(arr.Index(i).ToInterface())
+		o, _ := arr.Index(i).ToInterface()
+		if newArr.Contains(o) == false {
+			newArr.Append(o)
 		}
 	}
 	return newArr
@@ -128,14 +126,18 @@ func (arr *AbsCollection) Reject(f func(item interface{}, key int) bool) ICollec
 	}
 	newArr := arr.NewEmpty(arr.Err())
 	for i := 0; i < arr.Count(); i++ {
-		if f(arr.Index(i).ToInterface(), i) == false {
-			newArr.Append(arr.Index(i).ToInterface())
+		o, _ := arr.Index(i).ToInterface()
+		if f(o, i) == false {
+			newArr.Append(o)
 		}
 	}
 	return newArr
 }
 
 func (arr *AbsCollection) Last(fs ...func(item interface{}, key int) bool) IMix {
+	if arr.Err() != nil {
+		return NewErrorMix(arr.Err())
+	}
 	if len(fs) > 1 {
 		panic("Last 参数个数错误")
 	}
@@ -165,7 +167,8 @@ func (arr *AbsCollection) Slice(ps ...int) ICollection {
 	newArr := arr.NewEmpty(arr.Err())
 	for i := 0; i < arr.Count(); i++ {
 		if i >= start {
-			newArr.Append(arr.Index(i).ToInterface())
+			o, _ := arr.Index(i).ToInterface()
+			newArr.Append(o)
 			if newArr.Count() >= count {
 				break
 			}
@@ -180,7 +183,8 @@ func (arr *AbsCollection) Merge(arr2 ICollection) ICollection {
 	}
 
 	for i := 0; i < arr2.Count(); i++ {
-		arr.Append(arr2.Index(i).ToInterface())
+		o, _ := arr2.Index(i).ToInterface()
+		arr.Append(o)
 	}
 	return arr
 }
@@ -188,7 +192,8 @@ func (arr *AbsCollection) Merge(arr2 ICollection) ICollection {
 
 func (arr *AbsCollection) Each(f func(item interface{}, key int)) {
 	for i := 0; i < arr.Count(); i++ {
-		f(arr.Index(i).ToInterface(), i)
+		o, _ := arr.Index(i).ToInterface()
+		f(o, i)
 	}
 }
 
@@ -218,11 +223,15 @@ func (arr *AbsCollection) Map(f func(item interface{}, key int) IMix) ICollectio
 		return nil
 	}
 
-	first := f(arr.Index(0).ToInterface(), 0)
+	o, _ := arr.Index(0).ToInterface()
+	first := f(o, 0)
 	ret := newMixCollection(first)
-	ret.Append(first.ToInterface())
+	o, _ = first.ToInterface()
+	ret.Append(o)
 	for i := 1; i < arr.Count(); i++ {
-		ret.Append(f(arr.Index(i).ToInterface(), 0).ToInterface())
+		o, _ = arr.Index(i).ToInterface()
+		o2, _ := f(o, 0).ToInterface()
+		ret.Append(o2)
 	}
 	return ret
 }
@@ -237,13 +246,17 @@ func (arr *AbsCollection) Reduce(f func(carry IMix, item IMix) IMix) IMix {
 	}
 
 	if arr.Count() == 1 {
-		return NewMix(arr.Index(0).ToInterface())
+		o, _ := arr.Index(0).ToInterface()
+		return NewMix(o)
 	}
 
-	carry := f(NewMix(arr.Index(0).ToInterface()), NewMix(arr.Index(1).ToInterface()))
+	o0, _ := arr.Index(0).ToInterface()
+	o1, _ := arr.Index(1).ToInterface()
+	carry := f(NewMix(o0), NewMix(o1))
 
 	for i := 2; i < arr.Count(); i++ {
-		carry = f(carry, NewMix(arr.Index(i).ToInterface()))
+		oi, _ := arr.Index(i).ToInterface()
+		carry = f(carry, NewMix(oi))
 	}
 	return carry
 }
@@ -254,7 +267,8 @@ func (arr *AbsCollection) Every(f func(item interface{}, key int) bool) bool {
 	}
 
 	for i := 0; i < arr.Count(); i++ {
-		if f(arr.Index(i).ToInterface(), i) == false {
+		o, _ := arr.Index(i).ToInterface()
+		if f(o, i) == false {
 			return false
 		}
 	}
@@ -278,7 +292,8 @@ func (arr *AbsCollection) Nth(n int, offset int) ICollection {
 	newArr := arr.NewEmpty(arr.Err())
 	for i := 0; i < arr.Count(); i++ {
 		if (i - offset) % n == 0 {
-			newArr.Append(arr.Index(i).ToInterface())
+			o, _ := arr.Index(i).ToInterface()
+			newArr.Append(o)
 		}
 	}
 	return newArr
@@ -297,7 +312,8 @@ func (arr *AbsCollection) Pad(start int, def interface{}) ICollection {
 		}
 
 		for i:=0; i < arr.Count(); i++ {
-			newArr.Append(arr.Index(i).ToInterface())
+			o, _ := arr.Index(i).ToInterface()
+			newArr.Append(o)
 		}
 		for i := arr.Count(); i < start; i++ {
 			newArr = newArr.Append(def)
@@ -316,7 +332,8 @@ func (arr *AbsCollection) Pad(start int, def interface{}) ICollection {
 		}
 
 		for i := 0; i < arr.Count(); i++ {
-			newArr.Append(arr.Index(i).ToInterface())
+			o, _ := arr.Index(i).ToInterface()
+			newArr.Append(o)
 		}
 	}
 
@@ -368,7 +385,8 @@ func (arr *AbsCollection) Reverse() ICollection {
 
 	newArr := arr.NewEmpty(arr.Err())
 	for i := 0; i < newArr.Count() - 1; i++ {
-		newArr.Append(arr.Index(newArr.Count() - 1 - i).ToInterface())
+		o, _ := arr.Index(newArr.Count() - 1 - i).ToInterface()
+		newArr.Append(o)
 	}
 	return newArr
 }
@@ -388,7 +406,8 @@ func (arr *AbsCollection) Shuffle() ICollection {
 
 	newArr := arr.NewEmpty(arr.Err())
 	for i := 0; i < len(indexs); i ++ {
-		newArr.Append(arr.Index(indexs[i]).ToInterface())
+		o, _ := arr.Index(indexs[i]).ToInterface()
+		newArr.Append(o)
 	}
 	return newArr
 }
@@ -432,7 +451,9 @@ func (arr *AbsCollection) Max() IMix {
 
 	max := 0
 	for i := 0; i < arr.Count(); i++ {
-		if arr.compare(arr.Index(i).ToInterface(), arr.Index(max).ToInterface()) > 0 {
+		oi, _ := arr.Index(i).ToInterface()
+		omax, _ := arr.Index(max).ToInterface()
+		if arr.compare(oi, omax) > 0 {
 			max = i
 		}
 	}
@@ -446,7 +467,9 @@ func (arr *AbsCollection) Min() IMix {
 
 	min := 0
 	for i := 0; i < arr.Count(); i++ {
-		if arr.compare(arr.Index(i).ToInterface(), arr.Index(min).ToInterface()) < 0 {
+		oi, _ := arr.Index(i).ToInterface()
+		omin, _ := arr.Index(min).ToInterface()
+		if arr.compare(oi, omin) < 0 {
 			min = i
 		}
 	}
@@ -455,7 +478,8 @@ func (arr *AbsCollection) Min() IMix {
 
 func (arr *AbsCollection) Contains(obj interface{}) bool {
 	for i := 0; i < arr.Count(); i++ {
-		if arr.compare(arr.Index(i).ToInterface(), obj) == 0 {
+		o, _ := arr.Index(i).ToInterface()
+		if arr.compare(o, obj) == 0 {
 			return true
 		}
 	}
@@ -469,8 +493,9 @@ func (arr *AbsCollection) Diff(arr2 ICollection) ICollection {
 
 	newArr := arr.NewEmpty(arr.Err())
 	for i := 0; i < arr.Count(); i++ {
-		if arr2.Contains(arr.Index(i).ToInterface()) == false {
-			newArr.Append(arr.Index(i).ToInterface())
+		o, _ := arr.Index(i).ToInterface()
+		if arr2.Contains(o) == false {
+			newArr.Append(o)
 		}
 	}
 	return newArr
@@ -506,14 +531,17 @@ func (arr *AbsCollection) Sort() ICollection {
 				continue
 			}
 
-			if arr.compare(arr.Index(j).ToInterface(), arr.Index(min).ToInterface()) <= 0 {
+			oj, _ := arr.Index(j).ToInterface()
+			omin, _ := arr.Index(min).ToInterface()
+			if arr.compare(oj, omin) <= 0 {
 				min = j
 				continue
 			}
 		}
 
 		sorted = append(sorted, min)
-		newArr.Append(arr.Index(min).ToInterface())
+		omin, _ := arr.Index(min).ToInterface()
+		newArr.Append(omin)
 	}
 	return newArr
 }
@@ -548,14 +576,17 @@ func (arr *AbsCollection) SortDesc() ICollection {
 				continue
 			}
 
-			if arr.compare(arr.Index(j).ToInterface(), arr.Index(max).ToInterface()) >= 0 {
+			oj, _ := arr.Index(j).ToInterface()
+			omax, _ := arr.Index(max).ToInterface()
+			if arr.compare(oj, omax) >= 0 {
 				max = j
 				continue
 			}
 		}
 
 		sorted = append(sorted, max)
-		newArr.Append(arr.Index(max).ToInterface())
+		omax, _ := arr.Index(max).ToInterface()
+		newArr.Append(omax)
 	}
 	return newArr
 }
@@ -568,10 +599,12 @@ func (arr *AbsCollection) Join(split string, format ...func(item interface{}) st
 	var ret strings.Builder
 	for i := 0; i < arr.Count(); i++ {
 		if len(format) == 0 {
-			ret.WriteString(fmt.Sprintf("%v", arr.Index(i).ToInterface()))
+			o, _ := arr.Index(i).ToInterface()
+			ret.WriteString(fmt.Sprintf("%v", o))
 		} else {
 			f := format[0]
-			ret.WriteString(f(arr.Index(i).ToInterface()))
+			o, _ := arr.Index(i).ToInterface()
+			ret.WriteString(f(o))
 		}
 
 		if i != arr.Count() - 1 {
@@ -591,7 +624,8 @@ func (arr *AbsCollection) Avg() IMix {
 
 	var sum IMix
 	var err error
-	sum = NewMix(arr.Index(0).ToInterface())
+	o0, _ := arr.Index(0).ToInterface()
+	sum = NewMix(o0)
 	for i:= 1; i < arr.Count(); i++ {
 		sum, err = sum.Add(arr.Index(i))
 		if err != nil {
@@ -654,7 +688,8 @@ func (arr *AbsCollection) Sum() IMix {
 		return NewErrorMix(arr.Err())
 	}
 
-	mix := NewMix(arr.Index(0).ToInterface())
+	o0, _ := arr.Index(0).ToInterface()
+	mix := NewMix(o0)
 	for i := 0; i < arr.Count(); i++ {
 		mix.Add(arr.Index(i))
 	}
@@ -669,7 +704,7 @@ func (arr *AbsCollection) Filter(f func(obj interface{}, index int) bool) IColle
 	ret := arr.Parent.NewEmpty(arr.Err())
 	l := arr.Parent.Count()
 	for i := 0; i < l; i++ {
-		obj := arr.Parent.Index(i).ToInterface()
+		obj, _ := arr.Index(i).ToInterface()
 		if f(obj, i) == true {
 			ret.Append(obj)
 		}
@@ -689,7 +724,7 @@ func (arr *AbsCollection) First(f ...func(obj interface{}, index int) bool) IMix
 
 	l := arr.Parent.Count()
 	for i := 0; i < l; i++ {
-		obj := arr.Parent.Index(i).ToInterface()
+		obj, _ := arr.Index(i).ToInterface()
 		if fun(obj, i) == true {
 			return arr.Parent.Index(i)
 		}

@@ -71,8 +71,6 @@ type ICollection interface {
 	Shuffle() ICollection
 	// 打印出当前数组结构
 	DD()
-	// 打印出json
-	ToJson() []byte
 
 	/*
 	下面的方法对ObjCollection生效

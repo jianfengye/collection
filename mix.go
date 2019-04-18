@@ -24,7 +24,7 @@ type IMix interface {
 	ToInt() (int, error)
 	ToFloat64() (float64, error)
 	ToFloat32() (float32, error)
-	ToInterface() interface{} // 所有函数可用
+	ToInterface() (interface{}, error) // 所有函数可用
 
 	Format() string // 打印成string
 	DD()
@@ -359,12 +359,13 @@ func (m *Mix) ToFloat32() (float32, error) {
 	return 0, errors.New("Mix can not covert to float32")
 }
 
-func (m *Mix) ToInterface() interface{} {
-	return m.real
+func (m *Mix) ToInterface() (interface{}, error) {
+	return m.real, m.Err()
 }
 
 func (m *Mix) Format() string {
-	return fmt.Sprintf("%v", m.ToInterface())
+	o, _ := m.ToInterface()
+	return fmt.Sprintf("%v", o)
 }
 
 func (m *Mix) DD() {
