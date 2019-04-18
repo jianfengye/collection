@@ -50,6 +50,7 @@ func TestAbsCollection_Index(t *testing.T) {
 
 func TestAbsCollection_IsEmpty(t *testing.T) {
 	intColl := NewIntCollection([]int{1,2})
+	println(intColl.IsEmpty())
 	if intColl.IsEmpty() != false {
 		t.Error("IsEmpty 错误")
 	}
@@ -57,6 +58,7 @@ func TestAbsCollection_IsEmpty(t *testing.T) {
 
 func TestAbsCollection_IsNotEmpty(t *testing.T) {
 	intColl := NewIntCollection([]int{1,2})
+	println(intColl.IsNotEmpty())
 	if intColl.IsNotEmpty() != true {
 		t.Error("IsNotEmpty 错误")
 	}

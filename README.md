@@ -30,6 +30,19 @@ if err != nil {
 
 [Index](#Index) 
 
+[IsEmpty](#IsEmpty)
+
+[IsNotEmpty](#IsNotEmpty)
+
+[Search](#Search)
+
+[Unique](#Unique)
+
+[Reject](#Reject)
+
+[Last](#Last)
+
+
 
 ### DD 
 
@@ -95,55 +108,83 @@ IntCollection(3):{
 */
 ```
 
-具体方法示例：
+### Index
+
+Index获取元素中的第几个元素，下标从0开始，如果i超出了长度，则Collection记录错误。
 
 ```
-
-===================
-intColl := NewIntCollection([]int{1,2})
-intColl.DD()
-
-===================
-intColl := NewIntCollection([]int{1,2})
-intColl.Append(3)
-
-===================
 intColl := NewIntCollection([]int{1,2})
 foo := intColl.Index(1)
+foo.DD()
 
-===================
+/*
+IMix(int): 2 
+*/
+```
+
+### IsEmpty
+
+判断一个Collection是否为空，为空返回true, 否则返回false
+
+```go
 intColl := NewIntCollection([]int{1,2})
-if intColl.IsEmpty() != false {
-    t.Error("IsEmpty 错误")
-}
+println(intColl.IsEmpty())  // false
+```
 
-===================
+### IsNotEmpty
+
+判断一个Collection是否为空，为空返回false，否则返回true
+```go
 intColl := NewIntCollection([]int{1,2})
-if intColl.IsNotEmpty() != true {
-    t.Error("IsNotEmpty 错误")
-}
+println(intColl.IsNotEmpty()) // true
+```
 
-===================
+### Search
+
+查找Collection中第一个匹配查询元素的下标，如果存在，返回下标；如果不存在，返回-1
+
+*注意* 此函数要求设置compare方法，基础元素数组（int, int64, float32, float64, string）可直接调用！
+
+```go
 intColl := NewIntCollection([]int{1,2})
 if intColl.Search(2) != 1 {
     t.Error("Search 错误")
 }
 
-===================
 intColl = NewIntCollection([]int{1,2, 3, 3, 2})
 if intColl.Search(3) != 2 {
     t.Error("Search 重复错误")
 }
+```
 
-===================
+### Unique
+
+将Collection中重复的元素进行合并，返回唯一的一个数组。
+
+*注意* 此函数要求设置compare方法，基础元素数组（int, int64, float32, float64, string）可直接调用！
+
+```go
 intColl := NewIntCollection([]int{1,2, 3, 3, 2})
 uniqColl := intColl.Unique()
 if uniqColl.Count() != 3 {
     t.Error("Unique 重复错误")
 }
 
+uniqColl.DD()
+/*
+IntCollection(3):{
+	0:	1
+	1:	2
+	2:	3
+}
+*/
+```
 
-===================
+### Reject
+
+将满足过滤条件的元素删除
+
+```go
 intColl := NewIntCollection([]int{1, 2, 3, 4, 5})
 retColl := intColl.Reject(func(item interface{}, key int) bool {
     i := item.(int)
@@ -153,8 +194,22 @@ if retColl.Count() != 3 {
     t.Error("Reject 重复错误")
 }
 
+retColl.DD()
 
-===================
+/*
+IntCollection(3):{
+	0:	1
+	1:	2
+	2:	3
+}
+*/
+```
+
+### Last
+
+获取该Collection中满足过滤的最后一个元素，如果没有填写过滤条件，默认返回最后一个元素
+
+```go
 intColl := NewIntCollection([]int{1, 2, 3, 4, 3, 2})
 last, err := intColl.Last().ToInt()
 if err != nil {
@@ -169,133 +224,65 @@ last, err = intColl.Last(func(item interface{}, key int) bool {
     return i > 2
 }).ToInt()
 
-===================
+if err != nil {
+    t.Error("last get error")
+}
+if last != 3 {
+    t.Error("last 获取错误")
+}
+```
+
+### Slice
+
+获取Collection中的片段，可以有两个参数或者一个参数。
+
+如果是两个参数，第一个参数代表开始下标，第二个参数代表结束下标，当第二个参数为-1时候，就代表到Collection结束。
+
+如果是一个参数，则代表从这个开始下标一直获取到Collection结束的片段。
+
+```go
 intColl := NewIntCollection([]int{1, 2, 3, 4, 5})
 retColl := intColl.Slice(2)
+if retColl.Count() != 3 {
+    t.Error("Slice 错误")
+}
+
+retColl.DD()
 
 retColl = intColl.Slice(2,2)
+if retColl.Count() != 2 {
+    t.Error("Slice 两个参数错误")
+}
+
+retColl.DD()
 
 retColl = intColl.Slice(2, -1)
-
-===================
-intColl := NewIntCollection([]int{1, 2 })
-
-intColl2 := NewIntCollection([]int{3, 4})
-
-intColl.Merge(intColl2)
-
-===================
-intColl := NewIntCollection([]int{1, 2 })
-
-intColl2 := NewIntCollection([]int{3, 4})
-
-m, err := intColl.Combine(intColl2)
-
-===================
-intColl := NewIntCollection([]int{1, 2 })
-
-intColl2 := NewIntCollection([]int{3, 4})
-
-m, err := intColl.CrossJoin(intColl2)
-
-===================
-intColl := NewIntCollection([]int{1, 2, 3, 4})
-sum := 0
-intColl.Each(func(item interface{}, key int) {
-    v := item.(int)
-    sum = sum + v
-})
-if sum != 10 {
-    t.Error("Each 错误")
-}
-===================
-intColl := NewIntCollection([]int{1, 2, 3, 4})
-newIntColl := intColl.Map(func(item interface{}, key int) IMix {
-    v := item.(int)
-    return NewMix(v * 2)
-})
-
-===================
-intColl := NewIntCollection([]int{1, 2, 3, 4})
-sumMix := intColl.Reduce(func(carry IMix, item IMix) IMix {
-    carryInt, _ := carry.ToInt()
-    itemInt, _ := item.ToInt()
-    return NewMix(carryInt + itemInt)
-})
-
-
-===================
-
-intColl := NewIntCollection([]int{1, 2, 3, 4})
-if intColl.Every(func(item interface{}, key int) bool {
-    i := item.(int)
-    return i > 1
-}) != false {
-    t.Error("Every错误")
+if retColl.Count() != 3 {
+    t.Error("Slice第二个参数为-1错误")
 }
 
-if intColl.Every(func(item interface{}, key int) bool {
-    i := item.(int)
-    return i > 0
-}) != true {
-    t.Error("Every错误")
-}
+retColl.DD()
 
-===================
-intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
-ret := intColl.ForPage(1, 2)
+/*
+IntCollection(3):{
+	0:	3
+	1:	4
+	2:	5
+}
+IntCollection(2):{
+	0:	3
+	1:	4
+}
+IntCollection(3):{
+	0:	3
+	1:	4
+	2:	5
+}
+*/
 
-===================
-intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
-ret := intColl.Nth(4, 1)
-===================
-intColl := NewIntCollection([]int{1, 2, 3})
-ret := intColl.Pad(5, 0)
-if ret.Err() != nil {
-    t.Error(ret.Err().Error())
-}
-
-ret.DD()
-if ret.Count() != 5 {
-    t.Error("Pad 错误")
-}
-
-ret = intColl.Pad(-5, 0)
-if ret.Err() != nil {
-    t.Error(ret.Err().Error())
-}
-ret.DD()
-if ret.Count() != 5 {
-    t.Error("Pad 错误")
-}
-===================
-intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
-pop := intColl.Pop()
-in, err :=  pop.ToInt()
-if err != nil {
-    t.Error(err.Error())
-}
-if in != 6 {
-    t.Error("Pop 错误")
-}
-intColl.DD()
-if intColl.Count() != 5 {
-    t.Error("Pop 后本体错误")
-}
-===================
-intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
-intColl.Push(7)
-===================
-intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
-intColl.Prepend(0)
-===================
-intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
-out := intColl.Random()
-===================
-intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
-vs := intColl.Reverse()
-===================
 ```
+
+
 接口说明：
 ```
 
