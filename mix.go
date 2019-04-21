@@ -51,6 +51,25 @@ func NewMix(real interface{}) *Mix {
 	}
 }
 
+// 根据typ 创建一个新的Mix数组
+func NewMixCollection(typ reflect.Type) ICollection {
+	switch typ.Kind() {
+	case reflect.String:
+		return NewStrCollection([]string{})
+	case reflect.Int:
+		return NewIntCollection([]int{})
+	case reflect.Int64:
+		return NewInt64Collection([]int64{})
+	case reflect.Float32:
+		return NewFloat32Collection([]float32{})
+	case reflect.Float64:
+		return NewFloat64Collection([]float64{})
+	case reflect.Ptr:
+		return NewObjCollectionByType(typ)
+	}
+	return nil
+}
+
 func (m *Mix) Err() error {
 	return m.err
 }

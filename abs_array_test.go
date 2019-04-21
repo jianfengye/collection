@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"github.com/pkg/errors"
 	"reflect"
 	"testing"
 )
@@ -153,6 +154,10 @@ func TestAbsCollection_Merge(t *testing.T) {
 
 	intColl.Merge(intColl2)
 
+	if intColl.Err() != nil {
+		t.Error(intColl.Err())
+	}
+
 	if intColl.Count() != 4 {
 		t.Error("Merge 错误")
 	}
@@ -168,22 +173,53 @@ func TestAbsCollection_Each(t *testing.T) {
 		v := item.(int)
 		sum = sum + v
 	})
+
+	if intColl.Err() != nil {
+		t.Error(intColl.Err())
+	}
+
 	if sum != 10 {
+		t.Error("Each 错误")
+	}
+
+	sum = 0
+	intColl.Each(func(item interface{}, key int) {
+		v := item.(int)
+		sum = sum + v
+		if sum > 4 {
+			intColl.SetErr(errors.New("stop the cycle"))
+			return
+		}
+	})
+
+	if sum != 6 {
 		t.Error("Each 错误")
 	}
 }
 
 func TestAbsCollection_Map(t *testing.T) {
 	intColl := NewIntCollection([]int{1, 2, 3, 4})
-	newIntColl := intColl.Map(func(item interface{}, key int) IMix {
+	newIntColl := intColl.Map(func(item interface{}, key int) interface{} {
 		v := item.(int)
-		return NewMix(v * 2)
+		return v * 2
 	})
 	newIntColl.DD()
 
 	if newIntColl.Count() != 4 {
 		t.Error("Map错误")
 	}
+
+	newIntColl2 := intColl.Map(func(item interface{}, key int) interface{} {
+		v := item.(int)
+
+		if key > 2 {
+			intColl.SetErr(errors.New("break"))
+			return nil
+		}
+
+		return v * 2
+	})
+	newIntColl2.DD()
 }
 
 func TestAbsCollection_Reduce(t *testing.T) {

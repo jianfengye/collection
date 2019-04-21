@@ -46,7 +46,7 @@ type ICollection interface {
 	// 每个元素都调用一次的方法
 	Each(func(item interface{}, key int))
 	// 每个元素都调用一次的方法, 并组成一个新的元素
-	Map(func(item interface{}, key int) IMix) ICollection
+	Map(func(item interface{}, key int) interface{}) ICollection
 	// 合并一些元素，并组成一个新的元素
 	Reduce(func(carry IMix, item IMix) IMix) IMix
 	// 判断每个对象是否都满足, 如果collection是空，返回true

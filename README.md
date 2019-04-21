@@ -42,6 +42,8 @@ if err != nil {
 
 [Last](#Last)
 
+[Slice](#Slice)
+
 
 
 ### DD 
@@ -282,8 +284,127 @@ IntCollection(3):{
 
 ```
 
+### Merge
+
+将两个Collection的元素进行合并，这个函数会修改原Collection。
+
+```go
+intColl := NewIntCollection([]int{1, 2 })
+
+intColl2 := NewIntCollection([]int{3, 4})
+
+intColl.Merge(intColl2)
+
+if intColl.Err() != nil {
+    t.Error(intColl.Err())
+}
+
+if intColl.Count() != 4 {
+    t.Error("Merge 错误")
+}
+
+intColl.DD()
+
+/*
+IntCollection(4):{
+	0:	1
+	1:	2
+	2:	3
+	3:	4
+}
+*/
+```
+
+### Each
+
+对Collection中的每个函数都进行一次函数调用。传入的参数是回调函数。
+
+如果希望在某此调用的时候中止，就在此次调用的时候设置Collection的Error，就可以中止。
+
+```go
+intColl := NewIntCollection([]int{1, 2, 3, 4})
+sum := 0
+intColl.Each(func(item interface{}, key int) {
+    v := item.(int)
+    sum = sum + v
+})
+
+if intColl.Err() != nil {
+    t.Error(intColl.Err())
+}
+
+if sum != 10 {
+    t.Error("Each 错误")
+}
+
+sum = 0
+intColl.Each(func(item interface{}, key int) {
+    v := item.(int)
+    sum = sum + v
+    if sum > 4 {
+        intColl.SetErr(errors.New("stop the cycle"))
+        return
+    }
+})
+
+if sum != 6 {
+    t.Error("Each 错误")
+}
+
+/*
+PASS
+*/
+```
+
+### Map
+
+对Collection中的每个函数都进行一次函数调用，并将返回值组装成ICollection
+
+这个回调函数形如： `func(item interface{}, key int) interface{}`
+
+如果希望在某此调用的时候中止，就在此次调用的时候设置Collection的Error，就可以中止，且此次回调函数生成的结构不合并到最终生成的ICollection。
+
+```go
+intColl := NewIntCollection([]int{1, 2, 3, 4})
+newIntColl := intColl.Map(func(item interface{}, key int) interface{} {
+    v := item.(int)
+    return v * 2
+})
+newIntColl.DD()
+
+if newIntColl.Count() != 4 {
+    t.Error("Map错误")
+}
+
+newIntColl2 := intColl.Map(func(item interface{}, key int) interface{} {
+    v := item.(int)
+
+    if key > 2 {
+        intColl.SetErr(errors.New("break"))
+        return nil
+    }
+
+    return v * 2
+})
+newIntColl2.DD()
+
+/*
+IntCollection(4):{
+	0:	2
+	1:	4
+	2:	6
+	3:	8
+}
+IntCollection(3):{
+	0:	2
+	1:	4
+	2:	6
+}
+*/
+```
 
 接口说明：
+
 ```
 
 // ICollection表示数组结构，有几种类型

@@ -9,13 +9,13 @@ import (
 	"time"
 )
 
-// 这个是一个虚函数，能实现的都实现，不能实现的panic
+// 这个是一个虚函数，能实现的都实现
 type AbsCollection struct {
 	compare func(interface{}, interface{}) int // 比较函数
 	err error // 错误信息
 
 	ICollection
-	Parent ICollection
+	Parent ICollection  //用于调用子类
 }
 
 func (arr *AbsCollection) Err() error {
@@ -38,6 +38,9 @@ func (arr *AbsCollection) NewEmpty(err ...error) ICollection {
 }
 
 func (arr *AbsCollection) Insert(index int, obj interface{}) ICollection {
+	if arr.Err() != nil {
+		return arr
+	}
 	if arr.Parent == nil {
 		panic("no parent")
 	}
@@ -47,6 +50,9 @@ func (arr *AbsCollection) Insert(index int, obj interface{}) ICollection {
 
 
 func (arr *AbsCollection) Remove(index int) ICollection {
+	if arr.Err() != nil {
+		return arr
+	}
 	if arr.Parent == nil {
 		panic("no parent")
 	}
@@ -61,6 +67,9 @@ func (arr *AbsCollection) Index(i int) IMix {
 }
 
 func (arr *AbsCollection) Count() int {
+	if arr.Err() != nil {
+		return 0
+	}
 	if arr.Parent == nil {
 		panic("no parent")
 	}
@@ -75,14 +84,14 @@ func (arr *AbsCollection) DD()  {
 }
 
 /*
-下面这些函数是所有函数体都一样
+下面这些函数是所有子类都一样
  */
 
 func (arr *AbsCollection) Append(item interface{}) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
-	return arr.Parent.Insert(arr.Count(), item)
+	return arr.Insert(arr.Count(), item)
 }
 
 func (arr *AbsCollection) IsEmpty() bool {
@@ -97,6 +106,11 @@ func (arr *AbsCollection) Search(item interface{}) int {
 	if arr.Err() != nil {
 		return -1
 	}
+
+	if arr.compare == nil {
+		arr.SetErr(errors.New("compare must be set"))
+	}
+
 	for i := 0; i < arr.Count(); i++ {
 		o, _ := arr.Index(i).ToInterface()
 		if arr.compare(o, item) == 0 {
@@ -128,6 +142,9 @@ func (arr *AbsCollection) Reject(f func(item interface{}, key int) bool) ICollec
 	for i := 0; i < arr.Count(); i++ {
 		o, _ := arr.Index(i).ToInterface()
 		if f(o, i) == false {
+			if arr.Err() != nil {
+				break
+			}
 			newArr.Append(o)
 		}
 	}
@@ -181,6 +198,9 @@ func (arr *AbsCollection) Merge(arr2 ICollection) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
+	if arr2.Err() != nil {
+		return arr.SetErr(errors.New("merge error collection"))
+	}
 
 	for i := 0; i < arr2.Count(); i++ {
 		o, _ := arr2.Index(i).ToInterface()
@@ -191,46 +211,42 @@ func (arr *AbsCollection) Merge(arr2 ICollection) ICollection {
 
 
 func (arr *AbsCollection) Each(f func(item interface{}, key int)) {
+	if arr.Err() != nil {
+		return
+	}
 	for i := 0; i < arr.Count(); i++ {
 		o, _ := arr.Index(i).ToInterface()
 		f(o, i)
+		// if f want to stop Each, it just set err for AbsCollection
+		if arr.Err() != nil {
+			return
+		}
 	}
 }
 
-func newMixCollection(mix IMix) ICollection {
-	switch mix.Type().Kind() {
-	case reflect.String:
-		return NewStrCollection([]string{})
-	case reflect.Int:
-		return NewIntCollection([]int{})
-	case reflect.Int64:
-		return NewInt64Collection([]int64{})
-	case reflect.Float32:
-		return NewFloat32Collection([]float32{})
-	case reflect.Float64:
-		return NewFloat64Collection([]float64{})
-	}
-	return nil
-}
 
-func (arr *AbsCollection) Map(f func(item interface{}, key int) IMix) ICollection {
+func (arr *AbsCollection) Map(f func(item interface{}, key int) interface{}) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
 
 	// call first f for map type
 	if arr.Count() == 0 {
-		return nil
+		return arr
 	}
 
 	o, _ := arr.Index(0).ToInterface()
 	first := f(o, 0)
-	ret := newMixCollection(first)
-	o, _ = first.ToInterface()
-	ret.Append(o)
+	ret := NewMixCollection(reflect.TypeOf(first))
+	ret.Append(first)
 	for i := 1; i < arr.Count(); i++ {
 		o, _ = arr.Index(i).ToInterface()
-		o2, _ := f(o, 0).ToInterface()
+		o2 := f(o, i)
+
+		if arr.Err() != nil {
+			break
+		}
+
 		ret.Append(o2)
 	}
 	return ret
@@ -238,7 +254,7 @@ func (arr *AbsCollection) Map(f func(item interface{}, key int) IMix) ICollectio
 
 func (arr *AbsCollection) Reduce(f func(carry IMix, item IMix) IMix) IMix {
 	if arr.Err() != nil {
-		return nil
+		return NewErrorMix(arr.Err())
 	}
 
 	if arr.Count() == 0 {
@@ -253,15 +269,24 @@ func (arr *AbsCollection) Reduce(f func(carry IMix, item IMix) IMix) IMix {
 	o0, _ := arr.Index(0).ToInterface()
 	o1, _ := arr.Index(1).ToInterface()
 	carry := f(NewMix(o0), NewMix(o1))
+	if arr.Err() != nil {
+		return carry
+	}
 
 	for i := 2; i < arr.Count(); i++ {
 		oi, _ := arr.Index(i).ToInterface()
 		carry = f(carry, NewMix(oi))
+		if arr.Err() != nil {
+			return carry
+		}
 	}
 	return carry
 }
 
 func (arr *AbsCollection) Every(f func(item interface{}, key int) bool) bool {
+	if arr.Err() != nil {
+		return false
+	}
 	if arr.Count() == 0 {
 		return true
 	}
@@ -269,6 +294,9 @@ func (arr *AbsCollection) Every(f func(item interface{}, key int) bool) bool {
 	for i := 0; i < arr.Count(); i++ {
 		o, _ := arr.Index(i).ToInterface()
 		if f(o, i) == false {
+			return false
+		}
+		if arr.Err() != nil {
 			return false
 		}
 	}
@@ -299,35 +327,36 @@ func (arr *AbsCollection) Nth(n int, offset int) ICollection {
 	return newArr
 }
 
-func (arr *AbsCollection) Pad(start int, def interface{}) ICollection {
+func (arr *AbsCollection) Pad(count int, def interface{}) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
 
 	newArr := arr.NewEmpty(arr.Err())
 
-	if start > 0 {
-		if start <= arr.Count() {
-			return arr.Slice(0, start)
+	if count > 0 {
+		if count <= arr.Count() {
+			return arr.Slice(0, count)
 		}
 
-		for i:=0; i < arr.Count(); i++ {
+		for i := 0; i < arr.Count(); i++ {
 			o, _ := arr.Index(i).ToInterface()
 			newArr.Append(o)
 		}
-		for i := arr.Count(); i < start; i++ {
+		for i := arr.Count(); i < count; i++ {
 			newArr = newArr.Append(def)
 		}
 
 		return newArr
 	}
 
-	if start < 0 {
-		if start >= -arr.Count() {
-			return arr.Slice(arr.Count() + start, arr.Count())
+	if count < 0 {
+		if count >= -arr.Count() {
+			startIndex := arr.Count() + count
+			return arr.Slice(startIndex, arr.Count() - startIndex)
 		}
 
-		for i := start; i < -arr.Count(); i++ {
+		for i := count; i < -arr.Count(); i++ {
 			newArr.Append(def)
 		}
 
@@ -448,6 +477,13 @@ func (arr *AbsCollection) Max() IMix {
 	if arr.Err() != nil {
 		return nil
 	}
+	if arr.compare != nil {
+		return NewErrorMix(errors.New("max: compare must be set"))
+	}
+
+	if arr.Count() == 0 {
+		return NewErrorMix(errors.New("max: arr count can not be zero"))
+	}
 
 	max := 0
 	for i := 0; i < arr.Count(); i++ {
@@ -464,6 +500,13 @@ func (arr *AbsCollection) Min() IMix {
 	if arr.Err() != nil {
 		return nil
 	}
+	if arr.compare == nil {
+		return NewErrorMix(errors.New("min: compare must be set"))
+	}
+
+	if arr.Count() == 0 {
+		return NewErrorMix(errors.New("min: arr count can not be zero"))
+	}
 
 	min := 0
 	for i := 0; i < arr.Count(); i++ {
@@ -477,6 +520,9 @@ func (arr *AbsCollection) Min() IMix {
 }
 
 func (arr *AbsCollection) Contains(obj interface{}) bool {
+	if arr.Err() != nil {
+		return false
+	}
 	for i := 0; i < arr.Count(); i++ {
 		o, _ := arr.Index(i).ToInterface()
 		if arr.compare(o, obj) == 0 {
@@ -505,6 +551,9 @@ func (arr *AbsCollection) Sort() ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
+	if arr.compare != nil {
+		return arr.SetErr(errors.New("sort: compare must be set"))
+	}
 
 	newArr := arr.NewEmpty(arr.Err())
 
@@ -516,7 +565,6 @@ func (arr *AbsCollection) Sort() ICollection {
 		}
 		return false
 	}
-
 
 	sorted := make([]int, 0, arr.Count())
 	for i := 0; i < arr.Count(); i++ {
@@ -549,6 +597,9 @@ func (arr *AbsCollection) Sort() ICollection {
 func (arr *AbsCollection) SortDesc() ICollection {
 	if arr.Err() != nil {
 		return arr
+	}
+	if arr.compare != nil {
+		return arr.SetErr(errors.New("sortDesc: compare must be set"))
 	}
 
 	newArr := arr.NewEmpty(arr.Err())
@@ -619,7 +670,7 @@ func (arr *AbsCollection) Avg() IMix {
 		return NewErrorMix(arr.Err())
 	}
 	if arr.Count() == 0 {
-		return NewErrorMix(errors.New("arr count can not be empty"))
+		return NewErrorMix(errors.New("avg: arr count can not be empty"))
 	}
 
 	var sum IMix
@@ -690,7 +741,7 @@ func (arr *AbsCollection) Sum() IMix {
 
 	o0, _ := arr.Index(0).ToInterface()
 	mix := NewMix(o0)
-	for i := 0; i < arr.Count(); i++ {
+	for i := 1; i < arr.Count(); i++ {
 		mix.Add(arr.Index(i))
 	}
 	return mix

@@ -25,6 +25,17 @@ func NewObjCollection(objs interface{}) *ObjCollection {
 	return arr
 }
 
+// 根据类型创建一个空的数组
+func NewObjCollectionByType(typ reflect.Type) *ObjCollection {
+	vals := reflect.MakeSlice(typ, 0, 0)
+	arr := &ObjCollection{
+		objs: vals,
+		typ: typ,
+	}
+	arr.AbsCollection.Parent = arr
+	return arr
+}
+
 func (arr *ObjCollection) Insert(index int, obj interface{}) ICollection {
 	if arr.Err() != nil {
 		return arr

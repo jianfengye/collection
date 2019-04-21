@@ -61,9 +61,9 @@ func TestObjCollection_DD(t *testing.T) {
 		t.Error("Last error")
 	}
 
-	ret, err := objColl.Map(func(item interface{}, key int) IMix {
+	ret, err := objColl.Map(func(item interface{}, key int) interface{} {
 		foo := item.(Foo)
-		return NewMix(foo.A)
+		return foo.A
 	}).Reduce(func(carry IMix, item IMix) IMix {
 		ret, _ := carry.ToString()
 		join, _ := item.ToString()
