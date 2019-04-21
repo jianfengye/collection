@@ -477,7 +477,7 @@ func (arr *AbsCollection) Max() IMix {
 	if arr.Err() != nil {
 		return nil
 	}
-	if arr.compare != nil {
+	if arr.compare == nil {
 		return NewErrorMix(errors.New("max: compare must be set"))
 	}
 
@@ -551,7 +551,7 @@ func (arr *AbsCollection) Sort() ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
-	if arr.compare != nil {
+	if arr.compare == nil {
 		return arr.SetErr(errors.New("sort: compare must be set"))
 	}
 
@@ -598,7 +598,7 @@ func (arr *AbsCollection) SortDesc() ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
-	if arr.compare != nil {
+	if arr.compare == nil {
 		return arr.SetErr(errors.New("sortDesc: compare must be set"))
 	}
 
@@ -696,7 +696,7 @@ func (arr *AbsCollection) Median() IMix {
 	}
 	newArr := arr.Sort()
 	if newArr.Count() % 2 == 0 {
-		imax, err := newArr.Index(newArr.Count() / 2 - 1).Add(newArr.Index(newArr.Count() / 2 + 1))
+		imax, err := newArr.Index(newArr.Count() / 2 - 1).Add(newArr.Index(newArr.Count() / 2))
 		if err != nil {
 			return NewErrorMix(err)
 		}
@@ -739,10 +739,15 @@ func (arr *AbsCollection) Sum() IMix {
 		return NewErrorMix(arr.Err())
 	}
 
+	if arr.Count() == 0 {
+		return NewErrorMix(errors.New("sum: collection size can not be zero"))
+	}
+
 	o0, _ := arr.Index(0).ToInterface()
-	mix := NewMix(o0)
+	var mix IMix
+	mix = NewMix(o0)
 	for i := 1; i < arr.Count(); i++ {
-		mix.Add(arr.Index(i))
+		mix, _ = mix.Add(arr.Index(i))
 	}
 	return mix
 }

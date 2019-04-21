@@ -1,18 +1,19 @@
 package collection
 
 import (
-	"github.com/pkg/errors"
+	"errors"
+	"fmt"
 	"reflect"
 	"testing"
 )
 
 func TestAbsCollection_DD(t *testing.T) {
-	intColl := NewIntCollection([]int{1,2})
+	intColl := NewIntCollection([]int{1, 2})
 	intColl.DD()
 }
 
 func TestAbsCollection_NewEmpty(t *testing.T) {
-	intColl := NewIntCollection([]int{1,2})
+	intColl := NewIntCollection([]int{1, 2})
 	intColl2 := intColl.NewEmpty()
 	intColl2.DD()
 	if intColl2.Count() != 0 {
@@ -24,7 +25,7 @@ func TestAbsCollection_NewEmpty(t *testing.T) {
 }
 
 func TestAbsCollection_Append(t *testing.T) {
-	intColl := NewIntCollection([]int{1,2})
+	intColl := NewIntCollection([]int{1, 2})
 	intColl.Append(3)
 	if intColl.Err() == nil {
 		intColl.DD()
@@ -37,7 +38,7 @@ func TestAbsCollection_Append(t *testing.T) {
 }
 
 func TestAbsCollection_Index(t *testing.T) {
-	intColl := NewIntCollection([]int{1,2})
+	intColl := NewIntCollection([]int{1, 2})
 	foo := intColl.Index(1)
 	foo.DD()
 	i, err := foo.ToInt()
@@ -50,7 +51,7 @@ func TestAbsCollection_Index(t *testing.T) {
 }
 
 func TestAbsCollection_IsEmpty(t *testing.T) {
-	intColl := NewIntCollection([]int{1,2})
+	intColl := NewIntCollection([]int{1, 2})
 	println(intColl.IsEmpty())
 	if intColl.IsEmpty() != false {
 		t.Error("IsEmpty 错误")
@@ -58,7 +59,7 @@ func TestAbsCollection_IsEmpty(t *testing.T) {
 }
 
 func TestAbsCollection_IsNotEmpty(t *testing.T) {
-	intColl := NewIntCollection([]int{1,2})
+	intColl := NewIntCollection([]int{1, 2})
 	println(intColl.IsNotEmpty())
 	if intColl.IsNotEmpty() != true {
 		t.Error("IsNotEmpty 错误")
@@ -66,19 +67,19 @@ func TestAbsCollection_IsNotEmpty(t *testing.T) {
 }
 
 func TestAbsCollection_Search(t *testing.T) {
-	intColl := NewIntCollection([]int{1,2})
+	intColl := NewIntCollection([]int{1, 2})
 	if intColl.Search(2) != 1 {
 		t.Error("Search 错误")
 	}
 
-	intColl = NewIntCollection([]int{1,2, 3, 3, 2})
+	intColl = NewIntCollection([]int{1, 2, 3, 3, 2})
 	if intColl.Search(3) != 2 {
 		t.Error("Search 重复错误")
 	}
 }
 
 func TestAbsCollection_Unique(t *testing.T) {
-	intColl := NewIntCollection([]int{1,2, 3, 3, 2})
+	intColl := NewIntCollection([]int{1, 2, 3, 3, 2})
 	uniqColl := intColl.Unique()
 	if uniqColl.Count() != 3 {
 		t.Error("Unique 重复错误")
@@ -132,7 +133,7 @@ func TestAbsCollection_Slice(t *testing.T) {
 
 	retColl.DD()
 
-	retColl = intColl.Slice(2,2)
+	retColl = intColl.Slice(2, 2)
 	if retColl.Count() != 2 {
 		t.Error("Slice 两个参数错误")
 	}
@@ -148,7 +149,7 @@ func TestAbsCollection_Slice(t *testing.T) {
 }
 
 func TestAbsCollection_Merge(t *testing.T) {
-	intColl := NewIntCollection([]int{1, 2 })
+	intColl := NewIntCollection([]int{1, 2})
 
 	intColl2 := NewIntCollection([]int{3, 4})
 
@@ -164,7 +165,6 @@ func TestAbsCollection_Merge(t *testing.T) {
 
 	intColl.DD()
 }
-
 
 func TestAbsCollection_Each(t *testing.T) {
 	intColl := NewIntCollection([]int{1, 2, 3, 4})
@@ -303,7 +303,7 @@ func TestAbsCollection_Pad(t *testing.T) {
 func TestAbsCollection_Pop(t *testing.T) {
 	intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
 	pop := intColl.Pop()
-	in, err :=  pop.ToInt()
+	in, err := pop.ToInt()
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -374,5 +374,158 @@ func TestAbsCollection_Avg(t *testing.T) {
 	}
 	if mode != 2.0 {
 		t.Error("Avg error")
+	}
+}
+
+func TestAbsCollection_Shuffle(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 2, 3})
+	newColl := intColl.Shuffle()
+	if newColl.Err() != nil {
+		t.Error(newColl.Err())
+	}
+}
+
+func TestAbsCollection_Max(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 2, 3})
+	max, err := intColl.Max().ToInt()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if max != 3 {
+		t.Error("max错误")
+	}
+}
+
+func TestAbsCollection_Min(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 2, 3})
+	min, err := intColl.Min().ToInt()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if min != 1 {
+		t.Error("min错误")
+	}
+}
+
+func TestAbsCollection_Contains(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 2, 3})
+	if intColl.Contains(1) != true {
+		t.Error("contain 错误1")
+	}
+	if intColl.Contains(5) != false {
+		t.Error("contain 错误2")
+	}
+
+}
+
+func TestAbsCollection_Diff(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 2, 3})
+	intColl2 := NewIntCollection([]int{2, 3, 4})
+	if intColl.Diff(intColl2).Count() != 1 {
+		t.Error("diff 错误")
+	}
+}
+
+func TestAbsCollection_Sort(t *testing.T) {
+	intColl := NewIntCollection([]int{2, 4, 3})
+	intColl2 := intColl.Sort()
+	if intColl2.Err() != nil {
+		t.Error(intColl2.Err())
+	}
+	intColl2.DD()
+}
+
+func TestAbsCollection_SortDesc(t *testing.T) {
+	intColl := NewIntCollection([]int{2, 4, 3})
+	intColl2 := intColl.SortDesc()
+	if intColl2.Err() != nil {
+		t.Error(intColl2.Err())
+	}
+	intColl2.DD()
+}
+
+func TestAbsCollection_Join(t *testing.T) {
+	intColl := NewIntCollection([]int{2, 4, 3})
+	out := intColl.Join(",")
+	if out != "2,4,3" {
+		t.Error("join错误")
+	}
+	out = intColl.Join(",", func(item interface{}) string {
+		return fmt.Sprintf("'%d'", item.(int))
+	})
+	if out != "'2','4','3'" {
+		t.Error("join 错误")
+	}
+}
+
+func TestAbsCollection_Median(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 2, 3})
+	median, err := intColl.Median().ToFloat64()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if median != 2.0 {
+		t.Error("Median 错误" + fmt.Sprintf("%v", median))
+	}
+}
+
+func TestAbsCollection_Sum(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 2, 3})
+	intColl.Sum().DD()
+	sum, err := intColl.Sum().ToInt()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if sum != 8 {
+		t.Error("sum 错误")
+	}
+}
+
+func TestAbsCollection_Filter(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 2, 3})
+	intColl.Filter(func(obj interface{}, index int) bool {
+		val := obj.(int)
+		if val == 2 {
+			return true
+		}
+		return false
+	}).DD()
+}
+
+func TestAbsCollection_First(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 2, 3})
+	intColl.First(func(obj interface{}, index int) bool {
+		val := obj.(int)
+		if val > 2 {
+			return true
+		}
+		return false
+	}).DD()
+}
+
+
+func TestAbsCollection_ToInts(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 2, 3})
+	arr, err := intColl.ToInts()
+	if err != nil {
+		t.Error(err)
+	}
+	if len(arr) != 4 {
+		t.Error(errors.New("ToInts error"))
+	}
+}
+
+func TestAbsCollection_ToMixs(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 2, 3})
+	arr, err := intColl.ToMixs()
+	if err != nil {
+		t.Error(err)
+	}
+	if len(arr) != 4 {
+		t.Error(errors.New("ToInts error"))
 	}
 }
