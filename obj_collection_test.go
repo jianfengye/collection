@@ -100,5 +100,8 @@ func TestObjCollection_DD(t *testing.T) {
 
 	objColl3.SortByDesc("A")
 	objColl3.DD()
+
+	objColl3.Remove(2)
+	objColl3.DD()
 }
 

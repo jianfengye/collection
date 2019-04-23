@@ -77,7 +77,7 @@ func (arr *Float32Collection) Count() int {
 func (arr *Float32Collection) DD() {
 	ret := fmt.Sprintf("Float32Collection(%d):{\n", arr.Count())
 	for k, v := range arr.objs {
-		ret = ret + fmt.Sprintf("\t%d:\t%v\n",k, v)
+		ret = ret + fmt.Sprintf("\t%d:\t%f\n",k, v)
 	}
 	ret = ret + "}\n"
 	fmt.Print(ret)
