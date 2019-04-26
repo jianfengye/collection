@@ -132,6 +132,8 @@ if err != nil {
 
 ### DD 
 
+`DD()`
+
 DD方法按照友好的格式展示Collection
 
 ```
@@ -161,6 +163,8 @@ IntCollection(2):{
 
 ### NewEmpty
 
+`NewEmpty(err ...error) ICollection`
+
 NewEmpty方法根据当前的数组，创造出一个同类型的数组，但长度为0
 
 ```
@@ -175,6 +179,8 @@ IntCollection(0):{
 ```
 
 ### Append
+
+`Append(item interface{}) ICollection`
 
 Append挂载一个元素到当前Collection，如果挂载的元素类型不一致，则会在Collection中产生Error
 
@@ -196,6 +202,8 @@ IntCollection(3):{
 
 ### Index
 
+`Index(i int) IMix`
+
 Index获取元素中的第几个元素，下标从0开始，如果i超出了长度，则Collection记录错误。
 
 ```
@@ -210,6 +218,8 @@ IMix(int): 2
 
 ### IsEmpty
 
+`IsEmpty() bool`
+
 判断一个Collection是否为空，为空返回true, 否则返回false
 
 ```go
@@ -219,6 +229,8 @@ println(intColl.IsEmpty())  // false
 
 ### IsNotEmpty
 
+`IsNotEmpty() bool`
+
 判断一个Collection是否为空，为空返回false，否则返回true
 ```go
 intColl := NewIntCollection([]int{1,2})
@@ -226,6 +238,8 @@ println(intColl.IsNotEmpty()) // true
 ```
 
 ### Search
+
+`Search(item interface{}) int`
 
 查找Collection中第一个匹配查询元素的下标，如果存在，返回下标；如果不存在，返回-1
 
@@ -244,6 +258,8 @@ if intColl.Search(3) != 2 {
 ```
 
 ### Unique
+
+`Unique() ICollection`
 
 将Collection中重复的元素进行合并，返回唯一的一个数组。
 
@@ -267,6 +283,8 @@ IntCollection(3):{
 ```
 
 ### Reject
+
+`Reject(func(item interface{}, key int) bool) ICollection`
 
 将满足过滤条件的元素删除
 
@@ -292,6 +310,8 @@ IntCollection(3):{
 ```
 
 ### Last
+
+`Last(...func(item interface{}, key int) bool) IMix`
 
 获取该Collection中满足过滤的最后一个元素，如果没有填写过滤条件，默认返回最后一个元素
 
@@ -319,6 +339,8 @@ if last != 3 {
 ```
 
 ### Slice
+
+`Slice(...int) ICollection`
 
 获取Collection中的片段，可以有两个参数或者一个参数。
 
@@ -370,6 +392,8 @@ IntCollection(3):{
 
 ### Merge
 
+`Merge(arr ICollection) ICollection`
+
 将两个Collection的元素进行合并，这个函数会修改原Collection。
 
 ```go
@@ -400,6 +424,8 @@ IntCollection(4):{
 ```
 
 ### Each
+
+`Each(func(item interface{}, key int))`
 
 对Collection中的每个函数都进行一次函数调用。传入的参数是回调函数。
 
@@ -441,6 +467,8 @@ PASS
 ```
 
 ### Map
+
+`Map(func(item interface{}, key int) interface{}) ICollection`
 
 对Collection中的每个函数都进行一次函数调用，并将返回值组装成ICollection
 
@@ -489,6 +517,8 @@ IntCollection(3):{
 
 ### Reduce
 
+`Reduce(func(carry IMix, item IMix) IMix) IMix`
+
 对Collection中的所有元素进行聚合计算。
 
 如果希望在某次调用的时候中止，在此次调用的时候设置Collection的Error，就可以中止调用。
@@ -518,6 +548,8 @@ IMix(int): 10
 
 ### Every
 
+`Every(func(item interface{}, key int) bool) bool`
+
 判断Collection中的每个元素是否都符合某个条件，只有当每个元素都符合条件，才整体返回true，否则返回false。
 
 ```go
@@ -538,6 +570,8 @@ if intColl.Every(func(item interface{}, key int) bool {
 ```
 
 ### ForPage
+
+`ForPage(page int, perPage int) ICollection`
 
 将Collection函数进行分页，按照每页第二个参数的个数，获取第一个参数的页数数据。
 
@@ -560,6 +594,8 @@ IntCollection(2):{
 
 ### Nth
 
+`Nth(n int, offset int) ICollection`
+
 Nth(n int, offset int) 获取从offset偏移量开始的每第n个，偏移量offset的设置为第一个。
 
 ```go
@@ -581,7 +617,9 @@ IntCollection(2):{
 
 ### Pad
 
-`Pad(count int, def interface{})` 填充Collection数组，如果第一个参数大于0，则代表往Collection的右边进行填充，如果第一个参数小于零，则代表往Collection的左边进行填充。
+`Pad(start int, def interface{}) ICollection` 
+
+填充Collection数组，如果第一个参数大于0，则代表往Collection的右边进行填充，如果第一个参数小于零，则代表往Collection的左边进行填充。
 
 ```go
 intColl := NewIntCollection([]int{1, 2, 3})
@@ -624,6 +662,8 @@ IntCollection(5):{
 
 ### Pop
 
+`Pop() IMix`
+
 从Collection右侧弹出一个元素
 
 ```go
@@ -652,8 +692,9 @@ IntCollection(5):{
 */
 ```
 
-
 ### Push
+
+`Push(item interface{}) ICollection`
 
 往Collection的右侧推入一个元素
 
@@ -679,6 +720,8 @@ IntCollection(7):{
 ```
 
 ### Prepend
+
+`Prepend(item interface{}) ICollection`
 
 往Collection左侧加入元素
 
@@ -709,6 +752,8 @@ IntCollection(7):{
 
 ### Random
 
+`Random() IMix`
+
 随机获取Collection中的元素，随机数种子使用时间戳
 
 ```go
@@ -727,6 +772,8 @@ IMix(int): 5
 ```
 
 ### Reverse
+
+`Reverse() ICollection`
 
 将Collection数组进行转置
 
@@ -748,6 +795,8 @@ IntCollection(6):{
 ```
 
 ### Mode
+
+`Mode() IMix`
 
 获取Collection中的众数，如果有大于两个的众数，返回第一次出现的那个。
 
@@ -774,6 +823,8 @@ mode, err := intColl.Mode().ToInt()
 
 ### Avg
 
+`Avg() IMix`
+
 返回Collection的数值平均数，这里会进行类型降级，int,int64,float64的数值平均数都是返回float64类型。
 
 ```go
@@ -788,6 +839,8 @@ if mode != 2.0 {
 ```
 
 ### Shuffle
+
+`Shuffle() ICollection`
 
 将Collection中的元素进行乱序排列，随机数种子使用时间戳
 
@@ -811,6 +864,8 @@ IntCollection(4):{
 
 ### Max
 
+`Max() IMix`
+
 获取Collection中的最大元素，必须设置compare函数
 
 ```go
@@ -828,6 +883,8 @@ if max != 3 {
 
 ### Min
 
+`Min() IMix`
+
 获取Collection中的最小元素，必须设置compare函数
 
 ```go
@@ -843,8 +900,9 @@ if min != 1 {
 
 ```
 
-
 ### Contain
+
+`Contains(obj interface{}) bool`
 
 判断一个元素是否在Collection中，必须设置compare函数
 
@@ -859,6 +917,8 @@ if intColl.Contains(5) != false {
 ```
 
 ### Diff
+
+`Diff(arr ICollection) ICollection`
 
 获取前一个Collection不在后一个Collection中的元素，必须设置compare函数
 
@@ -881,6 +941,8 @@ IntCollection(1):{
 
 ### Sort
 
+`Sort() ICollection`
+
 将Collection中的元素进行升序排列输出，必须设置compare函数
 
 ```go
@@ -901,6 +963,8 @@ IntCollection(3):{
 ```
 
 ### SortDesc
+
+`SortDesc() ICollection`
 
 将Collection中的元素按照降序排列输出，必须设置compare函数
 
@@ -923,6 +987,8 @@ IntCollection(3):{
 
 ### Join
 
+`Join(split string, format ...func(item interface{}) string) string`
+
 将Collection中的元素按照某种方式聚合成字符串。该函数接受一个或者两个参数，第一个参数是聚合字符串的分隔符号，第二个参数是聚合时候每个元素的格式化函数，如果没有设置第二个参数，则使用`fmt.Sprintf("%v")`来该格式化
 
 ```go
@@ -939,8 +1005,9 @@ if out != "'2','4','3'" {
 }
 ```
 
-
 ### Median
+
+`Median() IMix`
 
 获取Collection的中位数，如果Collection个数是单数，返回排序后中间的元素，如果Collection的个数是双数，返回排序后中间两个元素的算数平均数。
 
@@ -957,6 +1024,8 @@ if median != 2.0 {
 ```
 
 ### Sum
+
+`Sum() IMix`
 
 返回Collection中的元素的和
 
@@ -978,6 +1047,8 @@ IMix(int): 8
 ```
 
 ### Filter
+
+`Filter(func(item interface{}, key int) bool) ICollection`
 
 根据过滤函数获取Collection过滤后的元素。
 
@@ -1001,6 +1072,8 @@ IntCollection(2):{
 
 ### First
 
+`First(...func(item interface{}, key int) bool) IMix`
+
 获取符合过滤条件的第一个元素，如果没有填写过滤函数，返回第一个元素。
 
 ```go
@@ -1020,6 +1093,8 @@ IMix(int): 3
 
 ### ToInts
 
+`ToInts() ([]int, error)`
+
 将Collection变化为int数组，如果Collection内的元素类型不符合，或者Collection有错误，则返回错误。
 
 ```go
@@ -1035,6 +1110,8 @@ if len(arr) != 4 {
 
 ### ToInt64s
 
+`ToInt64s() ([]int64, error)`
+
 将Collection变化为int64数组，如果Collection内的元素类型不符合，或者Collection有错误，则返回错误。
 
 ```go
@@ -1049,6 +1126,8 @@ if len(arr) != 4 {
 ```
 
 ### ToFloat64s
+
+`ToFloat64s() ([]float64, error)`
 
 将Collection变化为float64数组，如果Collection内的元素类型不符合，或者Collection有错误，则返回错误。
 
@@ -1087,6 +1166,8 @@ if err != nil || len(out) != 3 {
 
 ### ToFloat32s
 
+`ToFloat32s() ([]float32, error)`
+
 将Collection变化为float32数组，如果Collection内的元素类型不符合，或者Collection有错误，则返回错误。
 
 ```go
@@ -1123,6 +1204,8 @@ if err != nil || len(out) != 3 {
 
 ### ToMixs
 
+`ToMixs() ([]IMix, error)`
+
 将Collection变化为Mix数组，如果Collection内的元素类型不符合，或者Collection有错误，则返回错误
 
 ```go
@@ -1137,6 +1220,8 @@ if len(arr) != 4 {
 ```
 
 ### Pluck
+
+`Pluck(key string) ICollection`
 
 将对象数组中的某个元素提取出来组成一个新的Collection。这个元素必须是Public元素
 
@@ -1165,6 +1250,8 @@ StrCollection(2):{
 ```
 
 ### SortBy
+
+`SortBy(key string) ICollection`
 
 根据对象数组中的某个元素进行Collection升序排列。这个元素必须是Public元素
 
@@ -1206,6 +1293,8 @@ ObjCollection(2)(collection.Foo):{
 ```
 
 ### SortByDesc
+
+`SortByDesc(key string) ICollection`
 
 根据对象数组中的某个元素进行Collection降序排列。这个元素必须是Public元素
 
