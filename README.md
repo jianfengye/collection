@@ -1311,3 +1311,6 @@ StrCollection(2):{
 */
 ```
 
+License
+------------
+`collection` is licensed under [Apache License](LICENSE).
