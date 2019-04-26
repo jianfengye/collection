@@ -30,4 +30,9 @@ func TestInt64Collection(t *testing.T) {
 	if arr2.Count() != 3 {
 		t.Error(errors.New("filter error"))
 	}
+
+	out, err := arr2.ToInt64s()
+	if err != nil || len(out) != 3{
+		t.Error("ToInt64s error")
+	}
 }

@@ -364,6 +364,16 @@ func TestAbsCollection_Mode(t *testing.T) {
 	if mode != 2 {
 		t.Error("Mode error")
 	}
+
+	intColl = NewIntCollection([]int{1, 2, 2, 3, 4, 4, 5, 6})
+
+	mode, err = intColl.Mode().ToInt()
+	if err != nil {
+		t.Error(err.Error())
+	}
+	if mode != 2 {
+		t.Error("Mode error")
+	}
 }
 
 func TestAbsCollection_Avg(t *testing.T) {
@@ -380,6 +390,7 @@ func TestAbsCollection_Avg(t *testing.T) {
 func TestAbsCollection_Shuffle(t *testing.T) {
 	intColl := NewIntCollection([]int{1, 2, 2, 3})
 	newColl := intColl.Shuffle()
+	newColl.DD()
 	if newColl.Err() != nil {
 		t.Error(newColl.Err())
 	}
@@ -423,7 +434,10 @@ func TestAbsCollection_Contains(t *testing.T) {
 func TestAbsCollection_Diff(t *testing.T) {
 	intColl := NewIntCollection([]int{1, 2, 2, 3})
 	intColl2 := NewIntCollection([]int{2, 3, 4})
-	if intColl.Diff(intColl2).Count() != 1 {
+
+	diff := intColl.Diff(intColl2)
+	diff.DD()
+	if diff.Count() != 1 {
 		t.Error("diff 错误")
 	}
 }

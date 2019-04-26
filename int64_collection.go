@@ -3,6 +3,7 @@ package collection
 import (
 	"errors"
 	"fmt"
+	"reflect"
 )
 
 type Int64Collection struct{
@@ -11,8 +12,11 @@ type Int64Collection struct{
 }
 
 func NewInt64Collection(objs []int64) *Int64Collection {
+	objs2 := make([]int64, len(objs))
+	reflect.Copy(reflect.ValueOf(objs2), reflect.ValueOf(objs))
+
 	arr := &Int64Collection{
-		objs:objs,
+		objs:objs2,
 	}
 	arr.AbsCollection.Parent = arr
 	arr.AbsCollection.compare = func(i interface{}, i2 interface{}) int {
@@ -35,9 +39,18 @@ func (arr *Int64Collection) Insert(index int, obj interface{}) ICollection {
 	}
 	if i, ok := obj.(int64); ok {
 		length := len(arr.objs)
-		tail := arr.objs[index:length]
-		arr.objs = append(arr.objs[0:index], i)
-		arr.objs = append(arr.objs, tail...)
+
+		// 如果是append操作，直接调用系统的append，不新创建collection
+		if index == length {
+			arr.objs = append(arr.objs, i)
+			return arr
+		}
+
+		new := make([]int64, 0, length)
+		new = append(new, arr.objs[0: index]...)
+		new = append(new, i)
+		new = append(new, arr.objs[index:length]...)
+		arr.objs = new
 	} else {
 		return arr.SetErr(errors.New("Insert: type error"))
 	}

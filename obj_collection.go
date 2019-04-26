@@ -15,10 +15,15 @@ type ObjCollection struct{
 
 // 根据对象数组创建
 func NewObjCollection(objs interface{}) *ObjCollection {
+
 	vals := reflect.ValueOf(objs)
 	typ := reflect.TypeOf(objs).Elem()
+
+	objs2 := reflect.MakeSlice(reflect.TypeOf(objs), vals.Len(), vals.Len())
+	reflect.Copy(objs2, reflect.ValueOf(objs))
+
 	arr := &ObjCollection{
-		objs: vals,
+		objs: objs2,
 		typ: typ,
 	}
 	arr.AbsCollection.Parent = arr

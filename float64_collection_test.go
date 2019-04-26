@@ -30,4 +30,9 @@ func TestFloat64Collection(t *testing.T) {
 	if arr2.Count() != 3 {
 		t.Error(errors.New("filter error"))
 	}
+
+	out, err := arr2.ToFloat64s()
+	if err != nil || len(out) != 3 {
+		t.Error(errors.New("to float64s error"))
+	}
 }

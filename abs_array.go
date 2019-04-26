@@ -413,8 +413,8 @@ func (arr *AbsCollection) Reverse() ICollection {
 	}
 
 	newArr := arr.NewEmpty(arr.Err())
-	for i := 0; i < newArr.Count() - 1; i++ {
-		o, _ := arr.Index(newArr.Count() - 1 - i).ToInterface()
+	for i := 0; i < arr.Count(); i++ {
+		o, _ := arr.Index(arr.Count() - 1 - i).ToInterface()
 		newArr.Append(o)
 	}
 	return newArr
@@ -429,7 +429,9 @@ func (arr *AbsCollection) Shuffle() ICollection {
 	for i := 0; i < arr.Count(); i++ {
 		indexs[i] = i
 	}
-	rand.Shuffle(arr.Count(), func(i, j int) {
+	s := rand.NewSource(time.Now().Unix())
+	r := rand.New(s)
+	r.Shuffle(arr.Count(), func(i, j int) {
 		indexs[i], indexs[j] = indexs[j], indexs[i]
 	})
 

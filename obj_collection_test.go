@@ -9,7 +9,34 @@ type Foo struct {
 	A string
 }
 
-func TestObjCollection_DD(t *testing.T) {
+func TestObjCollection_Pluck(t *testing.T) {
+	a1 := Foo{A: "a1"}
+	a2 := Foo{A: "a2"}
+
+	objColl := NewObjCollection([]Foo{a1, a2})
+
+	objColl.Pluck("A").DD()
+}
+
+func TestObjCollection_SortBy(t *testing.T) {
+	a1 := Foo{A: "a1"}
+	a2 := Foo{A: "a2"}
+
+	objColl := NewObjCollection([]Foo{a1, a2})
+
+	objColl.SetCompare(func(a interface{}, b interface{}) int {
+		aObj := a.(Foo)
+		bObj := b.(Foo)
+		if aObj.A > bObj.A { return 1}
+		if aObj.A == bObj.A { return 0}
+		if aObj.A < bObj.A {return -1}
+		return 0
+	})
+
+	objColl.SortBy("A").DD()
+}
+
+func TestObjCollection(t *testing.T) {
 	a1 := Foo{A: "a1"}
 	a2 := Foo{A: "a2"}
 
@@ -80,8 +107,6 @@ func TestObjCollection_DD(t *testing.T) {
 
 	aColl := objColl.Pluck("A")
 	aColl.DD()
-
-
 
 	a0 := Foo{A: "a0"}
 	objColl.Append(a0)

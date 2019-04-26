@@ -2,8 +2,8 @@ package collection
 
 import (
 	"fmt"
-	"github.com/derekparker/trie"
 	"github.com/pkg/errors"
+	"reflect"
 	"strings"
 )
 
@@ -19,12 +19,10 @@ func compareString(a interface{}, b interface{}) int {
 }
 
 func NewStrCollection(objs []string) *StrCollection {
-	tri := trie.New()
-	for i, obj := range objs {
-		tri.Add(obj, i)
-	}
+	objs2 := make([]string, len(objs))
+	reflect.Copy(reflect.ValueOf(objs2), reflect.ValueOf(objs))
 	arr := &StrCollection{
-		objs:objs,
+		objs:objs2,
 	}
 	arr.AbsCollection.compare = compareString
 	arr.AbsCollection.Parent = arr
@@ -39,15 +37,24 @@ func (arr *StrCollection) NewEmpty(err ...error) ICollection {
 	return arr2
 }
 
-func (arr *StrCollection) Insert(index int, item interface{}) ICollection {
+func (arr *StrCollection) Insert(index int, obj interface{}) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
-	if i, ok := item.(string); ok {
+	if i, ok := obj.(string); ok {
 		length := len(arr.objs)
-		tail := arr.objs[index:length]
-		arr.objs = append(arr.objs[0:index], i)
-		arr.objs = append(arr.objs, tail...)
+
+		// 如果是append操作，直接调用系统的append，不新创建collection
+		if index == length {
+			arr.objs = append(arr.objs, i)
+			return arr
+		}
+
+		new := make([]string, 0, length)
+		new = append(new, arr.objs[0: index]...)
+		new = append(new, i)
+		new = append(new, arr.objs[index:length]...)
+		arr.objs = new
 	} else {
 		return arr.SetErr(errors.New("Insert: type error"))
 	}
