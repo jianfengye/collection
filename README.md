@@ -4,6 +4,22 @@ Collection包目标是用于替换golang原生的Slice，使用场景是在大�
 
 Collection包目前支持的元素类型：int, int64, float32, float64, string, struct。
 
+使用下列几个方法进行初始化Collection:
+
+```go
+NewIntCollection(objs []int) *IntCollection
+
+NewInt64Collection(objs []int64) *Int64Collection
+
+NewFloat64Collection(objs []float64) *Float64Collection
+
+NewFloat32Collection(objs []float32) *Float32Collection
+
+NewStrCollection(objs []string) *StrCollection
+
+NewObjCollection(objs interface{}) *ObjCollection
+```
+
 Collection的Error是随着Collection对象走，或者下沉到IMix中，所以可以放心在ICollection和IMix进行链式调用，只需要最后进行一次错误检查即可。
 
 ```
