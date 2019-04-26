@@ -50,9 +50,65 @@ if err != nil {
 
 [Map](#Map)
 
-[Index](#Index)
+[Reduce](#Reduce)
 
+[Every](#Every)
 
+[ForPage](#ForPage)
+
+[Nth](#Nth)
+
+[Pad](#Pad)
+
+[Pop](#Pop)
+
+[Push](#Push)
+
+[Prepend](#Prepend)
+
+[Random](#Random)
+
+[Reverse](#Reverse)
+
+[Mode](#Mode)
+
+[Avg](#Avg)
+
+[Shuffle](#Shuffle)
+
+[Max](#Max)
+
+[Min](#Min)
+
+[Contain](#Contain)
+
+[Diff](#Diff)
+
+[Sort](#Sort)
+
+[SortDesc](#SortDesc)
+
+[Join](#Join)
+
+[Median](#Median)
+
+[Sum](#Sum)
+
+[Filter](#Filter)
+
+[First](#First)
+
+[ToInts](#ToInts)
+
+[ToInt64s](#ToInt64s)
+
+[ToFloat64s](#ToFloat64s)
+
+[ToFloat32s](#ToFloat32s)
+
+[ToMixs](#ToMixs)
+
+[Pluck](#Pluck)
 
 ### DD 
 
@@ -576,20 +632,6 @@ type IMix interface {
 	Format() string // 打印成string
 	DD()
 }
-```
-
-### Index
-
-获取Collection中某个位置的元素，位置下标从0开始
-
-```
-intColl := NewIntCollection([]int{1,2})
-foo := intColl.Index(1)
-foo.DD()
-
-/*
-IMix(int): 2 
-*/
 ```
 
 ### Reduce
