@@ -126,6 +126,10 @@ if err != nil {
 
 [Pluck](#Pluck)
 
+[SortBy](#SortBy)
+
+[SortByDesc](#SortByDesc)
+
 ### DD 
 
 DD方法按照友好的格式展示Collection
