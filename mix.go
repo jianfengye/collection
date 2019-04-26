@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"reflect"
+	"strings"
 )
 
 // IMix是一个混合结构
@@ -11,7 +12,7 @@ type IMix interface {
 	Err() error
 	SetErr(err error) IMix
 
-	Equal(n IMix) bool // 两个IMix结构是否相同
+	Compare(n IMix) (int, error) // 两个IMix结构是否相同
 	Type() reflect.Type // 获取类型
 
 	Add(mix IMix) (IMix, error) // 加法操作
@@ -84,64 +85,94 @@ func (m *Mix)Type() reflect.Type {
 }
 
 // Equal 判断两个Mix是否相等
-func (m *Mix) Equal(n IMix) bool {
+func (m *Mix) Compare(n IMix) (ret int, err error) {
 	if m.typ == reflect.TypeOf(n) {
 		switch m.typ.Kind() {
 		case reflect.String:
 			item1, err := m.ToString()
 			if err != nil {
-				return false
+				return 0, err
 			}
 			item2, err := n.ToString()
 			if err != nil {
-				return false
+				return 0, err
 			}
-			return item1 == item2
+			return strings.Compare(item1, item2), nil
 		case reflect.Int:
-			int1, err := m.ToInt()
+			item1, err := m.ToInt()
 			if err != nil {
-				return false
+				return 0, err
 			}
-			int2, err := n.ToInt()
+			item2, err := n.ToInt()
 			if err != nil {
-				return false
+				return 0, err
 			}
-			return int1 == int2
+			if item1 > item2 {
+				return 1, nil
+			}
+			if item1 == item2 {
+				return 0, nil
+			}
+			if item1 < item2 {
+				return -1, nil
+			}
 		case reflect.Int64:
 			item1, err := m.ToInt64()
 			if err != nil {
-				return false
+				return 0, err
 			}
 			item2, err := n.ToInt64()
 			if err != nil {
-				return false
+				return 0, err
 			}
-			return item1 == item2
+			if item1 > item2 {
+				return 1, nil
+			}
+			if item1 == item2 {
+				return 0, nil
+			}
+			if item1 < item2 {
+				return -1, nil
+			}
 		case reflect.Float64:
 			item1, err := m.ToFloat64()
 			if err != nil {
-				return false
+				return 0, err
 			}
 			item2, err := n.ToFloat64()
 			if err != nil {
-				return false
+				return 0, err
 			}
-			return item1 == item2
+			if item1 > item2 {
+				return 1, nil
+			}
+			if item1 == item2 {
+				return 0, nil
+			}
+			if item1 < item2 {
+				return -1, nil
+			}
 		case reflect.Float32:
 			item1, err := m.ToFloat32()
 			if err != nil {
-				return false
+				return 0, err
 			}
 			item2, err := n.ToFloat32()
 			if err != nil {
-				return false
+				return 0, err
 			}
-			return item1 == item2
-		default:
-			panic("Mix.Equal: not support kind")
+			if item1 > item2 {
+				return 1, nil
+			}
+			if item1 == item2 {
+				return 0, nil
+			}
+			if item1 < item2 {
+				return -1, nil
+			}
 		}
 	}
-	return false
+	return 0, errors.New("Mix.Equal: not support kind")
 }
 
 func (m *Mix) Add(n IMix) (IMix, error) {

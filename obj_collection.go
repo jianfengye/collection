@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"sort"
 )
 
 type ObjCollection struct{
@@ -125,23 +124,7 @@ func (arr *ObjCollection) Pluck(key string) ICollection {
 		return arr
 	}
 
-	switch field.Type.Kind() {
-	case reflect.String:
-		objs = NewStrCollection([]string{})
-	case reflect.Int64:
-		objs = NewInt64Collection([]int64{})
-	case reflect.Int:
-		objs = NewIntCollection([]int{})
-	case reflect.Float32:
-		objs = NewFloat32Collection([]float32{})
-	case reflect.Float64:
-		objs = NewFloat64Collection([]float64{})
-	default:
-		err := errors.New("ObjCollection.Pluck: not support kind")
-		arr.SetErr(err)
-		return arr
-	}
-
+	objs = NewMixCollection(field.Type)
 	for i := 0; i < arr.objs.Len(); i++ {
 		v := arr.objs.Index(i).FieldByName(key).Interface()
 		objs.Append(v)
@@ -150,57 +133,24 @@ func (arr *ObjCollection) Pluck(key string) ICollection {
 	return objs
 }
 
-
-type ByFieldSort ObjCollection
-func (a ByFieldSort) Len() int { return a.objs.Len() }
-func (a ByFieldSort) Swap(i, j int) {
-	t := a.objs.Index(i).Interface()
-	a.objs.Index(i).Set(a.objs.Index(j))
-	a.objs.Index(j).Set(reflect.ValueOf(t))
-}
-func (a ByFieldSort) Less(i, j int) bool {
-	iInterface := a.objs.Index(i).Interface()
-	jInterface := a.objs.Index(j).Interface()
-
-	if a.compare == nil {
-		panic("Less compare does not exist")
-	}
-
-	if  a.compare(iInterface, jInterface) < 0 {
-		return true
-	}
-	return false
-}
-
-type ByFieldSortDesc ObjCollection
-func (a ByFieldSortDesc) Len() int { return a.objs.Len() }
-func (a ByFieldSortDesc) Swap(i, j int) {
-	t := a.objs.Index(i).Interface()
-	a.objs.Index(i).Set(a.objs.Index(j))
-	a.objs.Index(j).Set(reflect.ValueOf(t))
-}
-func (a ByFieldSortDesc) Less(i, j int) bool {
-	iInterface := a.objs.Index(i).Interface()
-	jInterface := a.objs.Index(j).Interface()
-
-	if a.compare == nil {
-		panic("Less compare does not exist")
-	}
-
-	if  a.compare(iInterface, jInterface) > 0 {
-		return true
-	}
-	return false
-}
-
 // 按照某个字段进行排序
 func (arr *ObjCollection) SortBy(key string) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
 
-	sort.Sort(ByFieldSort(*arr))
-	return arr
+	compare := func(a interface{}, b interface{}) int {
+		mixA := NewMix(reflect.ValueOf(a).FieldByName(key).Interface())
+		mixB := NewMix(reflect.ValueOf(b).FieldByName(key).Interface())
+		ret, _ := mixA.Compare(mixB)
+		return ret
+	}
+
+	oldCompare := arr.compare
+	arr.compare = compare
+	newArr := arr.Sort()
+	newArr.SetCompare(oldCompare)
+	return newArr
 }
 
 // 按照某个字段进行排序,倒序
@@ -209,6 +159,16 @@ func (arr *ObjCollection) SortByDesc(key string) ICollection {
 		return arr
 	}
 
-	sort.Sort(ByFieldSortDesc(*arr))
-	return arr
+	compare := func(a interface{}, b interface{}) int {
+		mixA := NewMix(reflect.ValueOf(a).FieldByName(key).Interface())
+		mixB := NewMix(reflect.ValueOf(b).FieldByName(key).Interface())
+		ret, _ := mixB.Compare(mixA)
+		return ret
+	}
+
+	oldCompare := arr.compare
+	arr.compare = compare
+	newArr := arr.Sort()
+	newArr.SetCompare(oldCompare)
+	return newArr
 }

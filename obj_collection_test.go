@@ -1,12 +1,14 @@
 package collection
 
 import (
+	"github.com/pkg/errors"
 	"strings"
 	"testing"
 )
 
 type Foo struct {
 	A string
+	B int
 }
 
 func TestObjCollection_Pluck(t *testing.T) {
@@ -15,25 +17,60 @@ func TestObjCollection_Pluck(t *testing.T) {
 
 	objColl := NewObjCollection([]Foo{a1, a2})
 
-	objColl.Pluck("A").DD()
+	strColl := objColl.Pluck("A")
+
+	strColl.DD()
+
+	str, err := strColl.Index(0).ToString()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if str != "a1" {
+		t.Error(errors.New("Pluck error"))
+	}
 }
 
 func TestObjCollection_SortBy(t *testing.T) {
-	a1 := Foo{A: "a1"}
-	a2 := Foo{A: "a2"}
+	a1 := Foo{A: "a1", B: 3}
+	a2 := Foo{A: "a2", B: 2}
 
 	objColl := NewObjCollection([]Foo{a1, a2})
 
-	objColl.SetCompare(func(a interface{}, b interface{}) int {
-		aObj := a.(Foo)
-		bObj := b.(Foo)
-		if aObj.A > bObj.A { return 1}
-		if aObj.A == bObj.A { return 0}
-		if aObj.A < bObj.A {return -1}
-		return 0
-	})
+	newObjColl := objColl.SortBy("B")
 
-	objColl.SortBy("A").DD()
+	newObjColl.DD()
+
+	obj, err := newObjColl.Index(0).ToInterface()
+	if err != nil {
+		t.Error(err)
+	}
+
+	foo := obj.(Foo)
+	if foo.B != 2 {
+		t.Error("SortBy error")
+	}
+}
+
+func TestObjCollection_SortByDesc(t *testing.T) {
+	a1 := Foo{A: "a1", B: 2}
+	a2 := Foo{A: "a2", B: 3}
+
+	objColl := NewObjCollection([]Foo{a1, a2})
+
+	newObjColl := objColl.SortByDesc("B")
+
+	newObjColl.DD()
+
+	obj, err := newObjColl.Index(0).ToInterface()
+	if err != nil {
+		t.Error(err)
+	}
+
+	foo := obj.(Foo)
+	if foo.B != 3 {
+		t.Error("SortBy error")
+	}
 }
 
 func TestObjCollection(t *testing.T) {

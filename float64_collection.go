@@ -45,8 +45,7 @@ func (arr *Float64Collection) Insert(index int, obj interface{}) ICollection {
 			return arr
 		}
 
-		new := make([]float64, 0, length)
-		new = append(new, arr.objs[0: index]...)
+		new := arr.objs[0: index]
 		new = append(new, i)
 		new = append(new, arr.objs[index:length]...)
 		arr.objs = new
