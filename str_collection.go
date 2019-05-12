@@ -2,7 +2,7 @@ package collection
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
+	"errors"
 	"reflect"
 	"strings"
 )

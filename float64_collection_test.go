@@ -1,7 +1,7 @@
 package collection
 
 import (
-	"github.com/pkg/errors"
+	"errors"
 	"testing"
 )
 
