@@ -86,7 +86,7 @@ func (m *Mix)Type() reflect.Type {
 
 // Equal 判断两个Mix是否相等
 func (m *Mix) Compare(n IMix) (ret int, err error) {
-	if m.typ == reflect.TypeOf(n) {
+	if m.typ == n.Type() {
 		switch m.typ.Kind() {
 		case reflect.String:
 			item1, err := m.ToString()
