@@ -12,10 +12,10 @@ import (
 // 这个是一个虚函数，能实现的都实现
 type AbsCollection struct {
 	compare func(interface{}, interface{}) int // 比较函数
-	err error // 错误信息
+	err     error                              // 错误信息
 
 	ICollection
-	Parent ICollection  //用于调用子类
+	Parent ICollection //用于调用子类
 }
 
 func (arr *AbsCollection) Err() error {
@@ -29,7 +29,7 @@ func (arr *AbsCollection) SetErr(err error) ICollection {
 
 /*
 下面的几个函数必须要实现
- */
+*/
 func (arr *AbsCollection) NewEmpty(err ...error) ICollection {
 	if arr.Parent == nil {
 		panic("no parent")
@@ -47,7 +47,6 @@ func (arr *AbsCollection) Insert(index int, obj interface{}) ICollection {
 
 	return arr.Parent.Insert(index, obj)
 }
-
 
 func (arr *AbsCollection) Remove(index int) ICollection {
 	if arr.Err() != nil {
@@ -76,7 +75,7 @@ func (arr *AbsCollection) Count() int {
 	return arr.Parent.Count()
 }
 
-func (arr *AbsCollection) DD()  {
+func (arr *AbsCollection) DD() {
 	if arr.Parent == nil {
 		panic("DD: not Implement")
 	}
@@ -85,7 +84,7 @@ func (arr *AbsCollection) DD()  {
 
 /*
 下面这些函数是所有子类都一样
- */
+*/
 
 func (arr *AbsCollection) Append(item interface{}) ICollection {
 	if arr.Err() != nil {
@@ -171,7 +170,7 @@ func (arr *AbsCollection) Slice(ps ...int) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
-	if len(ps) > 2 || len(ps) == 0{
+	if len(ps) > 2 || len(ps) == 0 {
 		panic("Slice params count error")
 	}
 
@@ -209,7 +208,6 @@ func (arr *AbsCollection) Merge(arr2 ICollection) ICollection {
 	return arr
 }
 
-
 func (arr *AbsCollection) Each(f func(item interface{}, key int)) {
 	if arr.Err() != nil {
 		return
@@ -223,7 +221,6 @@ func (arr *AbsCollection) Each(f func(item interface{}, key int)) {
 		}
 	}
 }
-
 
 func (arr *AbsCollection) Map(f func(item interface{}, key int) interface{}) ICollection {
 	if arr.Err() != nil {
@@ -319,7 +316,7 @@ func (arr *AbsCollection) Nth(n int, offset int) ICollection {
 
 	newArr := arr.NewEmpty(arr.Err())
 	for i := 0; i < arr.Count(); i++ {
-		if (i - offset) % n == 0 {
+		if (i-offset)%n == 0 {
 			o, _ := arr.Index(i).ToInterface()
 			newArr.Append(o)
 		}
@@ -353,7 +350,7 @@ func (arr *AbsCollection) Pad(count int, def interface{}) ICollection {
 	if count < 0 {
 		if count >= -arr.Count() {
 			startIndex := arr.Count() + count
-			return arr.Slice(startIndex, arr.Count() - startIndex)
+			return arr.Slice(startIndex, arr.Count()-startIndex)
 		}
 
 		for i := count; i < -arr.Count(); i++ {
@@ -436,7 +433,7 @@ func (arr *AbsCollection) Shuffle() ICollection {
 	})
 
 	newArr := arr.NewEmpty(arr.Err())
-	for i := 0; i < len(indexs); i ++ {
+	for i := 0; i < len(indexs); i++ {
 		o, _ := arr.Index(indexs[i]).ToInterface()
 		newArr.Append(o)
 	}
@@ -615,7 +612,6 @@ func (arr *AbsCollection) SortDesc() ICollection {
 		return false
 	}
 
-
 	sorted := make([]int, 0, arr.Count())
 	for i := 0; i < arr.Count(); i++ {
 		max := -1
@@ -660,7 +656,7 @@ func (arr *AbsCollection) Join(split string, format ...func(item interface{}) st
 			ret.WriteString(f(o))
 		}
 
-		if i != arr.Count() - 1 {
+		if i != arr.Count()-1 {
 			ret.WriteString(split)
 		}
 	}
@@ -679,7 +675,7 @@ func (arr *AbsCollection) Avg() IMix {
 	var err error
 	o0, _ := arr.Index(0).ToInterface()
 	sum = NewMix(o0)
-	for i:= 1; i < arr.Count(); i++ {
+	for i := 1; i < arr.Count(); i++ {
 		sum, err = sum.Add(arr.Index(i))
 		if err != nil {
 			return NewErrorMix(err)
@@ -697,8 +693,8 @@ func (arr *AbsCollection) Median() IMix {
 		return NewErrorMix(arr.Err())
 	}
 	newArr := arr.Sort()
-	if newArr.Count() % 2 == 0 {
-		imax, err := newArr.Index(newArr.Count() / 2 - 1).Add(newArr.Index(newArr.Count() / 2))
+	if newArr.Count()%2 == 0 {
+		imax, err := newArr.Index(newArr.Count()/2 - 1).Add(newArr.Index(newArr.Count() / 2))
 		if err != nil {
 			return NewErrorMix(err)
 		}
@@ -709,7 +705,7 @@ func (arr *AbsCollection) Median() IMix {
 		return div
 	}
 
-	return newArr.Index(newArr.Count() / 2 + 1)
+	return newArr.Index(newArr.Count()/2 + 1)
 }
 
 func (arr *AbsCollection) Mode() IMix {
@@ -797,7 +793,7 @@ func (arr *AbsCollection) ToStrings() ([]string, error) {
 
 	ret := make([]string, arr.Count())
 	for i := 0; i < arr.Count(); i++ {
-		t , err := arr.Index(i).ToString()
+		t, err := arr.Index(i).ToString()
 		if err != nil {
 			return nil, err
 		}
@@ -812,7 +808,22 @@ func (arr *AbsCollection) ToInt64s() ([]int64, error) {
 	}
 	ret := make([]int64, arr.Count())
 	for i := 0; i < arr.Count(); i++ {
-		t , err := arr.Index(i).ToInt64()
+		t, err := arr.Index(i).ToInt64()
+		if err != nil {
+			return nil, err
+		}
+		ret[i] = t
+	}
+	return ret, nil
+}
+
+func (arr *AbsCollection) ToInt32s() ([]int32, error) {
+	if arr.Err() != nil {
+		return nil, arr.Err()
+	}
+	ret := make([]int32, arr.Count())
+	for i := 0; i < arr.Count(); i++ {
+		t, err := arr.Index(i).ToInt32()
 		if err != nil {
 			return nil, err
 		}
@@ -827,7 +838,7 @@ func (arr *AbsCollection) ToInts() ([]int, error) {
 	}
 	ret := make([]int, arr.Count())
 	for i := 0; i < arr.Count(); i++ {
-		t , err := arr.Index(i).ToInt()
+		t, err := arr.Index(i).ToInt()
 		if err != nil {
 			return nil, err
 		}
@@ -853,7 +864,7 @@ func (arr *AbsCollection) ToFloat64s() ([]float64, error) {
 	}
 	ret := make([]float64, arr.Count())
 	for i := 0; i < arr.Count(); i++ {
-		t , err := arr.Index(i).ToFloat64()
+		t, err := arr.Index(i).ToFloat64()
 		if err != nil {
 			return nil, err
 		}
@@ -868,7 +879,7 @@ func (arr *AbsCollection) ToFloat32s() ([]float32, error) {
 	}
 	ret := make([]float32, arr.Count())
 	for i := 0; i < arr.Count(); i++ {
-		t , err := arr.Index(i).ToFloat32()
+		t, err := arr.Index(i).ToFloat32()
 		if err != nil {
 			return nil, err
 		}
