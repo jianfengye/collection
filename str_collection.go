@@ -1,13 +1,12 @@
 package collection
 
 import (
-	"fmt"
 	"errors"
-	"reflect"
+	"fmt"
 	"strings"
 )
 
-type StrCollection struct{
+type StrCollection struct {
 	AbsCollection
 	objs []string
 }
@@ -19,13 +18,19 @@ func compareString(a interface{}, b interface{}) int {
 }
 
 func NewStrCollection(objs []string) *StrCollection {
-	objs2 := make([]string, len(objs))
-	reflect.Copy(reflect.ValueOf(objs2), reflect.ValueOf(objs))
 	arr := &StrCollection{
-		objs:objs2,
+		objs: objs,
 	}
 	arr.AbsCollection.compare = compareString
 	arr.AbsCollection.Parent = arr
+	return arr
+}
+
+// Copy copy collection
+func (arr *StrCollection) Copy() ICollection {
+	objs2 := make([]string, len(arr.objs))
+	copy(objs2, arr.objs)
+	arr.objs = objs2
 	return arr
 }
 
@@ -50,7 +55,7 @@ func (arr *StrCollection) Insert(index int, obj interface{}) ICollection {
 			return arr
 		}
 
-		new := arr.objs[0: index]
+		new := arr.objs[0:index]
 		new = append(new, i)
 		new = append(new, arr.objs[index:length]...)
 		arr.objs = new
@@ -59,7 +64,6 @@ func (arr *StrCollection) Insert(index int, obj interface{}) ICollection {
 	}
 	return arr
 }
-
 
 func (arr *StrCollection) Remove(i int) ICollection {
 	if arr.Err() != nil {
@@ -70,10 +74,9 @@ func (arr *StrCollection) Remove(i int) ICollection {
 	if i >= len {
 		return arr.SetErr(errors.New("index exceeded"))
 	}
-	arr.objs = append(arr.objs[0:i], arr.objs[i+1: len]...)
+	arr.objs = append(arr.objs[0:i], arr.objs[i+1:len]...)
 	return arr
 }
-
 
 func (arr *StrCollection) Index(i int) IMix {
 	return NewMix(arr.objs[i])
@@ -86,7 +89,7 @@ func (arr *StrCollection) Count() int {
 func (arr *StrCollection) DD() {
 	ret := fmt.Sprintf("StrCollection(%d):{\n", arr.Count())
 	for k, v := range arr.objs {
-		ret = ret + fmt.Sprintf("\t%d:\t%s\n",k, v)
+		ret = ret + fmt.Sprintf("\t%d:\t%s\n", k, v)
 	}
 	ret = ret + "}\n"
 	fmt.Print(ret)

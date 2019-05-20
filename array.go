@@ -1,6 +1,6 @@
 package collection
 
-// ICollection表示数组结构，有几种类型
+// ICollection 表示数组结构，有几种类型
 type ICollection interface {
 	// ICollection错误信息，链式调用的时候需要检查下这个error是否存在，每次调用之后都检查一下
 	Err() error
@@ -38,6 +38,8 @@ type ICollection interface {
 	Slice(...int) ICollection
 	// 获取某个下标，对所有Collection生效
 	Index(i int) IMix
+	// 复制当前数组
+	Copy() ICollection
 	// 获取数组长度，对所有Collection生效
 	Count() int
 	// 将两个数组进行合并，参数的数据挂在当前数组中，返回当前数组，对所有Collection生效
@@ -88,6 +90,8 @@ type ICollection interface {
 	// 比较a和b，如果a>b, 返回1，如果a<b, 返回-1，如果a=b, 返回0
 	// 设置比较函数，理论上所有Collection都能设置比较函数，但是强烈不建议基础Collection设置
 	SetCompare(func(a interface{}, b interface{}) int) ICollection
+	// GetCompare 获取比较函数
+	GetCompare() func(a interface{}, b interface{}) int
 	// 数组中最大的元素，仅对基础Collection生效, 可以传递一个比较函数
 	Max() IMix
 	// 数组中最小的元素，仅对基础Collection生效

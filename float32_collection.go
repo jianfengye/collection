@@ -1,35 +1,42 @@
 package collection
 
 import (
-	"fmt"
 	"errors"
-	"reflect"
+	"fmt"
 )
 
-type Float32Collection struct{
+type Float32Collection struct {
 	AbsCollection
 	objs []float32
 }
 
-func NewFloat32Collection(objs []float32) *Float32Collection {
-	objs2 := make([]float32, len(objs))
-	reflect.Copy(reflect.ValueOf(objs2), reflect.ValueOf(objs))
+func compareFloat32(i interface{}, i2 interface{}) int {
+	int1 := i.(float32)
+	int2 := i2.(float32)
+	if int1 > int2 {
+		return 1
+	}
+	if int1 < int2 {
+		return -1
+	}
+	return 0
+}
 
+// NewFloat32Collection create a new Float32Collection
+func NewFloat32Collection(objs []float32) *Float32Collection {
 	arr := &Float32Collection{
-		objs:objs2,
+		objs: objs,
 	}
 	arr.AbsCollection.Parent = arr
-	arr.AbsCollection.compare = func(i interface{}, i2 interface{}) int {
-		int1 := i.(float32)
-		int2 := i2.(float32)
-		if int1 > int2 {
-			return 1
-		}
-		if int1 < int2 {
-			return -1
-		}
-		return 0
-	}
+	arr.SetCompare(compareFloat32)
+	return arr
+}
+
+// Copy copy collection
+func (arr *Float32Collection) Copy() ICollection {
+	objs2 := make([]float32, len(arr.objs))
+	copy(objs2, arr.objs)
+	arr.objs = objs2
 	return arr
 }
 
@@ -46,7 +53,7 @@ func (arr *Float32Collection) Insert(index int, obj interface{}) ICollection {
 			return arr
 		}
 
-		new := arr.objs[0: index]
+		new := arr.objs[0:index]
 		new = append(new, i)
 		new = append(new, arr.objs[index:length]...)
 		arr.objs = new
@@ -65,7 +72,7 @@ func (arr *Float32Collection) Remove(i int) ICollection {
 	if i >= len {
 		return arr.SetErr(errors.New("index exceeded"))
 	}
-	arr.objs = append(arr.objs[0:i], arr.objs[i+1: len]...)
+	arr.objs = append(arr.objs[0:i], arr.objs[i+1:len]...)
 	return arr
 }
 
@@ -76,7 +83,6 @@ func (arr *Float32Collection) NewEmpty(err ...error) ICollection {
 	}
 	return intArr
 }
-
 
 func (arr *Float32Collection) Index(i int) IMix {
 	return NewMix(arr.objs[i])
@@ -89,7 +95,7 @@ func (arr *Float32Collection) Count() int {
 func (arr *Float32Collection) DD() {
 	ret := fmt.Sprintf("Float32Collection(%d):{\n", arr.Count())
 	for k, v := range arr.objs {
-		ret = ret + fmt.Sprintf("\t%d:\t%f\n",k, v)
+		ret = ret + fmt.Sprintf("\t%d:\t%f\n", k, v)
 	}
 	ret = ret + "}\n"
 	fmt.Print(ret)

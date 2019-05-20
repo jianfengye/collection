@@ -1,34 +1,42 @@
 package collection
 
 import (
-	"fmt"
 	"errors"
-	"reflect"
+	"fmt"
 )
 
-type IntCollection struct{
+type IntCollection struct {
 	AbsCollection
 	objs []int
 }
 
+func compareInt(i interface{}, i2 interface{}) int {
+	int1 := i.(int)
+	int2 := i2.(int)
+	if int1 > int2 {
+		return 1
+	}
+	if int1 < int2 {
+		return -1
+	}
+	return 0
+}
+
+// NewIntCollection create a new IntCollection
 func NewIntCollection(objs []int) *IntCollection {
-	objs2 := make([]int, len(objs))
-	reflect.Copy(reflect.ValueOf(objs2), reflect.ValueOf(objs))
 	arr := &IntCollection{
-		objs:objs2,
+		objs: objs,
 	}
 	arr.AbsCollection.Parent = arr
-	arr.AbsCollection.compare = func(i interface{}, i2 interface{}) int {
-		int1 := i.(int)
-		int2 := i2.(int)
-		if int1 > int2 {
-			return 1
-		}
-		if int1 < int2 {
-			return -1
-		}
-		return 0
-	}
+	arr.SetCompare(compareInt)
+	return arr
+}
+
+// Copy copy collection
+func (arr *IntCollection) Copy() ICollection {
+	objs2 := make([]int, len(arr.objs))
+	copy(objs2, arr.objs)
+	arr.objs = objs2
 	return arr
 }
 
@@ -45,7 +53,7 @@ func (arr *IntCollection) Insert(index int, obj interface{}) ICollection {
 			return arr
 		}
 
-		new := arr.objs[0: index]
+		new := arr.objs[0:index]
 		new = append(new, i)
 		new = append(new, arr.objs[index:length]...)
 		arr.objs = new
@@ -64,7 +72,7 @@ func (arr *IntCollection) Remove(i int) ICollection {
 	if i >= len {
 		return arr.SetErr(errors.New("index exceeded"))
 	}
-	arr.objs = append(arr.objs[0:i], arr.objs[i+1: len]...)
+	arr.objs = append(arr.objs[0:i], arr.objs[i+1:len]...)
 	return arr
 }
 
@@ -75,7 +83,6 @@ func (arr *IntCollection) NewEmpty(err ...error) ICollection {
 	}
 	return intArr
 }
-
 
 func (arr *IntCollection) Index(i int) IMix {
 	return NewMix(arr.objs[i])
@@ -88,7 +95,7 @@ func (arr *IntCollection) Count() int {
 func (arr *IntCollection) DD() {
 	ret := fmt.Sprintf("IntCollection(%d):{\n", arr.Count())
 	for k, v := range arr.objs {
-		ret = ret + fmt.Sprintf("\t%d:\t%d\n",k, v)
+		ret = ret + fmt.Sprintf("\t%d:\t%d\n", k, v)
 	}
 	ret = ret + "}\n"
 	fmt.Print(ret)

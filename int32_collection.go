@@ -3,7 +3,6 @@ package collection
 import (
 	"errors"
 	"fmt"
-	"reflect"
 )
 
 type Int32Collection struct {
@@ -11,24 +10,33 @@ type Int32Collection struct {
 	objs []int32
 }
 
+func compareInt32(i interface{}, i2 interface{}) int {
+	int1 := i.(int32)
+	int2 := i2.(int32)
+	if int1 > int2 {
+		return 1
+	}
+	if int1 < int2 {
+		return -1
+	}
+	return 0
+}
+
+// NewInt32Collection create a new Int32Collection
 func NewInt32Collection(objs []int32) *Int32Collection {
-	objs2 := make([]int32, len(objs))
-	reflect.Copy(reflect.ValueOf(objs2), reflect.ValueOf(objs))
 	arr := &Int32Collection{
-		objs: objs2,
+		objs: objs,
 	}
 	arr.AbsCollection.Parent = arr
-	arr.AbsCollection.compare = func(i interface{}, i2 interface{}) int {
-		int1 := i.(int32)
-		int2 := i2.(int32)
-		if int1 > int2 {
-			return 1
-		}
-		if int1 < int2 {
-			return -1
-		}
-		return 0
-	}
+	arr.SetCompare(compareInt32)
+	return arr
+}
+
+// Copy copy collection
+func (arr *Int32Collection) Copy() ICollection {
+	objs2 := make([]int32, len(arr.objs))
+	copy(objs2, arr.objs)
+	arr.objs = objs2
 	return arr
 }
 

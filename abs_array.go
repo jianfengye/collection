@@ -11,8 +11,9 @@ import (
 
 // 这个是一个虚函数，能实现的都实现
 type AbsCollection struct {
-	compare func(interface{}, interface{}) int // 比较函数
-	err     error                              // 错误信息
+	compare  func(interface{}, interface{}) int // 比较函数
+	err      error                              // 错误信息
+	isCopied bool                               // 是否已经拷贝，如果设置了true，说明已经拷贝，任何操作不影响之前的数组
 
 	ICollection
 	Parent ICollection //用于调用子类
@@ -34,6 +35,7 @@ func (arr *AbsCollection) NewEmpty(err ...error) ICollection {
 	if arr.Parent == nil {
 		panic("no parent")
 	}
+	arr.isCopied = true
 	return arr.Parent.NewEmpty(err...)
 }
 
@@ -43,6 +45,11 @@ func (arr *AbsCollection) Insert(index int, obj interface{}) ICollection {
 	}
 	if arr.Parent == nil {
 		panic("no parent")
+	}
+
+	if arr.isCopied == false {
+		arr.Copy()
+		arr.isCopied = true
 	}
 
 	return arr.Parent.Insert(index, obj)
@@ -55,6 +62,10 @@ func (arr *AbsCollection) Remove(index int) ICollection {
 	if arr.Parent == nil {
 		panic("no parent")
 	}
+	if arr.isCopied == false {
+		arr.Copy()
+		arr.isCopied = true
+	}
 	return arr.Parent.Remove(index)
 }
 
@@ -63,6 +74,13 @@ func (arr *AbsCollection) Index(i int) IMix {
 		panic("no parent")
 	}
 	return arr.Parent.Index(i)
+}
+
+func (arr *AbsCollection) Copy() ICollection {
+	if arr.Parent == nil {
+		panic("no parent")
+	}
+	return arr.Parent.Copy()
 }
 
 func (arr *AbsCollection) Count() int {
@@ -472,6 +490,10 @@ func (arr *AbsCollection) SetCompare(compare func(a interface{}, b interface{}) 
 	return arr
 }
 
+func (arr *AbsCollection) GetCompare() func(a interface{}, b interface{}) int {
+	return arr.compare
+}
+
 func (arr *AbsCollection) Max() IMix {
 	if arr.Err() != nil {
 		return nil
@@ -547,6 +569,7 @@ func (arr *AbsCollection) Diff(arr2 ICollection) ICollection {
 }
 
 func (arr *AbsCollection) Sort() ICollection {
+
 	if arr.Err() != nil {
 		return arr
 	}
