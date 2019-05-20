@@ -3,33 +3,40 @@ package collection
 import (
 	"errors"
 	"fmt"
-	"reflect"
 )
 
-type Int64Collection struct{
+type Int64Collection struct {
 	AbsCollection
 	objs []int64
 }
 
-func NewInt64Collection(objs []int64) *Int64Collection {
-	objs2 := make([]int64, len(objs))
-	reflect.Copy(reflect.ValueOf(objs2), reflect.ValueOf(objs))
+func compareInt64(i interface{}, i2 interface{}) int {
+	int1 := i.(int64)
+	int2 := i2.(int64)
+	if int1 > int2 {
+		return 1
+	}
+	if int1 < int2 {
+		return -1
+	}
+	return 0
+}
 
+// NewInt64Collection create a new Int64Collection
+func NewInt64Collection(objs []int64) *Int64Collection {
 	arr := &Int64Collection{
-		objs:objs2,
+		objs: objs,
 	}
 	arr.AbsCollection.Parent = arr
-	arr.AbsCollection.compare = func(i interface{}, i2 interface{}) int {
-		int1 := i.(int64)
-		int2 := i2.(int64)
-		if int1 > int2 {
-			return 1
-		}
-		if int1 < int2 {
-			return -1
-		}
-		return 0
-	}
+	arr.SetCompare(compareInt64)
+	return arr
+}
+
+// Copy copy collection
+func (arr *Int64Collection) Copy() ICollection {
+	objs2 := make([]int64, len(arr.objs))
+	copy(objs2, arr.objs)
+	arr.objs = objs2
 	return arr
 }
 
@@ -46,7 +53,7 @@ func (arr *Int64Collection) Insert(index int, obj interface{}) ICollection {
 			return arr
 		}
 
-		new := arr.objs[0: index]
+		new := arr.objs[0:index]
 		new = append(new, i)
 		new = append(new, arr.objs[index:length]...)
 		arr.objs = new
@@ -65,7 +72,7 @@ func (arr *Int64Collection) Remove(i int) ICollection {
 	if i >= len {
 		return arr.SetErr(errors.New("index exceeded"))
 	}
-	arr.objs = append(arr.objs[0:i], arr.objs[i+1: len]...)
+	arr.objs = append(arr.objs[0:i], arr.objs[i+1:len]...)
 	return arr
 }
 
@@ -76,7 +83,6 @@ func (arr *Int64Collection) NewEmpty(err ...error) ICollection {
 	}
 	return intArr
 }
-
 
 func (arr *Int64Collection) Index(i int) IMix {
 	return NewMix(arr.objs[i])
@@ -89,7 +95,7 @@ func (arr *Int64Collection) Count() int {
 func (arr *Int64Collection) DD() {
 	ret := fmt.Sprintf("Int64Collection(%d):{\n", arr.Count())
 	for k, v := range arr.objs {
-		ret = ret + fmt.Sprintf("\t%d:\t%d\n",k, v)
+		ret = ret + fmt.Sprintf("\t%d:\t%d\n", k, v)
 	}
 	ret = ret + "}\n"
 	fmt.Print(ret)

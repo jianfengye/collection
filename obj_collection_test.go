@@ -36,7 +36,6 @@ func TestObjCollection_SortBy(t *testing.T) {
 	a2 := Foo{A: "a2", B: 2}
 	a3 := Foo{A: "a3", B: 5}
 
-
 	objColl := NewObjCollection([]Foo{a1, a2, a3})
 
 	newObjColl := objColl.SortBy("B")
@@ -51,6 +50,30 @@ func TestObjCollection_SortBy(t *testing.T) {
 	foo := obj.(Foo)
 	if foo.B != 2 {
 		t.Error("SortBy error")
+	}
+}
+
+func TestObjCollection_Copy(t *testing.T) {
+	a1 := Foo{A: "a1", B: 3}
+	a2 := Foo{A: "a2", B: 2}
+	a3 := Foo{A: "a3", B: 5}
+
+	objColl := NewObjCollection([]Foo{a1, a2, a3})
+
+	newObjColl := objColl.Copy()
+
+	newObjColl.DD()
+
+	if newObjColl.Count() != 3 {
+		t.Error("Copy count error")
+	}
+	inewA1, err := newObjColl.Index(0).ToInterface()
+	if err != nil {
+		t.Error("Copy get first element error" + err.Error())
+	}
+	newA1 := inewA1.(Foo)
+	if newA1.B != 3 {
+		t.Error("Copy get first element error")
 	}
 }
 
@@ -101,9 +124,15 @@ func TestObjCollection(t *testing.T) {
 	objColl.SetCompare(func(a interface{}, b interface{}) int {
 		aObj := a.(Foo)
 		bObj := b.(Foo)
-		if aObj.A > bObj.A { return 1}
-		if aObj.A == bObj.A { return 0}
-		if aObj.A < bObj.A {return -1}
+		if aObj.A > bObj.A {
+			return 1
+		}
+		if aObj.A == bObj.A {
+			return 0
+		}
+		if aObj.A < bObj.A {
+			return -1
+		}
 		return 0
 	})
 
@@ -169,4 +198,3 @@ func TestObjCollection(t *testing.T) {
 	objColl3.Remove(2)
 	objColl3.DD()
 }
-

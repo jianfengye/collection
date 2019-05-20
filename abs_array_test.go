@@ -326,7 +326,8 @@ func TestAbsCollection_Push(t *testing.T) {
 }
 
 func TestAbsCollection_Prepend(t *testing.T) {
-	intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
+	old := []int{1, 2, 3, 4, 5, 6}
+	intColl := NewIntCollection(old)
 	intColl.Prepend(0)
 	if intColl.Err() != nil {
 		t.Error(intColl.Err().Error())
@@ -335,6 +336,14 @@ func TestAbsCollection_Prepend(t *testing.T) {
 	intColl.DD()
 	if intColl.Count() != 7 {
 		t.Error("Prepend错误")
+	}
+
+	intColl.Prepend(12)
+	if intColl.Count() != 8 {
+		t.Error("Prepend 第二次错误")
+	}
+	if len(old) != 6 {
+		t.Error("Prepend 修改了原数组")
 	}
 }
 
@@ -520,7 +529,6 @@ func TestAbsCollection_First(t *testing.T) {
 		return false
 	}).DD()
 }
-
 
 func TestAbsCollection_ToInts(t *testing.T) {
 	intColl := NewIntCollection([]int{1, 2, 2, 3})
