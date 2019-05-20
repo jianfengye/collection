@@ -1,8 +1,8 @@
 package collection
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 )
@@ -13,15 +13,16 @@ type IMix interface {
 	SetErr(err error) IMix
 
 	Compare(n IMix) (int, error) // 两个IMix结构是否相同
-	Type() reflect.Type // 获取类型
+	Type() reflect.Type          // 获取类型
 
 	Add(mix IMix) (IMix, error) // 加法操作
 	Sub(mix IMix) (IMix, error) // 减法操作
-	Div(n int) (IMix, error) // 除法操作
-	Multi(n int) (IMix, error) // 乘法操作
+	Div(n int) (IMix, error)    // 除法操作
+	Multi(n int) (IMix, error)  // 乘法操作
 
 	ToString() (string, error)
 	ToInt64() (int64, error)
+	ToInt32() (int32, error)
 	ToInt() (int, error)
 	ToFloat64() (float64, error)
 	ToFloat32() (float32, error)
@@ -34,9 +35,9 @@ type IMix interface {
 type Mix struct {
 	IMix
 
-	err error
+	err  error
 	real interface{}
-	typ reflect.Type
+	typ  reflect.Type
 }
 
 func NewErrorMix(err error) *Mix {
@@ -48,7 +49,7 @@ func NewErrorMix(err error) *Mix {
 func NewMix(real interface{}) *Mix {
 	return &Mix{
 		real: real,
-		typ: reflect.TypeOf(real),
+		typ:  reflect.TypeOf(real),
 	}
 }
 
@@ -61,6 +62,8 @@ func NewMixCollection(typ reflect.Type) ICollection {
 		return NewIntCollection([]int{})
 	case reflect.Int64:
 		return NewInt64Collection([]int64{})
+	case reflect.Int32:
+		return NewInt32Collection([]int32{})
 	case reflect.Float32:
 		return NewFloat32Collection([]float32{})
 	case reflect.Float64:
@@ -80,13 +83,13 @@ func (m *Mix) SetErr(err error) IMix {
 	return m
 }
 
-func (m *Mix)Type() reflect.Type {
+func (m *Mix) Type() reflect.Type {
 	return m.typ
 }
 
 // Equal 判断两个Mix是否相等
 func (m *Mix) Compare(n IMix) (ret int, err error) {
-	if m.typ == reflect.TypeOf(n) {
+	if m.typ == n.Type() {
 		switch m.typ.Kind() {
 		case reflect.String:
 			item1, err := m.ToString()
@@ -122,6 +125,24 @@ func (m *Mix) Compare(n IMix) (ret int, err error) {
 				return 0, err
 			}
 			item2, err := n.ToInt64()
+			if err != nil {
+				return 0, err
+			}
+			if item1 > item2 {
+				return 1, nil
+			}
+			if item1 == item2 {
+				return 0, nil
+			}
+			if item1 < item2 {
+				return -1, nil
+			}
+		case reflect.Int32:
+			item1, err := m.ToInt32()
+			if err != nil {
+				return 0, err
+			}
+			item2, err := n.ToInt32()
 			if err != nil {
 				return 0, err
 			}
@@ -210,6 +231,16 @@ func (m *Mix) Add(n IMix) (IMix, error) {
 			return nil, errors.New("format error")
 		}
 		return NewMix(item1 + item2), nil
+	case reflect.Int32:
+		item1, err := m.ToInt32()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		item2, err := n.ToInt32()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		return NewMix(item1 + item2), nil
 	case reflect.Float64:
 		item1, err := m.ToFloat64()
 		if err != nil {
@@ -262,6 +293,16 @@ func (m *Mix) Sub(n IMix) (IMix, error) {
 			return nil, errors.New("format error")
 		}
 		return NewMix(item1 - item2), nil
+	case reflect.Int32:
+		item1, err := m.ToInt32()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		item2, err := n.ToInt32()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		return NewMix(item1 - item2), nil
 	case reflect.Float64:
 		item1, err := m.ToFloat64()
 		if err != nil {
@@ -306,6 +347,12 @@ func (m *Mix) Div(n int) (IMix, error) {
 			return nil, errors.New("format error")
 		}
 		return NewMix(float64(item1) / float64(n)), nil
+	case reflect.Int32:
+		item1, err := m.ToInt32()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		return NewMix(float64(item1) / float64(n)), nil
 	case reflect.Float64:
 		item1, err := m.ToFloat64()
 		if err != nil {
@@ -342,6 +389,12 @@ func (m *Mix) Multi(n int) (IMix, error) {
 			return nil, errors.New("format error")
 		}
 		return NewMix(item1 * int64(n)), nil
+	case reflect.Int32:
+		item1, err := m.ToInt32()
+		if err != nil {
+			return nil, errors.New("format error")
+		}
+		return NewMix(item1 * int32(n)), nil
 	case reflect.Float64:
 		item1, err := m.ToFloat64()
 		if err != nil {
@@ -359,11 +412,11 @@ func (m *Mix) Multi(n int) (IMix, error) {
 	}
 }
 
-func (m *Mix) ToString() (string, error){
+func (m *Mix) ToString() (string, error) {
 	if m.err != nil {
 		return "", m.err
 	}
-	if ret, ok := m.real.(string); ok{
+	if ret, ok := m.real.(string); ok {
 		return ret, nil
 	}
 	return "", errors.New("Mix can not covert to string")
@@ -377,6 +430,16 @@ func (m *Mix) ToInt64() (int64, error) {
 		return ret, nil
 	}
 	return 0, errors.New("Mix can not covert to int64")
+}
+
+func (m *Mix) ToInt32() (int32, error) {
+	if m.err != nil {
+		return 0, m.err
+	}
+	if ret, ok := m.real.(int32); ok {
+		return ret, nil
+	}
+	return 0, errors.New("Mix can not covert to int32")
 }
 
 func (m *Mix) ToInt() (int, error) {

@@ -34,8 +34,10 @@ func TestObjCollection_Pluck(t *testing.T) {
 func TestObjCollection_SortBy(t *testing.T) {
 	a1 := Foo{A: "a1", B: 3}
 	a2 := Foo{A: "a2", B: 2}
+	a3 := Foo{A: "a3", B: 5}
 
-	objColl := NewObjCollection([]Foo{a1, a2})
+
+	objColl := NewObjCollection([]Foo{a1, a2, a3})
 
 	newObjColl := objColl.SortBy("B")
 
@@ -55,8 +57,9 @@ func TestObjCollection_SortBy(t *testing.T) {
 func TestObjCollection_SortByDesc(t *testing.T) {
 	a1 := Foo{A: "a1", B: 2}
 	a2 := Foo{A: "a2", B: 3}
+	a3 := Foo{A: "a3", B: 1}
 
-	objColl := NewObjCollection([]Foo{a1, a2})
+	objColl := NewObjCollection([]Foo{a1, a2, a3})
 
 	newObjColl := objColl.SortByDesc("B")
 

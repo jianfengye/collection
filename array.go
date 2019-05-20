@@ -8,8 +8,8 @@ type ICollection interface {
 	SetErr(error) ICollection
 
 	/*
-	下面的方法对所有Collection都生效
-	 */
+		下面的方法对所有Collection都生效
+	*/
 	// 复制一份当前相同类型的ICollection结构，但是数据是空的
 	NewEmpty(err ...error) ICollection
 	// 判断是否是空数组
@@ -73,8 +73,8 @@ type ICollection interface {
 	DD()
 
 	/*
-	下面的方法对ObjCollection生效
-	 */
+		下面的方法对ObjCollection生效
+	*/
 	// 返回数组中对象的某个key组成的数组，仅对ObjectCollection生效, key为对象属性名称，必须为public的属性
 	Pluck(key string) ICollection
 	// 按照某个字段进行排序
@@ -82,10 +82,9 @@ type ICollection interface {
 	// 按照某个字段进行排序,倒序
 	SortByDesc(key string) ICollection
 
-
 	/*
-	下面的方法对基础Collection生效，但是ObjCollection一旦设置了Compare函数也生效
-	 */
+		下面的方法对基础Collection生效，但是ObjCollection一旦设置了Compare函数也生效
+	*/
 	// 比较a和b，如果a>b, 返回1，如果a<b, 返回-1，如果a=b, 返回0
 	// 设置比较函数，理论上所有Collection都能设置比较函数，但是强烈不建议基础Collection设置
 	SetCompare(func(a interface{}, b interface{}) int) ICollection
@@ -105,8 +104,8 @@ type ICollection interface {
 	Join(split string, format ...func(item interface{}) string) string
 
 	/*
-	下面的方法对基础Collection生效
-	 */
+		下面的方法对基础Collection生效
+	*/
 	// 获取平均值
 	Avg() IMix
 	// 获取中位值
@@ -116,14 +115,15 @@ type ICollection interface {
 	// 获取sum值
 	Sum() IMix
 
-
 	/*
-	下面的方法对根据不同的对象，进行不同的调用转换
-	 */
+		下面的方法对根据不同的对象，进行不同的调用转换
+	*/
 	// 转化为golang原生的字符数组，仅对StrCollection生效
 	ToStrings() ([]string, error)
 	// 转化为golang原生的Int64数组，仅对Int64Collection生效
 	ToInt64s() ([]int64, error)
+	// 转化为golang原生的Int32数组，仅对Int32Collection生效
+	ToInt32s() ([]int32, error)
 	// 转化为golang原生的Int数组，仅对IntCollection生效
 	ToInts() ([]int, error)
 	// 转化为obj数组
