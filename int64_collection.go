@@ -85,9 +85,13 @@ func (arr *Int64Collection) NewEmpty(err ...error) ICollection {
 }
 
 func (arr *Int64Collection) Index(i int) IMix {
-	return NewMix(arr.objs[i])
+	return NewMix(arr.objs[i]).SetCompare(arr.compare)
 }
 
+func (arr *Int64Collection) SetIndex(i int, val interface{}) ICollection {
+	arr.objs[i] = val.(int64)
+	return arr
+}
 func (arr *Int64Collection) Count() int {
 	return len(arr.objs)
 }

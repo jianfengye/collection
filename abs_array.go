@@ -36,7 +36,7 @@ func (arr *AbsCollection) NewEmpty(err ...error) ICollection {
 		panic("no parent")
 	}
 	arr.isCopied = true
-	return arr.Parent.NewEmpty(err...)
+	return arr.Parent.NewEmpty(err...).SetCompare(arr.compare)
 }
 
 func (arr *AbsCollection) Insert(index int, obj interface{}) ICollection {
@@ -73,14 +73,22 @@ func (arr *AbsCollection) Index(i int) IMix {
 	if arr.Parent == nil {
 		panic("no parent")
 	}
-	return arr.Parent.Index(i)
+	return arr.Parent.Index(i).SetCompare(arr.compare)
+}
+
+func (arr *AbsCollection) SetIndex(i int, val interface{}) ICollection {
+	if arr.Parent == nil {
+		panic("no parent")
+	}
+	return arr.Parent.SetIndex(i, val)
 }
 
 func (arr *AbsCollection) Copy() ICollection {
 	if arr.Parent == nil {
 		panic("no parent")
 	}
-	return arr.Parent.Copy()
+	arr.isCopied = true
+	return arr.Parent.Copy().SetCompare(arr.compare)
 }
 
 func (arr *AbsCollection) Count() int {
@@ -568,6 +576,71 @@ func (arr *AbsCollection) Diff(arr2 ICollection) ICollection {
 	return newArr
 }
 
+func (arr *AbsCollection) qsort(left, right int, isAscOrder bool) {
+	tmp := arr.Index(left)
+	p := left
+	i, j := left, right
+	for i <= j {
+		for j >= p {
+			c, err := arr.Index(j).Compare(tmp)
+			if err != nil {
+				arr.SetErr(err)
+				return
+			}
+			if isAscOrder && c >= 0 {
+				j--
+				continue
+			}
+			if !isAscOrder && c <= 0 {
+				j--
+				continue
+			}
+
+			break
+		}
+
+		if j >= p {
+			t, _ := arr.Index(j).ToInterface()
+			arr.SetIndex(p, t)
+			p = j
+		}
+
+		for i <= p {
+			c, err := arr.Index(i).Compare(tmp)
+			if err != nil {
+				arr.SetErr(err)
+				return
+			}
+			if isAscOrder && c <= 0 {
+				i++
+				continue
+			}
+			if !isAscOrder && c >= 0 {
+				i++
+				continue
+			}
+			break
+		}
+
+		for i <= p {
+			t, _ := arr.Index(i).ToInterface()
+			arr.SetIndex(p, t)
+			p = i
+		}
+	}
+
+	t, _ := tmp.ToInterface()
+	arr.SetIndex(p, t)
+
+	if p-left > 1 {
+		arr.qsort(left, p-1, isAscOrder)
+	}
+
+	if right-p > 1 {
+		arr.qsort(p+1, right, isAscOrder)
+	}
+}
+
 func (arr *AbsCollection) Sort() ICollection {
 
 	if arr.Err() != nil {
@@ -577,43 +650,12 @@ func (arr *AbsCollection) Sort() ICollection {
 		return arr.SetErr(errors.New("sort: compare must be set"))
 	}
 
-	newArr := arr.NewEmpty(arr.Err())
-
-	isContained := func(arr []int, item int) bool {
-		for i := 0; i < len(arr); i++ {
-			if item == arr[i] {
-				return true
-			}
-		}
-		return false
+	if arr.isCopied {
+		arr.qsort(0, arr.Count()-1, true)
+		return arr
 	}
-
-	sorted := make([]int, 0, arr.Count())
-	for i := 0; i < arr.Count(); i++ {
-		min := -1
-		for j := 0; j < arr.Count(); j++ {
-			if isContained(sorted, j) {
-				continue
-			}
-
-			if min == -1 {
-				min = j
-				continue
-			}
-
-			oj, _ := arr.Index(j).ToInterface()
-			omin, _ := arr.Index(min).ToInterface()
-			if arr.compare(oj, omin) <= 0 {
-				min = j
-				continue
-			}
-		}
-
-		sorted = append(sorted, min)
-		omin, _ := arr.Index(min).ToInterface()
-		newArr.Append(omin)
-	}
-	return newArr
+	arr.Copy()
+	return arr.Sort()
 }
 
 func (arr *AbsCollection) SortDesc() ICollection {
@@ -621,46 +663,15 @@ func (arr *AbsCollection) SortDesc() ICollection {
 		return arr
 	}
 	if arr.compare == nil {
-		return arr.SetErr(errors.New("sortDesc: compare must be set"))
+		return arr.SetErr(errors.New("sort: compare must be set"))
 	}
 
-	newArr := arr.NewEmpty(arr.Err())
-
-	isContained := func(arr []int, item int) bool {
-		for i := 0; i < len(arr); i++ {
-			if item == arr[i] {
-				return true
-			}
-		}
-		return false
+	if arr.isCopied {
+		arr.qsort(0, arr.Count()-1, false)
+		return arr
 	}
-
-	sorted := make([]int, 0, arr.Count())
-	for i := 0; i < arr.Count(); i++ {
-		max := -1
-		for j := 0; j < arr.Count(); j++ {
-			if isContained(sorted, j) {
-				continue
-			}
-
-			if max == -1 {
-				max = j
-				continue
-			}
-
-			oj, _ := arr.Index(j).ToInterface()
-			omax, _ := arr.Index(max).ToInterface()
-			if arr.compare(oj, omax) >= 0 {
-				max = j
-				continue
-			}
-		}
-
-		sorted = append(sorted, max)
-		omax, _ := arr.Index(max).ToInterface()
-		newArr.Append(omax)
-	}
-	return newArr
+	arr.Copy()
+	return arr.SortDesc()
 }
 
 func (arr *AbsCollection) Join(split string, format ...func(item interface{}) string) string {

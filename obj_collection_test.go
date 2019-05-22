@@ -52,7 +52,32 @@ func TestObjCollection_SortBy(t *testing.T) {
 		t.Error("SortBy error")
 	}
 }
+func TestObjCollection_Sort(t *testing.T) {
+	a1 := Foo{A: "a1", B: 3}
+	a2 := Foo{A: "a2", B: 2}
+	a3 := Foo{A: "a3", B: 5}
 
+	objColl := NewObjCollection([]Foo{a1, a2, a3})
+	compare := func(m interface{}, n interface{}) int {
+		m1, _ := m.(Foo)
+		n1, _ := n.(Foo)
+		return m1.B - n1.B
+	}
+	objColl.SetCompare(compare)
+
+	newObjColl := objColl.Sort()
+	newObjColl.DD()
+
+	obj, err := newObjColl.Index(0).ToInterface()
+	if err != nil {
+		t.Error(err)
+	}
+
+	foo := obj.(Foo)
+	if foo.B != 2 {
+		t.Error("Sort error")
+	}
+}
 func TestObjCollection_Copy(t *testing.T) {
 	a1 := Foo{A: "a1", B: 3}
 	a2 := Foo{A: "a2", B: 2}
