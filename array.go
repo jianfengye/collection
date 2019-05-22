@@ -38,6 +38,8 @@ type ICollection interface {
 	Slice(...int) ICollection
 	// 获取某个下标，对所有Collection生效
 	Index(i int) IMix
+	// 设置数组的下标为某个值
+	SetIndex(i int, val interface{}) ICollection
 	// 复制当前数组
 	Copy() ICollection
 	// 获取数组长度，对所有Collection生效

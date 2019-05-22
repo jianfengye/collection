@@ -458,6 +458,13 @@ func TestAbsCollection_Sort(t *testing.T) {
 		t.Error(intColl2.Err())
 	}
 	intColl2.DD()
+	ins, err := intColl2.ToInts()
+	if err != nil {
+		t.Error(err)
+	}
+	if ins[1] != 3 || ins[0] != 2 {
+		t.Error("sort error")
+	}
 }
 
 func TestAbsCollection_SortDesc(t *testing.T) {
@@ -467,6 +474,13 @@ func TestAbsCollection_SortDesc(t *testing.T) {
 		t.Error(intColl2.Err())
 	}
 	intColl2.DD()
+	ins, err := intColl2.ToInts()
+	if err != nil {
+		t.Error(err)
+	}
+	if ins[1] != 3 || ins[0] != 4 {
+		t.Error("sort error")
+	}
 }
 
 func TestAbsCollection_Join(t *testing.T) {
