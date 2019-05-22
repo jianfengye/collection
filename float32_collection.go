@@ -85,7 +85,12 @@ func (arr *Float32Collection) NewEmpty(err ...error) ICollection {
 }
 
 func (arr *Float32Collection) Index(i int) IMix {
-	return NewMix(arr.objs[i])
+	return NewMix(arr.objs[i]).SetCompare(arr.compare)
+}
+
+func (arr *Float32Collection) SetIndex(i int, val interface{}) ICollection {
+	arr.objs[i] = val.(float32)
+	return arr
 }
 
 func (arr *Float32Collection) Count() int {

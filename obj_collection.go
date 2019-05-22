@@ -66,7 +66,12 @@ func (arr *ObjCollection) Insert(index int, obj interface{}) ICollection {
 }
 
 func (arr *ObjCollection) Index(i int) IMix {
-	return NewMix(arr.objs.Index(i).Interface())
+	return NewMix(arr.objs.Index(i).Interface()).SetCompare(arr.compare)
+}
+
+func (arr *ObjCollection) SetIndex(i int, val interface{}) ICollection {
+	arr.objs.Index(i).Set(reflect.ValueOf(val))
+	return arr
 }
 
 func (arr *ObjCollection) NewEmpty(err ...error) ICollection {

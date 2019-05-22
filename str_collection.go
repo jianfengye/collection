@@ -79,7 +79,12 @@ func (arr *StrCollection) Remove(i int) ICollection {
 }
 
 func (arr *StrCollection) Index(i int) IMix {
-	return NewMix(arr.objs[i])
+	return NewMix(arr.objs[i]).SetCompare(arr.compare)
+}
+
+func (arr *StrCollection) SetIndex(i int, val interface{}) ICollection {
+	arr.objs[i] = val.(string)
+	return arr
 }
 
 func (arr *StrCollection) Count() int {

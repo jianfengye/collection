@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"strings"
 )
 
 // IMix是一个混合结构
@@ -14,6 +13,7 @@ type IMix interface {
 
 	Compare(n IMix) (int, error) // 两个IMix结构是否相同
 	Type() reflect.Type          // 获取类型
+	SetCompare(func(a interface{}, b interface{}) int) IMix
 
 	Add(mix IMix) (IMix, error) // 加法操作
 	Sub(mix IMix) (IMix, error) // 减法操作
@@ -38,6 +38,8 @@ type Mix struct {
 	err  error
 	real interface{}
 	typ  reflect.Type
+
+	compare func(interface{}, interface{}) int // 比较函数
 }
 
 func NewErrorMix(err error) *Mix {
@@ -47,10 +49,25 @@ func NewErrorMix(err error) *Mix {
 }
 
 func NewMix(real interface{}) *Mix {
-	return &Mix{
+	m := &Mix{
 		real: real,
 		typ:  reflect.TypeOf(real),
 	}
+	switch m.typ.Kind() {
+	case reflect.String:
+		m.compare = compareString
+	case reflect.Int:
+		m.compare = compareInt
+	case reflect.Int32:
+		m.compare = compareInt32
+	case reflect.Int64:
+		m.compare = compareInt64
+	case reflect.Float32:
+		m.compare = compareFloat32
+	case reflect.Float64:
+		m.compare = compareFloat64
+	}
+	return m
 }
 
 // 根据typ 创建一个新的Mix数组
@@ -89,111 +106,28 @@ func (m *Mix) Type() reflect.Type {
 
 // Equal 判断两个Mix是否相等
 func (m *Mix) Compare(n IMix) (ret int, err error) {
-	if m.typ == n.Type() {
-		switch m.typ.Kind() {
-		case reflect.String:
-			item1, err := m.ToString()
-			if err != nil {
-				return 0, err
-			}
-			item2, err := n.ToString()
-			if err != nil {
-				return 0, err
-			}
-			return strings.Compare(item1, item2), nil
-		case reflect.Int:
-			item1, err := m.ToInt()
-			if err != nil {
-				return 0, err
-			}
-			item2, err := n.ToInt()
-			if err != nil {
-				return 0, err
-			}
-			if item1 > item2 {
-				return 1, nil
-			}
-			if item1 == item2 {
-				return 0, nil
-			}
-			if item1 < item2 {
-				return -1, nil
-			}
-		case reflect.Int64:
-			item1, err := m.ToInt64()
-			if err != nil {
-				return 0, err
-			}
-			item2, err := n.ToInt64()
-			if err != nil {
-				return 0, err
-			}
-			if item1 > item2 {
-				return 1, nil
-			}
-			if item1 == item2 {
-				return 0, nil
-			}
-			if item1 < item2 {
-				return -1, nil
-			}
-		case reflect.Int32:
-			item1, err := m.ToInt32()
-			if err != nil {
-				return 0, err
-			}
-			item2, err := n.ToInt32()
-			if err != nil {
-				return 0, err
-			}
-			if item1 > item2 {
-				return 1, nil
-			}
-			if item1 == item2 {
-				return 0, nil
-			}
-			if item1 < item2 {
-				return -1, nil
-			}
-		case reflect.Float64:
-			item1, err := m.ToFloat64()
-			if err != nil {
-				return 0, err
-			}
-			item2, err := n.ToFloat64()
-			if err != nil {
-				return 0, err
-			}
-			if item1 > item2 {
-				return 1, nil
-			}
-			if item1 == item2 {
-				return 0, nil
-			}
-			if item1 < item2 {
-				return -1, nil
-			}
-		case reflect.Float32:
-			item1, err := m.ToFloat32()
-			if err != nil {
-				return 0, err
-			}
-			item2, err := n.ToFloat32()
-			if err != nil {
-				return 0, err
-			}
-			if item1 > item2 {
-				return 1, nil
-			}
-			if item1 == item2 {
-				return 0, nil
-			}
-			if item1 < item2 {
-				return -1, nil
-			}
-		}
+	if m.typ != n.Type() {
+		return 0, errors.New("type not match")
 	}
-	return 0, errors.New("Mix.Equal: not support kind")
+	if m.compare == nil {
+		return 0, errors.New("compare does not exist in Mix")
+	}
+
+	mR, err := m.ToInterface()
+	if err != nil {
+		return 0, err
+	}
+	nR, err := n.ToInterface()
+	if err != nil {
+		return 0, err
+	}
+
+	return m.compare(mR, nR), nil
+}
+
+func (m *Mix) SetCompare(compare func(a interface{}, b interface{}) int) IMix {
+	m.compare = compare
+	return m
 }
 
 func (m *Mix) Add(n IMix) (IMix, error) {
