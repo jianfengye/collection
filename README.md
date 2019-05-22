@@ -4,7 +4,7 @@ Collection包目标是用于替换golang原生的Slice，使用场景是在大�
 
 创建collection库的说明文章见：[一个让业务开发效率提高10倍的golang库](https://www.cnblogs.com/yjf512/p/10818089.html)
 
-Collection包目前支持的元素类型：int, int64, float32, float64, string, struct。
+Collection包目前支持的元素类型：int32, int, int64, float32, float64, string, struct。
 
 使用下列几个方法进行初始化Collection:
 
@@ -12,6 +12,8 @@ Collection包目前支持的元素类型：int, int64, float32, float64, string,
 NewIntCollection(objs []int) *IntCollection
 
 NewInt64Collection(objs []int64) *Int64Collection
+
+NewInt32Collection(objs []int32) *Int32Collection
 
 NewFloat64Collection(objs []float64) *Float64Collection
 
@@ -43,6 +45,8 @@ if err != nil {
 [DD](#DD)
 
 [NewEmpty](#NewEmpty)
+
+[Copy](#Copy)
 
 [Append](#Append)
 
@@ -178,6 +182,24 @@ intColl2.DD()
 IntCollection(0):{
 }
 */
+```
+
+### Copy
+
+Copy方法根据当前的数组，创造出一个同类型的数组，有相同的元素
+
+```
+func TestAbsCollection_Copy(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2})
+	intColl2 := intColl.Copy()
+	intColl2.DD()
+	if intColl2.Count() != 2 {
+		t.Error("Copy失败")
+	}
+	if reflect.TypeOf(intColl2) != reflect.TypeOf(intColl) {
+		t.Error("Copy类型失败")
+	}
+}
 ```
 
 ### Append
