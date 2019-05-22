@@ -622,7 +622,7 @@ func (arr *AbsCollection) qsort(left, right int, isAscOrder bool) {
 			break
 		}
 
-		for i <= p {
+		if i <= p {
 			t, _ := arr.Index(i).ToInterface()
 			arr.SetIndex(p, t)
 			p = i

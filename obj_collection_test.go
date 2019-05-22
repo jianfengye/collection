@@ -206,6 +206,14 @@ func TestObjCollection(t *testing.T) {
 	objColl.Append(a0)
 
 	objColl.Sort().DD()
+	o, err := objColl.Index(0).ToInterface()
+	if err != nil {
+		t.Error(err)
+	}
+	fooOut := o.(Foo)
+	if fooOut.A != "a0" {
+		t.Error("sort result error")
+	}
 
 	objColl.DD()
 	objColl.SetCompare(func(a interface{}, b interface{}) int {
