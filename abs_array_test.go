@@ -12,6 +12,17 @@ func TestAbsCollection_DD(t *testing.T) {
 	intColl.DD()
 }
 
+func TestAbsCollection_Copy(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2})
+	intColl2 := intColl.Copy()
+	intColl2.DD()
+	if intColl2.Count() != 2 {
+		t.Error("Copy失败")
+	}
+	if reflect.TypeOf(intColl2) != reflect.TypeOf(intColl) {
+		t.Error("Copy类型失败")
+	}
+}
 func TestAbsCollection_NewEmpty(t *testing.T) {
 	intColl := NewIntCollection([]int{1, 2})
 	intColl2 := intColl.NewEmpty()
