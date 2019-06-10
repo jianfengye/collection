@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -98,4 +99,8 @@ func (arr *StrCollection) DD() {
 	}
 	ret = ret + "}\n"
 	fmt.Print(ret)
+}
+
+func (arr *StrCollection) ToJson() ([]byte, error) {
+	return json.Marshal(arr.objs)
 }

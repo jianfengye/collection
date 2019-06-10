@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -184,3 +185,8 @@ func (arr *ObjCollection) SortByDesc(key string) ICollection {
 	newArr.SetCompare(oldCompare)
 	return newArr
 }
+
+func (arr *ObjCollection) ToJson() ([]byte, error) {
+	return json.Marshal(arr.objs.Interface())
+}
+

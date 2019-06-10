@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -30,6 +31,10 @@ type IMix interface {
 
 	Format() string // 打印成string
 	DD()
+
+
+	SetField(key string, val interface{}) IMix
+	RemoveFields(...string) IMix
 }
 
 type Mix struct {
@@ -40,7 +45,39 @@ type Mix struct {
 	typ  reflect.Type
 
 	compare func(interface{}, interface{}) int // 比较函数
+
+	setFieldMaps map[string]interface{}
+	removeMaps   []string
 }
+
+func (m *Mix) MarshalJSON() ([]byte, error) {
+	if m.typ.Kind() != reflect.Struct{
+		return json.Marshal(m.real)
+	}
+
+	if m.setFieldMaps == nil || m.removeMaps == nil {
+		return json.Marshal(m.real)
+	}
+
+	byt, err := json.Marshal(m.real)
+	if err != nil {
+		return nil, err
+	}
+	var tmpMap map[string]interface{}
+	if err := json.Unmarshal(byt, &tmpMap); err != nil {
+		return nil, err
+	}
+	for k, v := range m.setFieldMaps {
+		 tmpMap[k] = v
+	}
+	for _, k := range m.removeMaps {
+		if _, ok := tmpMap[k]; ok {
+			delete(tmpMap, k)
+		}
+	}
+	return json.Marshal(tmpMap)
+}
+
 
 func NewErrorMix(err error) *Mix {
 	mix := &Mix{}
@@ -89,6 +126,23 @@ func NewMixCollection(typ reflect.Type) ICollection {
 		return NewObjCollectionByType(typ)
 	}
 	return nil
+}
+
+func NewEmptyMixCollection() ICollection {
+	return NewObjCollectionByType(reflect.TypeOf([]*Mix{}))
+}
+
+func (m *Mix) SetField(key string, val interface{}) IMix {
+	if m.setFieldMaps == nil {
+		m.setFieldMaps = make(map[string]interface{})
+	}
+	m.setFieldMaps[key] = val
+	return m
+}
+
+func (m *Mix) RemoveFields(key ...string) IMix {
+	m.removeMaps = key
+	return m
 }
 
 func (m *Mix) Err() error {

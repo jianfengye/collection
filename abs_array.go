@@ -921,3 +921,14 @@ func (arr *AbsCollection) ToFloat32s() ([]float32, error) {
 	}
 	return ret, nil
 }
+
+func (arr *AbsCollection) ToJson() ([]byte, error) {
+	if arr.Err() != nil {
+		return nil, arr.Err()
+	}
+	if arr.Parent == nil {
+		panic("no parent")
+	}
+
+	return arr.Parent.ToJson()
+}

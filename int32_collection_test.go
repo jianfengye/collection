@@ -34,4 +34,13 @@ func TestInt32Collection(t *testing.T) {
 	if err != nil || len(out) != 3 {
 		t.Error("ToInt32s error")
 	}
+
+	json, err := arr2.ToJson()
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Log(string(json))
+
 }
+

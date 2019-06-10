@@ -138,4 +138,7 @@ type ICollection interface {
 	ToFloat64s() ([]float64, error)
 	// 转化为float32数组
 	ToFloat32s() ([]float32, error)
+
+	// 转换为Json
+	ToJson() ([]byte, error)
 }

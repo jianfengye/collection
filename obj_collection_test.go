@@ -11,6 +11,7 @@ type Foo struct {
 	B int
 }
 
+
 func TestObjCollection_Pluck(t *testing.T) {
 	a1 := Foo{A: "a1"}
 	a2 := Foo{A: "a2"}
@@ -230,4 +231,26 @@ func TestObjCollection(t *testing.T) {
 
 	objColl3.Remove(2)
 	objColl3.DD()
+}
+
+func TestObjCollection_ToJson(t *testing.T) {
+	a1 := Foo{A: "a1"}
+	a2 := Foo{A: "a2"}
+
+	objColl := NewObjCollection([]Foo{a1, a2})
+	byt, err := objColl.ToJson()
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(string(byt))
+
+	out := NewEmptyMixCollection()
+	for i := 0; i < objColl.Count(); i++ {
+		out.Append(objColl.Index(i).SetField("c", "test").RemoveFields("A"))
+	}
+	byt, err = out.ToJson()
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(string(byt))
 }
