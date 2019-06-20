@@ -921,3 +921,33 @@ func (arr *AbsCollection) ToFloat32s() ([]float32, error) {
 	}
 	return ret, nil
 }
+
+func (arr *AbsCollection) ToJson() ([]byte, error) {
+	if arr.Err() != nil {
+		return nil, arr.Err()
+	}
+	if arr.Parent == nil {
+		panic("no parent")
+	}
+
+	return arr.Parent.ToJson()
+}
+
+func (arr *AbsCollection) FromJson(data []byte) error {
+	if arr.Err() != nil {
+		return arr.Err()
+	}
+	if arr.Parent == nil {
+		panic("no parent")
+	}
+
+	return arr.Parent.FromJson(data)
+}
+
+func (arr *AbsCollection) MarshalJSON() ([]byte, error) {
+	return arr.ToJson()
+}
+
+func (arr *AbsCollection) UnmarshalJSON(data []byte) error {
+	return arr.FromJson(data)
+}

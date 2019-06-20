@@ -35,4 +35,11 @@ func TestFloat32Collection(t *testing.T) {
 	if err != nil || len(out) != 3 {
 		t.Error(errors.New("to float32s error"))
 	}
+
+	byt, err := arr2.ToJson()
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Log(string(byt))
 }

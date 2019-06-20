@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"encoding/json"
 	"errors"
 	"strings"
 	"testing"
@@ -10,6 +11,7 @@ type Foo struct {
 	A string
 	B int
 }
+
 
 func TestObjCollection_Pluck(t *testing.T) {
 	a1 := Foo{A: "a1"}
@@ -230,4 +232,67 @@ func TestObjCollection(t *testing.T) {
 
 	objColl3.Remove(2)
 	objColl3.DD()
+}
+
+func TestObjCollection_ToJson(t *testing.T) {
+	a1 := Foo{A: "a1", B: 1}
+	a2 := Foo{A: "a2", B: 2}
+
+	objColl := NewObjCollection([]Foo{a1, a2})
+	byt, err := objColl.ToJson()
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(string(byt))
+
+	out := NewEmptyMixCollection()
+	for i := 0; i < objColl.Count(); i++ {
+		if i == 1 {
+			out.Append(objColl.Index(i).SetField("d", 12).RemoveFields("B"))
+			continue
+		}
+		out.Append(objColl.Index(i).SetField("c", "test").RemoveFields("A"))
+	}
+	byt, err = out.ToJson()
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(string(byt))
+}
+
+func TestObjCollection_FromJson(t *testing.T) {
+	data := `[{"A":"a1","B":1},{"A":"a2","B":2}]`
+	dataByte := []byte(data)
+	objColl := NewObjCollection([]Foo{})
+	err := objColl.FromJson(dataByte)
+	if err != nil {
+		t.Error(err)
+	}
+	objColl.DD()
+}
+
+func TestObjCollection_Marshal(t *testing.T) {
+	a1 := Foo{A: "a1", B: 1}
+	a2 := Foo{A: "a2", B: 2}
+
+	objColl := NewObjCollection([]Foo{a1, a2})
+	byt, err := json.Marshal(objColl)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(string(byt))
+
+	out := NewEmptyMixCollection()
+	for i := 0; i < objColl.Count(); i++ {
+		if i == 1 {
+			out.Append(objColl.Index(i).SetField("d", 12).RemoveFields("B"))
+			continue
+		}
+		out.Append(objColl.Index(i).SetField("c", "test").RemoveFields("A"))
+	}
+	byt, err = json.Marshal(out)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(string(byt))
 }

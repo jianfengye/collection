@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -27,12 +28,13 @@ func NewObjCollection(objs interface{}) *ObjCollection {
 	return arr
 }
 
-// NewObjCollectionByType 根据类型创建一个空的数组
+// NewObjCollectionByType 根据类型创建一个空的数组, 传进来的Type是slice类型
 func NewObjCollectionByType(typ reflect.Type) *ObjCollection {
 	vals := reflect.MakeSlice(typ, 0, 0)
+	eleTyp := typ.Elem()
 	arr := &ObjCollection{
 		objs: vals,
-		typ:  typ,
+		typ:  eleTyp,
 	}
 	arr.AbsCollection.Parent = arr
 	return arr
@@ -184,3 +186,19 @@ func (arr *ObjCollection) SortByDesc(key string) ICollection {
 	newArr.SetCompare(oldCompare)
 	return newArr
 }
+
+func (arr *ObjCollection) ToJson() ([]byte, error) {
+	return json.Marshal(arr.objs.Interface())
+}
+
+func (arr *ObjCollection) FromJson(data []byte) error {
+	vals := reflect.MakeSlice(reflect.SliceOf(arr.typ), 0, 0)
+	objs := vals.Interface()
+	err := json.Unmarshal(data, &objs)
+	if err != nil {
+		return err
+	}
+	arr.objs = reflect.ValueOf(objs)
+	return nil
+}
+
