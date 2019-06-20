@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 )
@@ -104,4 +105,11 @@ func (arr *Float64Collection) DD() {
 	}
 	ret = ret + "}\n"
 	fmt.Print(ret)
+}
+
+func (arr *Float64Collection) ToJson() ([]byte, error) {
+	return json.Marshal(arr.objs)
+}
+func (arr *Float64Collection) FromJson(data []byte) error {
+	return json.Unmarshal(data, &(arr.objs))
 }
