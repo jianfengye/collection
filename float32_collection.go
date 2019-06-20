@@ -111,3 +111,8 @@ func (arr *Float32Collection) DD() {
 func (arr *Float32Collection) ToJson() ([]byte, error) {
 	return json.Marshal(arr.objs)
 }
+
+
+func (arr *Float32Collection) FromJson(data []byte) error {
+	return json.Unmarshal(data, &(arr.objs))
+}

@@ -110,3 +110,8 @@ func (arr *IntCollection) DD() {
 func (arr *IntCollection) ToJson() ([]byte, error) {
 	return json.Marshal(arr.objs)
 }
+
+
+func (arr *IntCollection) FromJson(data []byte) error {
+	return json.Unmarshal(data, &(arr.objs))
+}

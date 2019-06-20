@@ -141,4 +141,5 @@ type ICollection interface {
 
 	// 转换为Json
 	ToJson() ([]byte, error)
+	FromJson([]byte) error
 }

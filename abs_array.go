@@ -932,3 +932,22 @@ func (arr *AbsCollection) ToJson() ([]byte, error) {
 
 	return arr.Parent.ToJson()
 }
+
+func (arr *AbsCollection) FromJson(data []byte) error {
+	if arr.Err() != nil {
+		return arr.Err()
+	}
+	if arr.Parent == nil {
+		panic("no parent")
+	}
+
+	return arr.Parent.FromJson(data)
+}
+
+func (arr *AbsCollection) MarshalJSON() ([]byte, error) {
+	return arr.ToJson()
+}
+
+func (arr *AbsCollection) UnmarshalJSON(data []byte) error {
+	return arr.FromJson(data)
+}
