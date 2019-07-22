@@ -339,7 +339,7 @@ func TestAbsCollection_Push(t *testing.T) {
 func TestAbsCollection_Prepend(t *testing.T) {
 	old := []int{1, 2, 3, 4, 5, 6}
 	intColl := NewIntCollection(old)
-	intColl.Prepend(0)
+	intColl.Prepend(4)
 	if intColl.Err() != nil {
 		t.Error(intColl.Err().Error())
 	}
