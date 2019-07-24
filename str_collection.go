@@ -51,15 +51,14 @@ func (arr *StrCollection) Insert(index int, obj interface{}) ICollection {
 		length := len(arr.objs)
 
 		// 如果是append操作，直接调用系统的append，不新创建collection
-		if index == length {
+		if index >= length {
 			arr.objs = append(arr.objs, i)
 			return arr
 		}
 
-		new := arr.objs[0:index]
-		new = append(new, i)
-		new = append(new, arr.objs[index:length]...)
-		arr.objs = new
+		arr.objs = append(arr.objs, "0")
+		copy(arr.objs[index+1:], arr.objs[index:])
+		arr.objs[index] = i
 	} else {
 		return arr.SetErr(errors.New("Insert: type error"))
 	}

@@ -56,11 +56,15 @@ func (arr *ObjCollection) Insert(index int, obj interface{}) ICollection {
 	}
 
 	ret := arr.objs.Slice(0, index)
+
 	length := arr.objs.Len()
 	tail := arr.objs.Slice(index, length)
+
+	tailNew := reflect.MakeSlice(arr.objs.Type(), length - index, length - index)
+	reflect.Copy(tailNew, tail)
 	ret = reflect.Append(ret, reflect.ValueOf(obj))
 	for i := 0; i < tail.Len(); i++ {
-		ret = reflect.Append(ret, tail.Index(i))
+		ret = reflect.Append(ret, tailNew.Index(i))
 	}
 	arr.objs = ret
 	arr.AbsCollection.Parent = arr

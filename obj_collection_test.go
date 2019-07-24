@@ -3,6 +3,7 @@ package collection
 import (
 	"encoding/json"
 	"errors"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -12,6 +13,48 @@ type Foo struct {
 	B int
 }
 
+func TestObjCollection_Insert(t *testing.T) {
+	a1 := Foo{A: "a1"}
+	a2 := Foo{A: "a2"}
+	a3 := Foo{A: "a3"}
+
+	{
+		objColl := NewObjCollection([]Foo{a1, a2})
+		objColl2 := objColl.Insert(0, a3)
+		objColl2.DD()
+		i, err := objColl2.Index(0).ToInterface()
+		if err != nil {
+			t.Error(err)
+		}
+		f1 := i.(Foo)
+		if !reflect.DeepEqual(f1, a3) {
+			t.Error("insert 0 error 1")
+		}
+		i1, err := objColl2.Index(1).ToInterface()
+		if err != nil {
+			t.Error(err)
+		}
+		f2 := i1.(Foo)
+		if !reflect.DeepEqual(f2, a1) {
+			t.Error("insert 0 error 2")
+		}
+	}
+
+	{
+
+		objColl := NewObjCollection([]Foo{a1, a2})
+		objColl2 := objColl.Insert(1, a3)
+		i, err := objColl2.Index(1).ToInterface()
+		if err != nil {
+			t.Error(err)
+		}
+		f1 := i.(Foo)
+		if !reflect.DeepEqual(f1, a3) {
+			t.Error("insert 0 error")
+		}
+		objColl2.DD()
+	}
+}
 
 func TestObjCollection_Pluck(t *testing.T) {
 	a1 := Foo{A: "a1"}
