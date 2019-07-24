@@ -258,21 +258,32 @@ func (arr *AbsCollection) Map(f func(item interface{}, key int) interface{}) ICo
 		return arr
 	}
 
-	o, _ := arr.Index(0).ToInterface()
-	first := f(o, 0)
-	ret := NewMixCollection(reflect.TypeOf(first))
-	ret.Append(first)
-	for i := 1; i < arr.Count(); i++ {
-		o, _ = arr.Index(i).ToInterface()
+	ret := make([]interface{}, 0, arr.Count())
+	for i := 0; i < arr.Count(); i++ {
+		o, _ := arr.Index(i).ToInterface()
 		o2 := f(o, i)
 
 		if arr.Err() != nil {
 			break
 		}
 
-		ret.Append(o2)
+		// 如果返回空，则默认为continue
+		if o2 == nil {
+			continue
+		}
+
+		ret = append(ret,o2)
 	}
-	return ret
+
+	if len(ret) == 0 {
+		return nil
+	}
+	newColl := NewMixCollection(reflect.TypeOf(ret[0]))
+	for _, v := range ret {
+		newColl.Append(v)
+	}
+	newColl.SetErr(arr.err)
+	return newColl
 }
 
 func (arr *AbsCollection) Reduce(f func(carry IMix, item IMix) IMix) IMix {

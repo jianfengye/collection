@@ -339,3 +339,24 @@ func TestObjCollection_Marshal(t *testing.T) {
 	}
 	t.Log(string(byt))
 }
+
+func TestObjCollection_map(t *testing.T) {
+	a1 := Foo{A: "a1"}
+	a2 := Foo{A: "a2"}
+
+	objColl := NewObjCollection([]Foo{a1, a2})
+	ret, err := objColl.Map(func(item interface{}, key int) interface{} {
+		foo := item.(Foo)
+		return foo.A
+	}).Reduce(func(carry IMix, item IMix) IMix {
+		ret, _ := carry.ToString()
+		join, _ := item.ToString()
+		return NewMix(ret + join)
+	}).ToString()
+	if err != nil {
+		t.Error("Map error")
+	}
+	if ret != "a1a2" {
+		t.Error("Reduce error")
+	}
+}

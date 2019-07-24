@@ -230,7 +230,28 @@ func TestAbsCollection_Map(t *testing.T) {
 
 		return v * 2
 	})
-	newIntColl2.DD()
+	_, err := newIntColl2.ToInts()
+	if err == nil {
+		t.Error("error should not be empty")
+	}
+
+	intColl.SetErr(nil)
+	newIntColl3 := intColl.Map(func(item interface{}, key int) interface{} {
+		v := item.(int)
+
+		if key == 2 {
+			return nil
+		}
+
+		return v * 2
+	})
+	out3, err := newIntColl3.ToInts()
+	if err != nil {
+		t.Error(err)
+	}
+	if !reflect.DeepEqual(out3, []int{2, 4, 8}) {
+		t.Error("continue error")
+	}
 }
 
 func TestAbsCollection_Reduce(t *testing.T) {
