@@ -1110,6 +1110,8 @@ IntCollection(2):{
 
 获取符合过滤条件的第一个元素，如果没有填写过滤函数，返回第一个元素。
 
+注：只能传递0个或者1个过滤函数，如果传递超过1个过滤函数，只有第一个过滤函数起作用
+
 ```go
 intColl := NewIntCollection([]int{1, 2, 2, 3})
 intColl.First(func(obj interface{}, index int) bool {
@@ -1123,6 +1125,20 @@ intColl.First(func(obj interface{}, index int) bool {
 /*
 IMix(int): 3 
 */
+
+```
+
+```
+func TestIntCollection_Filter(t *testing.T) {
+	intColl := NewIntCollection([]int{1,2,3})
+	a, err := intColl.First().ToInt()
+	if err != nil {
+		t.Error(err)
+	}
+	if !reflect.DeepEqual(a, 1) {
+		t.Error("filter error")
+	}
+}
 ```
 
 ### ToInts

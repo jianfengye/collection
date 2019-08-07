@@ -38,3 +38,14 @@ func TestIntCollection_Insert(t *testing.T) {
 		}
 	}
 }
+
+func TestIntCollection_Filter(t *testing.T) {
+	intColl := NewIntCollection([]int{1,2,3})
+	a, err := intColl.First().ToInt()
+	if err != nil {
+		t.Error(err)
+	}
+	if !reflect.DeepEqual(a, 1) {
+		t.Error("filter error")
+	}
+}
