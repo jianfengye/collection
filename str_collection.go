@@ -36,7 +36,7 @@ func (arr *StrCollection) Copy() ICollection {
 }
 
 func (arr *StrCollection) NewEmpty(err ...error) ICollection {
-	arr2 := NewStrCollection(arr.objs)
+	arr2 := NewStrCollection([]string{})
 	if len(err) != 0 {
 		arr2.SetErr(err[0])
 	}
