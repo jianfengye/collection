@@ -123,6 +123,48 @@ func TestObjCollection_Sort(t *testing.T) {
 		t.Error("Sort error")
 	}
 }
+
+
+func TestObjCollection_Sort_EmptyColl(t *testing.T) {
+
+	objColl := NewObjCollection([]Foo{})
+	compare := func(m interface{}, n interface{}) int {
+		m1, _ := m.(Foo)
+		n1, _ := n.(Foo)
+		return m1.B - n1.B
+	}
+	objColl.SetCompare(compare)
+
+	newObjColl := objColl.Sort()
+	if newObjColl.Count() != 0 {
+		t.Errorf("Sort Empty Error")
+	}
+}
+
+
+func TestObjCollection_EmptyColl(t *testing.T) {
+	// not panic is ok
+	compare := func(m interface{}, n interface{}) int {
+		m1, _ := m.(Foo)
+		n1, _ := n.(Foo)
+		return m1.B - n1.B
+	}
+	NewObjCollection([]Foo{}).SetCompare(compare).Sort()
+	NewObjCollection([]Foo{}).SetCompare(compare).SortDesc()
+	NewObjCollection([]Foo{}).SetCompare(compare).SortByDesc("A")
+	NewObjCollection([]Foo{}).SetCompare(compare).SortBy("A")
+	NewObjCollection([]Foo{}).SetCompare(compare).Search(Foo{A: "a"})
+	NewObjCollection([]Foo{}).SetCompare(compare).Insert(0, Foo{A: "a"})
+	NewObjCollection([]Foo{}).SetCompare(compare).Unique()
+	NewObjCollection([]Foo{}).SetCompare(compare).ForPage(0, 2)
+	NewObjCollection([]Foo{}).SetCompare(compare).Pop()
+	NewObjCollection([]Foo{}).SetCompare(compare).Reverse()
+	NewObjCollection([]Foo{}).SetCompare(compare).Shuffle()
+	NewObjCollection([]Foo{}).SetCompare(compare).Pluck("A")
+
+	NewIntCollection([]int{}).Random()
+}
+
 func TestObjCollection_Copy(t *testing.T) {
 	a1 := Foo{A: "a1", B: 3}
 	a2 := Foo{A: "a2", B: 2}

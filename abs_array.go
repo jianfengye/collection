@@ -408,6 +408,10 @@ func (arr *AbsCollection) Pop() IMix {
 		return nil
 	}
 
+	if arr.Count() == 0 {
+		return NewErrorMix(errors.New("Collection can not be empty"))
+	}
+
 	ret := arr.Index(arr.Count() - 1)
 	arr.Remove(arr.Count() - 1)
 
@@ -433,6 +437,10 @@ func (arr *AbsCollection) Prepend(item interface{}) ICollection {
 func (arr *AbsCollection) Random() IMix {
 	if arr.Err() != nil {
 		return nil
+	}
+
+	if arr.Count() == 0 {
+		return NewErrorMix(errors.New("Collection can not be empty"))
 	}
 
 	s := rand.NewSource(time.Now().Unix())
@@ -491,12 +499,20 @@ func (arr *AbsCollection) SortBy(key string) ICollection {
 		return arr
 	}
 
+	if arr.Count() == 0 {
+		return arr
+	}
+
 	arr.SetErr(errors.New("format not support"))
 	return arr
 }
 
 func (arr *AbsCollection) SortByDesc(key string) ICollection {
 	if arr.Err() != nil {
+		return arr
+	}
+
+	if arr.Count() == 0 {
 		return arr
 	}
 
@@ -661,6 +677,10 @@ func (arr *AbsCollection) Sort() ICollection {
 		return arr.SetErr(errors.New("sort: compare must be set"))
 	}
 
+	if arr.Count() == 0 {
+		return arr
+	}
+
 	if arr.isCopied {
 		arr.qsort(0, arr.Count()-1, true)
 		return arr
@@ -675,6 +695,10 @@ func (arr *AbsCollection) SortDesc() ICollection {
 	}
 	if arr.compare == nil {
 		return arr.SetErr(errors.New("sort: compare must be set"))
+	}
+
+	if arr.Count() == 0 {
+		return arr
 	}
 
 	if arr.isCopied {
@@ -737,6 +761,11 @@ func (arr *AbsCollection) Median() IMix {
 	if arr.Err() != nil {
 		return NewErrorMix(arr.Err())
 	}
+
+	if arr.Count() == 0 {
+		return NewErrorMix(errors.New("median: arr count can not be empty"))
+	}
+
 	newArr := arr.Sort()
 	if newArr.Count()%2 == 0 {
 		imax, err := newArr.Index(newArr.Count()/2 - 1).Add(newArr.Index(newArr.Count() / 2))
@@ -756,6 +785,10 @@ func (arr *AbsCollection) Median() IMix {
 func (arr *AbsCollection) Mode() IMix {
 	if arr.Err() != nil {
 		return NewErrorMix(arr.Err())
+	}
+
+	if arr.Count() == 0 {
+		return NewErrorMix(errors.New("mode: arr count can not be empty"))
 	}
 
 	uniqColl := arr.Unique()
