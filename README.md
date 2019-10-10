@@ -4,6 +4,7 @@ Collection包目标是用于替换golang原生的Slice，使用场景是在大�
 
 | 版本 | 说明 |
 | ------| ------ |
+| 1.1.2 |  增加一些空数组的判断，解决一些issue |
 | 1.1.1 |  对collection包进行了json解析和反解析的支持，对mix类型支持了SetField和RemoveFields的类型设置 |
 | 1.1.0 |  增加了对int32的支持，增加了延迟加载，增加了Copy函数，增加了compare从ICollection传递到IMix，使用快排加速了Sort方法 |
 | 1.0.1 |  第一次发布 |
