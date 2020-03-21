@@ -53,101 +53,99 @@ if err != nil {
 
 支持的方法有:
 
-[Append](#Append)
+[Append](#Append) 挂载一个元素到当前Collection
 
-[Avg](#Avg)
+[Avg](#Avg) 返回Collection的数值平均数
 
-[Contain](#Contain)
+[Contain](#Contain) 判断一个元素是否在Collection中
 
-[Copy](#Copy)
+[Copy](#Copy) 根据当前的数组，创造出一个同类型的数组
 
-[DD](#DD)
+[DD](#DD) 按照友好的格式展示Collection
 
-[Diff](#Diff)
+[Diff](#Diff) 获取前一个Collection不在后一个Collection中的元素
 
-[Each](#Each)
+[Each](#Each) 对Collection中的每个函数都进行一次函数调用
 
-[Every](#Every)
+[Every](#Every) 判断Collection中的每个元素是否都符合某个条件
 
-[ForPage](#ForPage)
+[ForPage](#ForPage) 将Collection函数进行分页
 
-[Filter](#Filter)
+[Filter](#Filter) 根据过滤函数获取Collection过滤后的元素
 
-[First](#First)
+[First](#First) 获取符合过滤条件的第一个元素
 
-[Index](#Index) 
+[Index](#Index) 获取元素中的第几个元素，下标从0开始
 
-[IsEmpty](#IsEmpty)
+[IsEmpty](#IsEmpty) 判断一个Collection是否为空
 
-[IsNotEmpty](#IsNotEmpty)
+[IsNotEmpty](#IsNotEmpty) 判断一个Collection是否为空
 
-[Join](#Join)
+[Join](#Join) 将Collection中的元素按照某种方式聚合成字符串
 
-[Last](#Last)
+[Last](#Last) 获取该Collection中满足过滤的最后一个元素
 
-[Last](#Last)
+[Merge](#Merge) 将两个Collection的元素进行合并
 
-[Merge](#Merge)
+[Map](#Map) 对Collection中的每个函数都进行一次函数调用
 
-[Map](#Map)
+[Mode](#Mode) 获取Collection中的众数
 
-[Mode](#Mode)
+[Max](#Max) 获取Collection中的最大元素
 
-[Max](#Max)
+[Min](#Min) 获取Collection中的最小元素
 
-[Min](#Min)
+[Median](#Median) 获取Collection的中位数
 
-[Median](#Median)
+[NewEmpty](#NewEmpty) 根据当前的数组，创造出一个同类型的数组
 
-[NewEmpty](#NewEmpty)
+[Nth](#Nth) 获取从offset偏移量开始的每第n个
 
-[Nth](#Nth)
+[Pad](#Pad) 填充Collection数组
 
-[Pad](#Pad)
+[Pop](#Pop) 从Collection右侧弹出一个元素
 
-[Pop](#Pop)
+[Push](#Push) 往Collection的右侧推入一个元素
 
-[Push](#Push)
+[Prepend](#Prepend) 往Collection左侧加入元素
 
-[Prepend](#Prepend)
+[Pluck](#Pluck) 将对象数组中的某个元素提取出来组成一个新的Collection
 
-[Pluck](#Pluck)
+[Reject](#Reject) 将满足过滤条件的元素删除
 
-[Reject](#Reject)
+[Reduce](#Reduce) 对Collection中的所有元素进行聚合计算
 
-[Reduce](#Reduce)
+[Random](#Random) 随机获取Collection中的元素
 
-[Random](#Random)
+[Reverse](#Reverse) 将Collection数组进行转置
 
-[Reverse](#Reverse)
+[Slice](#Slice) 获取Collection中的片段
 
-[Slice](#Slice)
+[Search](#Search) 查找Collection中第一个匹配查询元素的下标
 
-[Search](#Search)
+[Sort](#Sort) 将Collection中的元素进行升序排列输出
 
-[Sort](#Sort)
+[SortDesc](#SortDesc) 将Collection中的元素按照降序排列输出
 
-[SortDesc](#SortDesc)
+[Sum](#Sum) 返回Collection中的元素的和
 
-[Sum](#Sum)
+[Shuffle](#Shuffle) 将Collection中的元素进行乱序排列
 
-[Shuffle](#Shuffle)
+[SortBy](#SortBy) 根据对象数组中的某个元素进行Collection升序排列
 
-[SortBy](#SortBy)
+[SortByDesc](#SortByDesc) 根据对象数组中的某个元素进行Collection降序排列
 
-[SortByDesc](#SortByDesc)
+[ToInts](#ToInts) 将Collection变化为int数组
 
-[ToInts](#ToInts)
+[ToInt64s](#ToInt64s) 将Collection变化为int64数组
 
-[ToInt64s](#ToInt64s)
+[ToFloat64s](#ToFloat64s) 将Collection变化为float64数组
 
-[ToFloat64s](#ToFloat64s)
+[ToFloat32s](#ToFloat32s) 将Collection变化为float32数组
 
-[ToFloat32s](#ToFloat32s)
+[ToMixs](#ToMixs) 将Collection变化为Mix数组
 
-[ToMixs](#ToMixs)
-
-[Unique](#Unique)
+[Unique](#Unique) 将Collection中重复的元素进行合并
 
 ### Append
 
