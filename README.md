@@ -53,13 +53,27 @@ if err != nil {
 
 支持的方法有:
 
-[DD](#DD)
+[Append](#Append)
 
-[NewEmpty](#NewEmpty)
+[Avg](#Avg)
+
+[Contain](#Contain)
 
 [Copy](#Copy)
 
-[Append](#Append)
+[DD](#DD)
+
+[Diff](#Diff)
+
+[Each](#Each)
+
+[Every](#Every)
+
+[ForPage](#ForPage)
+
+[Filter](#Filter)
+
+[First](#First)
 
 [Index](#Index) 
 
@@ -67,27 +81,25 @@ if err != nil {
 
 [IsNotEmpty](#IsNotEmpty)
 
-[Search](#Search)
-
-[Unique](#Unique)
-
-[Reject](#Reject)
+[Join](#Join)
 
 [Last](#Last)
 
-[Slice](#Slice)
+[Last](#Last)
 
 [Merge](#Merge)
 
-[Each](#Each)
-
 [Map](#Map)
 
-[Reduce](#Reduce)
+[Mode](#Mode)
 
-[Every](#Every)
+[Max](#Max)
 
-[ForPage](#ForPage)
+[Min](#Min)
+
+[Median](#Median)
+
+[NewEmpty](#NewEmpty)
 
 [Nth](#Nth)
 
@@ -99,37 +111,31 @@ if err != nil {
 
 [Prepend](#Prepend)
 
+[Pluck](#Pluck)
+
+[Reject](#Reject)
+
+[Reduce](#Reduce)
+
 [Random](#Random)
 
 [Reverse](#Reverse)
 
-[Mode](#Mode)
+[Slice](#Slice)
 
-[Avg](#Avg)
-
-[Shuffle](#Shuffle)
-
-[Max](#Max)
-
-[Min](#Min)
-
-[Contain](#Contain)
-
-[Diff](#Diff)
+[Search](#Search)
 
 [Sort](#Sort)
 
 [SortDesc](#SortDesc)
 
-[Join](#Join)
-
-[Median](#Median)
-
 [Sum](#Sum)
 
-[Filter](#Filter)
+[Shuffle](#Shuffle)
 
-[First](#First)
+[SortBy](#SortBy)
+
+[SortByDesc](#SortByDesc)
 
 [ToInts](#ToInts)
 
@@ -141,11 +147,105 @@ if err != nil {
 
 [ToMixs](#ToMixs)
 
-[Pluck](#Pluck)
+[Unique](#Unique)
 
-[SortBy](#SortBy)
+### Append
 
-[SortByDesc](#SortByDesc)
+`Append(item interface{}) ICollection`
+
+Append挂载一个元素到当前Collection，如果挂载的元素类型不一致，则会在Collection中产生Error
+
+```
+intColl := NewIntCollection([]int{1,2})
+intColl.Append(3)
+if intColl.Err() == nil {
+    intColl.DD()
+}
+
+/*
+IntCollection(3):{
+	0:	1
+	1:	2
+	2:	3
+}
+*/
+```
+
+### Avg
+
+`Avg() IMix`
+
+返回Collection的数值平均数，这里会进行类型降级，int,int64,float64的数值平均数都是返回float64类型。
+
+```go
+intColl := NewIntCollection([]int{1, 2, 2, 3})
+mode, err := intColl.Avg().ToFloat64()
+if err != nil {
+    t.Error(err.Error())
+}
+if mode != 2.0 {
+    t.Error("Avg error")
+}
+```
+
+### Copy
+
+Copy方法根据当前的数组，创造出一个同类型的数组，有相同的元素
+
+```
+func TestAbsCollection_Copy(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2})
+	intColl2 := intColl.Copy()
+	intColl2.DD()
+	if intColl2.Count() != 2 {
+		t.Error("Copy失败")
+	}
+	if reflect.TypeOf(intColl2) != reflect.TypeOf(intColl) {
+		t.Error("Copy类型失败")
+	}
+}
+```
+
+
+
+### Contain
+
+`Contains(obj interface{}) bool`
+
+判断一个元素是否在Collection中，必须设置compare函数
+
+```go
+intColl := NewIntCollection([]int{1, 2, 2, 3})
+if intColl.Contains(1) != true {
+    t.Error("contain 错误1")
+}
+if intColl.Contains(5) != false {
+    t.Error("contain 错误2")
+}
+```
+
+### Diff
+
+`Diff(arr ICollection) ICollection`
+
+获取前一个Collection不在后一个Collection中的元素，必须设置compare函数
+
+```go
+intColl := NewIntCollection([]int{1, 2, 2, 3})
+intColl2 := NewIntCollection([]int{2, 3, 4})
+
+diff := intColl.Diff(intColl2)
+diff.DD()
+if diff.Count() != 1 {
+    t.Error("diff 错误")
+}
+
+/*
+IntCollection(1):{
+	0:	1
+}
+*/
+```
 
 ### DD 
 
@@ -178,285 +278,6 @@ IntCollection(2):{
 */
 ```
 
-### NewEmpty
-
-`NewEmpty(err ...error) ICollection`
-
-NewEmpty方法根据当前的数组，创造出一个同类型的数组，但长度为0
-
-```
-intColl := NewIntCollection([]int{1,2})
-intColl2 := intColl.NewEmpty()
-intColl2.DD()
-
-/*
-IntCollection(0):{
-}
-*/
-```
-
-### Copy
-
-Copy方法根据当前的数组，创造出一个同类型的数组，有相同的元素
-
-```
-func TestAbsCollection_Copy(t *testing.T) {
-	intColl := NewIntCollection([]int{1, 2})
-	intColl2 := intColl.Copy()
-	intColl2.DD()
-	if intColl2.Count() != 2 {
-		t.Error("Copy失败")
-	}
-	if reflect.TypeOf(intColl2) != reflect.TypeOf(intColl) {
-		t.Error("Copy类型失败")
-	}
-}
-```
-
-### Append
-
-`Append(item interface{}) ICollection`
-
-Append挂载一个元素到当前Collection，如果挂载的元素类型不一致，则会在Collection中产生Error
-
-```
-intColl := NewIntCollection([]int{1,2})
-intColl.Append(3)
-if intColl.Err() == nil {
-    intColl.DD()
-}
-
-/*
-IntCollection(3):{
-	0:	1
-	1:	2
-	2:	3
-}
-*/
-```
-
-### Index
-
-`Index(i int) IMix`
-
-Index获取元素中的第几个元素，下标从0开始，如果i超出了长度，则Collection记录错误。
-
-```
-intColl := NewIntCollection([]int{1,2})
-foo := intColl.Index(1)
-foo.DD()
-
-/*
-IMix(int): 2 
-*/
-```
-
-### IsEmpty
-
-`IsEmpty() bool`
-
-判断一个Collection是否为空，为空返回true, 否则返回false
-
-```go
-intColl := NewIntCollection([]int{1,2})
-println(intColl.IsEmpty())  // false
-```
-
-### IsNotEmpty
-
-`IsNotEmpty() bool`
-
-判断一个Collection是否为空，为空返回false，否则返回true
-```go
-intColl := NewIntCollection([]int{1,2})
-println(intColl.IsNotEmpty()) // true
-```
-
-### Search
-
-`Search(item interface{}) int`
-
-查找Collection中第一个匹配查询元素的下标，如果存在，返回下标；如果不存在，返回-1
-
-*注意* 此函数要求设置compare方法，基础元素数组（int, int64, float32, float64, string）可直接调用！
-
-```go
-intColl := NewIntCollection([]int{1,2})
-if intColl.Search(2) != 1 {
-    t.Error("Search 错误")
-}
-
-intColl = NewIntCollection([]int{1,2, 3, 3, 2})
-if intColl.Search(3) != 2 {
-    t.Error("Search 重复错误")
-}
-```
-
-### Unique
-
-`Unique() ICollection`
-
-将Collection中重复的元素进行合并，返回唯一的一个数组。
-
-*注意* 此函数要求设置compare方法，基础元素数组（int, int64, float32, float64, string）可直接调用！
-
-```go
-intColl := NewIntCollection([]int{1,2, 3, 3, 2})
-uniqColl := intColl.Unique()
-if uniqColl.Count() != 3 {
-    t.Error("Unique 重复错误")
-}
-
-uniqColl.DD()
-/*
-IntCollection(3):{
-	0:	1
-	1:	2
-	2:	3
-}
-*/
-```
-
-### Reject
-
-`Reject(func(item interface{}, key int) bool) ICollection`
-
-将满足过滤条件的元素删除
-
-```go
-intColl := NewIntCollection([]int{1, 2, 3, 4, 5})
-retColl := intColl.Reject(func(item interface{}, key int) bool {
-    i := item.(int)
-    return i > 3
-})
-if retColl.Count() != 3 {
-    t.Error("Reject 重复错误")
-}
-
-retColl.DD()
-
-/*
-IntCollection(3):{
-	0:	1
-	1:	2
-	2:	3
-}
-*/
-```
-
-### Last
-
-`Last(...func(item interface{}, key int) bool) IMix`
-
-获取该Collection中满足过滤的最后一个元素，如果没有填写过滤条件，默认返回最后一个元素
-
-```go
-intColl := NewIntCollection([]int{1, 2, 3, 4, 3, 2})
-last, err := intColl.Last().ToInt()
-if err != nil {
-    t.Error("last get error")
-}
-if last != 2 {
-    t.Error("last 获取错误")
-}
-
-last, err = intColl.Last(func(item interface{}, key int) bool {
-    i := item.(int)
-    return i > 2
-}).ToInt()
-
-if err != nil {
-    t.Error("last get error")
-}
-if last != 3 {
-    t.Error("last 获取错误")
-}
-```
-
-### Slice
-
-`Slice(...int) ICollection`
-
-获取Collection中的片段，可以有两个参数或者一个参数。
-
-如果是两个参数，第一个参数代表开始下标，第二个参数代表结束下标，当第二个参数为-1时候，就代表到Collection结束。
-
-如果是一个参数，则代表从这个开始下标一直获取到Collection结束的片段。
-
-```go
-intColl := NewIntCollection([]int{1, 2, 3, 4, 5})
-retColl := intColl.Slice(2)
-if retColl.Count() != 3 {
-    t.Error("Slice 错误")
-}
-
-retColl.DD()
-
-retColl = intColl.Slice(2,2)
-if retColl.Count() != 2 {
-    t.Error("Slice 两个参数错误")
-}
-
-retColl.DD()
-
-retColl = intColl.Slice(2, -1)
-if retColl.Count() != 3 {
-    t.Error("Slice第二个参数为-1错误")
-}
-
-retColl.DD()
-
-/*
-IntCollection(3):{
-	0:	3
-	1:	4
-	2:	5
-}
-IntCollection(2):{
-	0:	3
-	1:	4
-}
-IntCollection(3):{
-	0:	3
-	1:	4
-	2:	5
-}
-*/
-
-```
-
-### Merge
-
-`Merge(arr ICollection) ICollection`
-
-将两个Collection的元素进行合并，这个函数会修改原Collection。
-
-```go
-intColl := NewIntCollection([]int{1, 2 })
-
-intColl2 := NewIntCollection([]int{3, 4})
-
-intColl.Merge(intColl2)
-
-if intColl.Err() != nil {
-    t.Error(intColl.Err())
-}
-
-if intColl.Count() != 4 {
-    t.Error("Merge 错误")
-}
-
-intColl.DD()
-
-/*
-IntCollection(4):{
-	0:	1
-	1:	2
-	2:	3
-	3:	4
-}
-*/
-```
 
 ### Each
 
@@ -498,6 +319,235 @@ if sum != 6 {
 
 /*
 PASS
+*/
+```
+
+### Every
+
+`Every(func(item interface{}, key int) bool) bool`
+
+判断Collection中的每个元素是否都符合某个条件，只有当每个元素都符合条件，才整体返回true，否则返回false。
+
+```go
+intColl := NewIntCollection([]int{1, 2, 3, 4})
+if intColl.Every(func(item interface{}, key int) bool {
+    i := item.(int)
+    return i > 1
+}) != false {
+    t.Error("Every错误")
+}
+
+if intColl.Every(func(item interface{}, key int) bool {
+    i := item.(int)
+    return i > 0
+}) != true {
+    t.Error("Every错误")
+}
+```
+
+### ForPage
+
+`ForPage(page int, perPage int) ICollection`
+
+将Collection函数进行分页，按照每页第二个参数的个数，获取第一个参数的页数数据。
+
+```go
+intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
+ret := intColl.ForPage(1, 2)
+ret.DD()
+
+if ret.Count() != 2 {
+    t.Error("For page错误")
+}
+
+/*
+IntCollection(2):{
+	0:	3
+	1:	4
+}
+*/
+```
+
+
+### Filter
+
+`Filter(func(item interface{}, key int) bool) ICollection`
+
+根据过滤函数获取Collection过滤后的元素。
+
+```go
+intColl := NewIntCollection([]int{1, 2, 2, 3})
+intColl.Filter(func(obj interface{}, index int) bool {
+    val := obj.(int)
+    if val == 2 {
+        return true
+    }
+    return false
+}).DD()
+
+/*
+IntCollection(2):{
+	0:	2
+	1:	2
+}
+*/
+```
+
+### First
+
+`First(...func(item interface{}, key int) bool) IMix`
+
+获取符合过滤条件的第一个元素，如果没有填写过滤函数，返回第一个元素。
+
+注：只能传递0个或者1个过滤函数，如果传递超过1个过滤函数，只有第一个过滤函数起作用
+
+```go
+intColl := NewIntCollection([]int{1, 2, 2, 3})
+intColl.First(func(obj interface{}, index int) bool {
+    val := obj.(int)
+    if val > 2 {
+        return true
+    }
+    return false
+}).DD()
+
+/*
+IMix(int): 3 
+*/
+
+```
+
+```
+func TestIntCollection_Filter(t *testing.T) {
+	intColl := NewIntCollection([]int{1,2,3})
+	a, err := intColl.First().ToInt()
+	if err != nil {
+		t.Error(err)
+	}
+	if !reflect.DeepEqual(a, 1) {
+		t.Error("filter error")
+	}
+}
+```
+
+### Index
+
+`Index(i int) IMix`
+
+Index获取元素中的第几个元素，下标从0开始，如果i超出了长度，则Collection记录错误。
+
+```
+intColl := NewIntCollection([]int{1,2})
+foo := intColl.Index(1)
+foo.DD()
+
+/*
+IMix(int): 2 
+*/
+```
+
+### IsEmpty
+
+`IsEmpty() bool`
+
+判断一个Collection是否为空，为空返回true, 否则返回false
+
+```go
+intColl := NewIntCollection([]int{1,2})
+println(intColl.IsEmpty())  // false
+```
+
+### IsNotEmpty
+
+`IsNotEmpty() bool`
+
+判断一个Collection是否为空，为空返回false，否则返回true
+```go
+intColl := NewIntCollection([]int{1,2})
+println(intColl.IsNotEmpty()) // true
+```
+
+
+### Join
+
+`Join(split string, format ...func(item interface{}) string) string`
+
+将Collection中的元素按照某种方式聚合成字符串。该函数接受一个或者两个参数，第一个参数是聚合字符串的分隔符号，第二个参数是聚合时候每个元素的格式化函数，如果没有设置第二个参数，则使用`fmt.Sprintf("%v")`来该格式化
+
+```go
+intColl := NewIntCollection([]int{2, 4, 3})
+out := intColl.Join(",")
+if out != "2,4,3" {
+    t.Error("join错误")
+}
+out = intColl.Join(",", func(item interface{}) string {
+    return fmt.Sprintf("'%d'", item.(int))
+})
+if out != "'2','4','3'" {
+    t.Error("join 错误")
+}
+```
+
+### Last
+
+`Last(...func(item interface{}, key int) bool) IMix`
+
+获取该Collection中满足过滤的最后一个元素，如果没有填写过滤条件，默认返回最后一个元素
+
+```go
+intColl := NewIntCollection([]int{1, 2, 3, 4, 3, 2})
+last, err := intColl.Last().ToInt()
+if err != nil {
+    t.Error("last get error")
+}
+if last != 2 {
+    t.Error("last 获取错误")
+}
+
+last, err = intColl.Last(func(item interface{}, key int) bool {
+    i := item.(int)
+    return i > 2
+}).ToInt()
+
+if err != nil {
+    t.Error("last get error")
+}
+if last != 3 {
+    t.Error("last 获取错误")
+}
+```
+
+
+### Merge
+
+`Merge(arr ICollection) ICollection`
+
+将两个Collection的元素进行合并，这个函数会修改原Collection。
+
+```go
+intColl := NewIntCollection([]int{1, 2 })
+
+intColl2 := NewIntCollection([]int{3, 4})
+
+intColl.Merge(intColl2)
+
+if intColl.Err() != nil {
+    t.Error(intColl.Err())
+}
+
+if intColl.Count() != 4 {
+    t.Error("Merge 错误")
+}
+
+intColl.DD()
+
+/*
+IntCollection(4):{
+	0:	1
+	1:	2
+	2:	3
+	3:	4
+}
 */
 ```
 
@@ -550,82 +600,109 @@ IntCollection(3):{
 */
 ```
 
-### Reduce
+### Mode
 
-`Reduce(func(carry IMix, item IMix) IMix) IMix`
+`Mode() IMix`
 
-对Collection中的所有元素进行聚合计算。
-
-如果希望在某次调用的时候中止，在此次调用的时候设置Collection的Error，就可以中止调用。
+获取Collection中的众数，如果有大于两个的众数，返回第一次出现的那个。
 
 ```go
-intColl := NewIntCollection([]int{1, 2, 3, 4})
-sumMix := intColl.Reduce(func(carry IMix, item IMix) IMix {
-    carryInt, _ := carry.ToInt()
-    itemInt, _ := item.ToInt()
-    return NewMix(carryInt + itemInt)
-})
+intColl := NewIntCollection([]int{1, 2, 2, 3, 4, 5, 6})
+mode, err := intColl.Mode().ToInt()
+ if err != nil {
+     t.Error(err.Error())
+ }
+ if mode != 2 {
+     t.Error("Mode error")
+ }
+ 
+ intColl = NewIntCollection([]int{1, 2, 2, 3, 4, 4, 5, 6})
+ 
+ mode, err = intColl.Mode().ToInt()
+ if err != nil {
+     t.Error(err.Error())
+ }
+ if mode != 2 {
+     t.Error("Mode error")
+ }
+```
 
-sumMix.DD()
 
-sum, err := sumMix.ToInt()
+
+### Max
+
+`Max() IMix`
+
+获取Collection中的最大元素，必须设置compare函数
+
+```go
+intColl := NewIntCollection([]int{1, 2, 2, 3})
+max, err := intColl.Max().ToInt()
 if err != nil {
-    t.Error(err.Error())
-}
-if sum != 10 {
-    t.Error("Reduce计算错误")
+    t.Error(err)
 }
 
+if max != 3 {
+    t.Error("max错误")
+}
+
+```
+
+### Min
+
+`Min() IMix`
+
+获取Collection中的最小元素，必须设置compare函数
+
+```go
+intColl := NewIntCollection([]int{1, 2, 2, 3})
+min, err := intColl.Min().ToInt()
+if err != nil {
+    t.Error(err)
+}
+
+if min != 1 {
+    t.Error("min错误")
+}
+
+```
+
+
+### Median
+
+`Median() IMix`
+
+获取Collection的中位数，如果Collection个数是单数，返回排序后中间的元素，如果Collection的个数是双数，返回排序后中间两个元素的算数平均数。
+
+```go
+intColl := NewIntCollection([]int{1, 2, 2, 3})
+median, err := intColl.Median().ToFloat64()
+if err != nil {
+    t.Error(err)
+}
+
+if median != 2.0 {
+    t.Error("Median 错误" + fmt.Sprintf("%v", median))
+}
+```
+
+### NewEmpty
+
+`NewEmpty(err ...error) ICollection`
+
+NewEmpty方法根据当前的数组，创造出一个同类型的数组，但长度为0
+
+```
+intColl := NewIntCollection([]int{1,2})
+intColl2 := intColl.NewEmpty()
+intColl2.DD()
+
 /*
-IMix(int): 10 
+IntCollection(0):{
+}
 */
 ```
 
-### Every
-
-`Every(func(item interface{}, key int) bool) bool`
-
-判断Collection中的每个元素是否都符合某个条件，只有当每个元素都符合条件，才整体返回true，否则返回false。
-
-```go
-intColl := NewIntCollection([]int{1, 2, 3, 4})
-if intColl.Every(func(item interface{}, key int) bool {
-    i := item.(int)
-    return i > 1
-}) != false {
-    t.Error("Every错误")
-}
-
-if intColl.Every(func(item interface{}, key int) bool {
-    i := item.(int)
-    return i > 0
-}) != true {
-    t.Error("Every错误")
-}
-```
-
-### ForPage
-
-`ForPage(page int, perPage int) ICollection`
-
-将Collection函数进行分页，按照每页第二个参数的个数，获取第一个参数的页数数据。
-
-```go
-intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
-ret := intColl.ForPage(1, 2)
-ret.DD()
-
-if ret.Count() != 2 {
-    t.Error("For page错误")
-}
-
-/*
-IntCollection(2):{
-	0:	3
-	1:	4
-}
-*/
-```
 
 ### Nth
 
@@ -785,6 +862,94 @@ IntCollection(7):{
 */
 ```
 
+### Pluck
+
+`Pluck(key string) ICollection`
+
+将对象数组中的某个元素提取出来组成一个新的Collection。这个元素必须是Public元素
+
+注：这个函数只对ObjCollection生效。
+
+```go
+type Foo struct {
+	A string
+}
+
+func TestObjCollection_Pluck(t *testing.T) {
+	a1 := Foo{A: "a1"}
+	a2 := Foo{A: "a2"}
+
+	objColl := NewObjCollection([]Foo{a1, a2})
+
+	objColl.Pluck("A").DD()
+}
+
+/*
+StrCollection(2):{
+	0:	a1
+	1:	a2
+}
+*/
+```
+
+### Reject
+
+`Reject(func(item interface{}, key int) bool) ICollection`
+
+将满足过滤条件的元素删除
+
+```go
+intColl := NewIntCollection([]int{1, 2, 3, 4, 5})
+retColl := intColl.Reject(func(item interface{}, key int) bool {
+    i := item.(int)
+    return i > 3
+})
+if retColl.Count() != 3 {
+    t.Error("Reject 重复错误")
+}
+
+retColl.DD()
+
+/*
+IntCollection(3):{
+	0:	1
+	1:	2
+	2:	3
+}
+*/
+```
+
+### Reduce
+
+`Reduce(func(carry IMix, item IMix) IMix) IMix`
+
+对Collection中的所有元素进行聚合计算。
+
+如果希望在某次调用的时候中止，在此次调用的时候设置Collection的Error，就可以中止调用。
+
+```go
+intColl := NewIntCollection([]int{1, 2, 3, 4})
+sumMix := intColl.Reduce(func(carry IMix, item IMix) IMix {
+    carryInt, _ := carry.ToInt()
+    itemInt, _ := item.ToInt()
+    return NewMix(carryInt + itemInt)
+})
+
+sumMix.DD()
+
+sum, err := sumMix.ToInt()
+if err != nil {
+    t.Error(err.Error())
+}
+if sum != 10 {
+    t.Error("Reduce计算错误")
+}
+
+/*
+IMix(int): 10 
+*/
+```
+
 ### Random
 
 `Random() IMix`
@@ -829,49 +994,78 @@ IntCollection(6):{
 */
 ```
 
-### Mode
+### Search
 
-`Mode() IMix`
+`Search(item interface{}) int`
 
-获取Collection中的众数，如果有大于两个的众数，返回第一次出现的那个。
+查找Collection中第一个匹配查询元素的下标，如果存在，返回下标；如果不存在，返回-1
 
-```go
-intColl := NewIntCollection([]int{1, 2, 2, 3, 4, 5, 6})
-mode, err := intColl.Mode().ToInt()
- if err != nil {
-     t.Error(err.Error())
- }
- if mode != 2 {
-     t.Error("Mode error")
- }
- 
- intColl = NewIntCollection([]int{1, 2, 2, 3, 4, 4, 5, 6})
- 
- mode, err = intColl.Mode().ToInt()
- if err != nil {
-     t.Error(err.Error())
- }
- if mode != 2 {
-     t.Error("Mode error")
- }
-```
-
-### Avg
-
-`Avg() IMix`
-
-返回Collection的数值平均数，这里会进行类型降级，int,int64,float64的数值平均数都是返回float64类型。
+*注意* 此函数要求设置compare方法，基础元素数组（int, int64, float32, float64, string）可直接调用！
 
 ```go
-intColl := NewIntCollection([]int{1, 2, 2, 3})
-mode, err := intColl.Avg().ToFloat64()
-if err != nil {
-    t.Error(err.Error())
+intColl := NewIntCollection([]int{1,2})
+if intColl.Search(2) != 1 {
+    t.Error("Search 错误")
 }
-if mode != 2.0 {
-    t.Error("Avg error")
+
+intColl = NewIntCollection([]int{1,2, 3, 3, 2})
+if intColl.Search(3) != 2 {
+    t.Error("Search 重复错误")
 }
 ```
+
+### Slice
+
+`Slice(...int) ICollection`
+
+获取Collection中的片段，可以有两个参数或者一个参数。
+
+如果是两个参数，第一个参数代表开始下标，第二个参数代表结束下标，当第二个参数为-1时候，就代表到Collection结束。
+
+如果是一个参数，则代表从这个开始下标一直获取到Collection结束的片段。
+
+```go
+intColl := NewIntCollection([]int{1, 2, 3, 4, 5})
+retColl := intColl.Slice(2)
+if retColl.Count() != 3 {
+    t.Error("Slice 错误")
+}
+
+retColl.DD()
+
+retColl = intColl.Slice(2,2)
+if retColl.Count() != 2 {
+    t.Error("Slice 两个参数错误")
+}
+
+retColl.DD()
+
+retColl = intColl.Slice(2, -1)
+if retColl.Count() != 3 {
+    t.Error("Slice第二个参数为-1错误")
+}
+
+retColl.DD()
+
+/*
+IntCollection(3):{
+	0:	3
+	1:	4
+	2:	5
+}
+IntCollection(2):{
+	0:	3
+	1:	4
+}
+IntCollection(3):{
+	0:	3
+	1:	4
+	2:	5
+}
+*/
+
+```
+
 
 ### Shuffle
 
@@ -893,83 +1087,6 @@ IntCollection(4):{
 	1:	3
 	2:	2
 	3:	2
-}
-*/
-```
-
-### Max
-
-`Max() IMix`
-
-获取Collection中的最大元素，必须设置compare函数
-
-```go
-intColl := NewIntCollection([]int{1, 2, 2, 3})
-max, err := intColl.Max().ToInt()
-if err != nil {
-    t.Error(err)
-}
-
-if max != 3 {
-    t.Error("max错误")
-}
-
-```
-
-### Min
-
-`Min() IMix`
-
-获取Collection中的最小元素，必须设置compare函数
-
-```go
-intColl := NewIntCollection([]int{1, 2, 2, 3})
-min, err := intColl.Min().ToInt()
-if err != nil {
-    t.Error(err)
-}
-
-if min != 1 {
-    t.Error("min错误")
-}
-
-```
-
-### Contain
-
-`Contains(obj interface{}) bool`
-
-判断一个元素是否在Collection中，必须设置compare函数
-
-```go
-intColl := NewIntCollection([]int{1, 2, 2, 3})
-if intColl.Contains(1) != true {
-    t.Error("contain 错误1")
-}
-if intColl.Contains(5) != false {
-    t.Error("contain 错误2")
-}
-```
-
-### Diff
-
-`Diff(arr ICollection) ICollection`
-
-获取前一个Collection不在后一个Collection中的元素，必须设置compare函数
-
-```go
-intColl := NewIntCollection([]int{1, 2, 2, 3})
-intColl2 := NewIntCollection([]int{2, 3, 4})
-
-diff := intColl.Diff(intColl2)
-diff.DD()
-if diff.Count() != 1 {
-    t.Error("diff 错误")
-}
-
-/*
-IntCollection(1):{
-	0:	1
 }
 */
 ```
@@ -1020,43 +1137,6 @@ IntCollection(3):{
 */
 ```
 
-### Join
-
-`Join(split string, format ...func(item interface{}) string) string`
-
-将Collection中的元素按照某种方式聚合成字符串。该函数接受一个或者两个参数，第一个参数是聚合字符串的分隔符号，第二个参数是聚合时候每个元素的格式化函数，如果没有设置第二个参数，则使用`fmt.Sprintf("%v")`来该格式化
-
-```go
-intColl := NewIntCollection([]int{2, 4, 3})
-out := intColl.Join(",")
-if out != "2,4,3" {
-    t.Error("join错误")
-}
-out = intColl.Join(",", func(item interface{}) string {
-    return fmt.Sprintf("'%d'", item.(int))
-})
-if out != "'2','4','3'" {
-    t.Error("join 错误")
-}
-```
-
-### Median
-
-`Median() IMix`
-
-获取Collection的中位数，如果Collection个数是单数，返回排序后中间的元素，如果Collection的个数是双数，返回排序后中间两个元素的算数平均数。
-
-```go
-intColl := NewIntCollection([]int{1, 2, 2, 3})
-median, err := intColl.Median().ToFloat64()
-if err != nil {
-    t.Error(err)
-}
-
-if median != 2.0 {
-    t.Error("Median 错误" + fmt.Sprintf("%v", median))
-}
-```
 
 ### Sum
 
@@ -1081,66 +1161,93 @@ IMix(int): 8
 */
 ```
 
-### Filter
+### SortBy
 
-`Filter(func(item interface{}, key int) bool) ICollection`
+`SortBy(key string) ICollection`
 
-根据过滤函数获取Collection过滤后的元素。
+根据对象数组中的某个元素进行Collection升序排列。这个元素必须是Public元素
+
+注：这个函数只对ObjCollection生效。这个对象数组的某个元素必须是基础类型。
 
 ```go
-intColl := NewIntCollection([]int{1, 2, 2, 3})
-intColl.Filter(func(obj interface{}, index int) bool {
-    val := obj.(int)
-    if val == 2 {
-        return true
-    }
-    return false
-}).DD()
-
-/*
-IntCollection(2):{
-	0:	2
-	1:	2
+type Foo struct {
+	A string
+	B int
 }
-*/
-```
 
-### First
+func TestObjCollection_SortBy(t *testing.T) {
+	a1 := Foo{A: "a1", B: 3}
+	a2 := Foo{A: "a2", B: 2}
 
-`First(...func(item interface{}, key int) bool) IMix`
+	objColl := NewObjCollection([]Foo{a1, a2})
 
-获取符合过滤条件的第一个元素，如果没有填写过滤函数，返回第一个元素。
+	newObjColl := objColl.SortBy("B")
 
-注：只能传递0个或者1个过滤函数，如果传递超过1个过滤函数，只有第一个过滤函数起作用
+	newObjColl.DD()
 
-```go
-intColl := NewIntCollection([]int{1, 2, 2, 3})
-intColl.First(func(obj interface{}, index int) bool {
-    val := obj.(int)
-    if val > 2 {
-        return true
-    }
-    return false
-}).DD()
-
-/*
-IMix(int): 3 
-*/
-
-```
-
-```
-func TestIntCollection_Filter(t *testing.T) {
-	intColl := NewIntCollection([]int{1,2,3})
-	a, err := intColl.First().ToInt()
+	obj, err := newObjColl.Index(0).ToInterface()
 	if err != nil {
 		t.Error(err)
 	}
-	if !reflect.DeepEqual(a, 1) {
-		t.Error("filter error")
+
+	foo := obj.(Foo)
+	if foo.B != 2 {
+		t.Error("SortBy error")
 	}
 }
+
+/*
+ObjCollection(2)(collection.Foo):{
+	0:	{A:a2 B:2}
+	1:	{A:a1 B:3}
+}
+*/
 ```
+
+### SortByDesc
+
+`SortByDesc(key string) ICollection`
+
+根据对象数组中的某个元素进行Collection降序排列。这个元素必须是Public元素
+
+注：这个函数只对ObjCollection生效。这个对象数组的某个元素必须是基础类型。
+
+```go
+type Foo struct {
+	A string
+	B int
+}
+
+func TestObjCollection_SortByDesc(t *testing.T) {
+	a1 := Foo{A: "a1", B: 2}
+	a2 := Foo{A: "a2", B: 3}
+
+	objColl := NewObjCollection([]Foo{a1, a2})
+
+	newObjColl := objColl.SortByDesc("B")
+
+	newObjColl.DD()
+
+	obj, err := newObjColl.Index(0).ToInterface()
+	if err != nil {
+		t.Error(err)
+	}
+
+	foo := obj.(Foo)
+	if foo.B != 3 {
+		t.Error("SortBy error")
+	}
+}
+
+/*
+ObjCollection(2)(collection.Foo):{
+	0:	{A:a2 B:3}
+	1:	{A:a1 B:2}
+}
+*/
+```
+
+------------
 
 ### ToInts
 
@@ -1270,123 +1377,54 @@ if len(arr) != 4 {
 }
 ```
 
-### Pluck
+### Unique
 
-`Pluck(key string) ICollection`
+`Unique() ICollection`
 
-将对象数组中的某个元素提取出来组成一个新的Collection。这个元素必须是Public元素
+将Collection中重复的元素进行合并，返回唯一的一个数组。
 
-注：这个函数只对ObjCollection生效。
+*注意* 此函数要求设置compare方法，基础元素数组（int, int64, float32, float64, string）可直接调用！
 
 ```go
-type Foo struct {
-	A string
+intColl := NewIntCollection([]int{1,2, 3, 3, 2})
+uniqColl := intColl.Unique()
+if uniqColl.Count() != 3 {
+    t.Error("Unique 重复错误")
 }
 
-func TestObjCollection_Pluck(t *testing.T) {
-	a1 := Foo{A: "a1"}
-	a2 := Foo{A: "a2"}
-
-	objColl := NewObjCollection([]Foo{a1, a2})
-
-	objColl.Pluck("A").DD()
-}
-
+uniqColl.DD()
 /*
-StrCollection(2):{
-	0:	a1
-	1:	a2
+IntCollection(3):{
+	0:	1
+	1:	2
+	2:	3
 }
 */
 ```
 
-### SortBy
 
-`SortBy(key string) ICollection`
 
-根据对象数组中的某个元素进行Collection升序排列。这个元素必须是Public元素
 
-注：这个函数只对ObjCollection生效。这个对象数组的某个元素必须是基础类型。
 
-```go
-type Foo struct {
-	A string
-	B int
-}
 
-func TestObjCollection_SortBy(t *testing.T) {
-	a1 := Foo{A: "a1", B: 3}
-	a2 := Foo{A: "a2", B: 2}
 
-	objColl := NewObjCollection([]Foo{a1, a2})
 
-	newObjColl := objColl.SortBy("B")
 
-	newObjColl.DD()
 
-	obj, err := newObjColl.Index(0).ToInterface()
-	if err != nil {
-		t.Error(err)
-	}
 
-	foo := obj.(Foo)
-	if foo.B != 2 {
-		t.Error("SortBy error")
-	}
-}
 
-/*
-ObjCollection(2)(collection.Foo):{
-	0:	{A:a2 B:2}
-	1:	{A:a1 B:3}
-}
-*/
-```
 
-### SortByDesc
 
-`SortByDesc(key string) ICollection`
 
-根据对象数组中的某个元素进行Collection降序排列。这个元素必须是Public元素
 
-注：这个函数只对ObjCollection生效。这个对象数组的某个元素必须是基础类型。
 
-```go
-type Foo struct {
-	A string
-	B int
-}
 
-func TestObjCollection_SortByDesc(t *testing.T) {
-	a1 := Foo{A: "a1", B: 2}
-	a2 := Foo{A: "a2", B: 3}
 
-	objColl := NewObjCollection([]Foo{a1, a2})
 
-	newObjColl := objColl.SortByDesc("B")
 
-	newObjColl.DD()
 
-	obj, err := newObjColl.Index(0).ToInterface()
-	if err != nil {
-		t.Error(err)
-	}
 
-	foo := obj.(Foo)
-	if foo.B != 3 {
-		t.Error("SortBy error")
-	}
-}
 
-/*
-ObjCollection(2)(collection.Foo):{
-	0:	{A:a2 B:3}
-	1:	{A:a1 B:2}
-}
-*/
-```
-
-------------
 
 License
 ------------
