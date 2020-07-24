@@ -36,3 +36,11 @@ func TestFloat64Collection(t *testing.T) {
 		t.Error(errors.New("to float64s error"))
 	}
 }
+
+func TestFloat64Collection_Remove(t *testing.T) {
+	float64Coll := NewFloat64Collection([]float64{1.0,2.0,3.0})
+	r := float64Coll.Remove(0)
+	if r.Err() != nil{
+		t.Fatal(r.Err())
+	}
+}

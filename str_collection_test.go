@@ -48,3 +48,11 @@ func TestStrCollection_FromJson(t *testing.T) {
 	}
 	objColl.DD()
 }
+
+func TestStrCollection_Remove(t *testing.T) {
+	strColl := NewStrCollection([]string{"1", "2", "3"})
+	r := strColl.Remove(0)
+	if r.Err() != nil{
+		t.Fatal(r.Err())
+	}
+}

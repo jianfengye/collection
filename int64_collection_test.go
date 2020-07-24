@@ -71,3 +71,11 @@ func TestInt64Collection_Insert(t *testing.T) {
 		}
 	}
 }
+
+func TestInt64Collection_Remove(t *testing.T) {
+	int64Coll := NewInt64Collection([]int64{1,2,3})
+	r := int64Coll.Remove(0)
+	if r.Err() != nil{
+		t.Fatal(r.Err())
+	}
+}

@@ -402,3 +402,16 @@ func TestObjCollection_map(t *testing.T) {
 		t.Error("Reduce error")
 	}
 }
+
+func TestObjCollection_Remove(t *testing.T) {
+	a1 := Foo{A: "a1", B: 1}
+	a2 := Foo{A: "a2", B: 2}
+	a3 := Foo{A: "a3", B: 3}
+
+	objColl := NewObjCollection([]Foo{a1, a2, a3})
+	r := objColl.Remove(0)
+	if r.Err() != nil{
+		t.Fatal(r.Err())
+	}
+	r.DD()
+}

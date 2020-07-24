@@ -43,3 +43,11 @@ func TestFloat32Collection(t *testing.T) {
 
 	t.Log(string(byt))
 }
+
+func TestFloat32Collection_Remove(t *testing.T) {
+	float32Coll := NewFloat32Collection([]float32{1.0,2.0,3.0})
+	r := float32Coll.Remove(0)
+	if r.Err() != nil{
+		t.Fatal(r.Err())
+	}
+}
