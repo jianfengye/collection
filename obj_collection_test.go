@@ -84,9 +84,11 @@ func TestObjCollection_SortBy(t *testing.T) {
 	objColl := NewObjCollection([]Foo{a1, a2, a3})
 
 	newObjColl := objColl.SortBy("B")
-
+	count := newObjColl.Count()
+	if count != 3 {
+		t.Error("sort By count error")
+	}
 	newObjColl.DD()
-
 	obj, err := newObjColl.Index(0).ToInterface()
 	if err != nil {
 		t.Error(err)
@@ -95,6 +97,12 @@ func TestObjCollection_SortBy(t *testing.T) {
 	foo := obj.(Foo)
 	if foo.B != 2 {
 		t.Error("SortBy error")
+	}
+
+	new2 := newObjColl.Slice(0, 2)
+	new2.DD()
+	if new2.Count() != 2 {
+		t.Error("slice error")
 	}
 }
 func TestObjCollection_Sort(t *testing.T) {
@@ -124,7 +132,6 @@ func TestObjCollection_Sort(t *testing.T) {
 	}
 }
 
-
 func TestObjCollection_Sort_EmptyColl(t *testing.T) {
 
 	objColl := NewObjCollection([]Foo{})
@@ -140,7 +147,6 @@ func TestObjCollection_Sort_EmptyColl(t *testing.T) {
 		t.Errorf("Sort Empty Error")
 	}
 }
-
 
 func TestObjCollection_EmptyColl(t *testing.T) {
 	// not panic is ok

@@ -60,7 +60,7 @@ func (arr *ObjCollection) Insert(index int, obj interface{}) ICollection {
 	length := arr.objs.Len()
 	tail := arr.objs.Slice(index, length)
 
-	tailNew := reflect.MakeSlice(arr.objs.Type(), length - index, length - index)
+	tailNew := reflect.MakeSlice(arr.objs.Type(), length-index, length-index)
 	reflect.Copy(tailNew, tail)
 	ret = reflect.Append(ret, reflect.ValueOf(obj))
 	for i := 0; i < tail.Len(); i++ {
@@ -205,4 +205,3 @@ func (arr *ObjCollection) FromJson(data []byte) error {
 	arr.objs = reflect.ValueOf(objs)
 	return nil
 }
-
