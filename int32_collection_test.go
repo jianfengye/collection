@@ -78,3 +78,11 @@ func TestInt32Collection_Insert(t *testing.T) {
 		}
 	}
 }
+
+func TestInt32Collection_Remove(t *testing.T) {
+	int32Coll := NewInt32Collection([]int32{1,2,3})
+	r := int32Coll.Remove(0)
+	if r.Err() != nil{
+		t.Fatal(r.Err())
+	}
+}

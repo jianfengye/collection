@@ -49,3 +49,28 @@ func TestIntCollection_Filter(t *testing.T) {
 		t.Error("filter error")
 	}
 }
+
+func TestIntCollection_Index(t *testing.T) {
+	intColl := NewIntCollection([]int{1,2,3})
+	iMix := intColl.Index(2)
+	if iMix.Err() != nil {
+		t.Fatal(iMix.Err())
+	}
+
+	i,err := iMix.ToInt()
+	if err != nil {
+		t.Fatal("index error")
+	}
+
+	if i != 3 {
+		t.Fatal("not equal")
+	}
+}
+
+func TestIntCollection_Remove(t *testing.T) {
+	intColl := NewIntCollection([]int{1,2,3})
+	r := intColl.Remove(0)
+	if r.Err() != nil{
+		t.Fatal(r.Err())
+	}
+}

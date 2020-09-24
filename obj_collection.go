@@ -72,10 +72,16 @@ func (arr *ObjCollection) Insert(index int, obj interface{}) ICollection {
 }
 
 func (arr *ObjCollection) Index(i int) IMix {
+	if i < 0 || i >= arr.Count() {
+		return NewErrorMix(errors.New("index exceeded"))
+	}
 	return NewMix(arr.objs.Index(i).Interface()).SetCompare(arr.compare)
 }
 
 func (arr *ObjCollection) SetIndex(i int, val interface{}) ICollection {
+	if i < 0 || i >= arr.Count() {
+		return arr.SetErr(errors.New("index exceeded"))
+	}
 	arr.objs.Index(i).Set(reflect.ValueOf(val))
 	return arr
 }
@@ -99,7 +105,7 @@ func (arr *ObjCollection) Remove(i int) ICollection {
 	}
 
 	len := arr.Count()
-	if i >= len {
+	if i < 0 || i >= len {
 		return arr.SetErr(errors.New("index exceeded"))
 	}
 
