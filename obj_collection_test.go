@@ -2,10 +2,11 @@ package collection
 
 import (
 	"encoding/json"
-	"errors"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/pkg/errors"
 )
 
 type Foo struct {
@@ -24,19 +25,19 @@ func TestObjCollection_Insert(t *testing.T) {
 		objColl2.DD()
 		i, err := objColl2.Index(0).ToInterface()
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 		f1 := i.(Foo)
 		if !reflect.DeepEqual(f1, a3) {
-			t.Error("insert 0 error 1")
+			t.Fatal("insert 0 error 1")
 		}
 		i1, err := objColl2.Index(1).ToInterface()
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 		f2 := i1.(Foo)
 		if !reflect.DeepEqual(f2, a1) {
-			t.Error("insert 0 error 2")
+			t.Fatal("insert 0 error 2")
 		}
 	}
 
@@ -46,11 +47,11 @@ func TestObjCollection_Insert(t *testing.T) {
 		objColl2 := objColl.Insert(1, a3)
 		i, err := objColl2.Index(1).ToInterface()
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 		f1 := i.(Foo)
 		if !reflect.DeepEqual(f1, a3) {
-			t.Error("insert 0 error")
+			t.Fatal("insert 0 error")
 		}
 		objColl2.DD()
 	}
@@ -68,11 +69,11 @@ func TestObjCollection_Pluck(t *testing.T) {
 
 	str, err := strColl.Index(0).ToString()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	if str != "a1" {
-		t.Error(errors.New("Pluck error"))
+		t.Fatal(errors.New("Pluck error"))
 	}
 }
 
@@ -86,23 +87,23 @@ func TestObjCollection_SortBy(t *testing.T) {
 	newObjColl := objColl.SortBy("B")
 	count := newObjColl.Count()
 	if count != 3 {
-		t.Error("sort By count error")
+		t.Fatal("sort By count error")
 	}
 	newObjColl.DD()
 	obj, err := newObjColl.Index(0).ToInterface()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	foo := obj.(Foo)
 	if foo.B != 2 {
-		t.Error("SortBy error")
+		t.Fatal("SortBy error")
 	}
 
 	new2 := newObjColl.Slice(0, 2)
 	new2.DD()
 	if new2.Count() != 2 {
-		t.Error("slice error")
+		t.Fatal("slice error")
 	}
 }
 func TestObjCollection_Sort(t *testing.T) {
@@ -123,12 +124,12 @@ func TestObjCollection_Sort(t *testing.T) {
 
 	obj, err := newObjColl.Index(0).ToInterface()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	foo := obj.(Foo)
 	if foo.B != 2 {
-		t.Error("Sort error")
+		t.Fatal("Sort error")
 	}
 }
 
@@ -144,7 +145,7 @@ func TestObjCollection_Sort_EmptyColl(t *testing.T) {
 
 	newObjColl := objColl.Sort()
 	if newObjColl.Count() != 0 {
-		t.Errorf("Sort Empty Error")
+		t.Fatalf("Sort Empty Error")
 	}
 }
 
@@ -183,15 +184,15 @@ func TestObjCollection_Copy(t *testing.T) {
 	newObjColl.DD()
 
 	if newObjColl.Count() != 3 {
-		t.Error("Copy count error")
+		t.Fatal("Copy count error")
 	}
 	inewA1, err := newObjColl.Index(0).ToInterface()
 	if err != nil {
-		t.Error("Copy get first element error" + err.Error())
+		t.Fatal("Copy get first element error" + err.Error())
 	}
 	newA1 := inewA1.(Foo)
 	if newA1.B != 3 {
-		t.Error("Copy get first element error")
+		t.Fatal("Copy get first element error")
 	}
 }
 
@@ -208,12 +209,12 @@ func TestObjCollection_SortByDesc(t *testing.T) {
 
 	obj, err := newObjColl.Index(0).ToInterface()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	foo := obj.(Foo)
 	if foo.B != 3 {
-		t.Error("SortBy error")
+		t.Fatal("SortBy error")
 	}
 }
 
@@ -225,18 +226,18 @@ func TestObjCollection(t *testing.T) {
 	objColl.DD()
 
 	if objColl.IsNotEmpty() != true {
-		t.Error("Is Not Empty error")
+		t.Fatal("Is Not Empty error")
 	}
 
 	if objColl.Count() != 2 {
-		t.Error("Count error")
+		t.Fatal("Count error")
 	}
 
 	a3 := Foo{A: "a3"}
 	a4 := Foo{A: "a4"}
 	objColl.Append(a3).Append(a4)
 	if objColl.Count() != 4 {
-		t.Error("Append Error")
+		t.Fatal("Append Error")
 	}
 
 	objColl.SetCompare(func(a interface{}, b interface{}) int {
@@ -256,7 +257,7 @@ func TestObjCollection(t *testing.T) {
 
 	objColl.DD()
 	if objColl.Search(Foo{A: "a3"}) != 2 {
-		t.Error("Search error")
+		t.Fatal("Search error")
 	}
 
 	objColl2 := objColl.Filter(func(obj interface{}, index int) bool {
@@ -267,12 +268,12 @@ func TestObjCollection(t *testing.T) {
 		return false
 	})
 	if objColl2.Count() != 1 {
-		t.Error("Filter Error")
+		t.Fatal("Filter Error")
 	}
 
 	obj, _ := objColl.Last().ToInterface()
 	if foo, ok := obj.(Foo); !ok || foo.A != "a4" {
-		t.Error("Last error")
+		t.Fatal("Last error")
 	}
 
 	ret, err := objColl.Map(func(item interface{}, key int) interface{} {
@@ -284,10 +285,10 @@ func TestObjCollection(t *testing.T) {
 		return NewMix(ret + join)
 	}).ToString()
 	if err != nil {
-		t.Error("Map error")
+		t.Fatal("Map error")
 	}
 	if ret != "a1a2a3a4" {
-		t.Error("Reduce error")
+		t.Fatal("Reduce error")
 	}
 
 	objColl.ForPage(1, 2).DD()
@@ -301,11 +302,11 @@ func TestObjCollection(t *testing.T) {
 	objColl.Sort().DD()
 	o, err := objColl.Index(0).ToInterface()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	fooOut := o.(Foo)
 	if fooOut.A != "a0" {
-		t.Error("sort result error")
+		t.Fatal("sort result error")
 	}
 
 	objColl.DD()
@@ -332,7 +333,7 @@ func TestObjCollection_ToJson(t *testing.T) {
 	objColl := NewObjCollection([]Foo{a1, a2})
 	byt, err := objColl.ToJson()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	t.Log(string(byt))
 
@@ -346,7 +347,7 @@ func TestObjCollection_ToJson(t *testing.T) {
 	}
 	byt, err = out.ToJson()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	t.Log(string(byt))
 }
@@ -357,7 +358,7 @@ func TestObjCollection_FromJson(t *testing.T) {
 	objColl := NewObjCollection([]Foo{})
 	err := objColl.FromJson(dataByte)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	objColl.DD()
 }
@@ -369,7 +370,7 @@ func TestObjCollection_Marshal(t *testing.T) {
 	objColl := NewObjCollection([]Foo{a1, a2})
 	byt, err := json.Marshal(objColl)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	t.Log(string(byt))
 
@@ -383,7 +384,7 @@ func TestObjCollection_Marshal(t *testing.T) {
 	}
 	byt, err = json.Marshal(out)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	t.Log(string(byt))
 }
@@ -393,19 +394,21 @@ func TestObjCollection_map(t *testing.T) {
 	a2 := Foo{A: "a2"}
 
 	objColl := NewObjCollection([]Foo{a1, a2})
-	ret, err := objColl.Map(func(item interface{}, key int) interface{} {
+	maps := objColl.Map(func(item interface{}, key int) interface{} {
 		foo := item.(Foo)
 		return foo.A
-	}).Reduce(func(carry IMix, item IMix) IMix {
+	})
+	maps.DD()
+	ret, err := maps.Reduce(func(carry IMix, item IMix) IMix {
 		ret, _ := carry.ToString()
 		join, _ := item.ToString()
 		return NewMix(ret + join)
 	}).ToString()
 	if err != nil {
-		t.Error("Map error")
+		t.Fatal("Map error " + err.Error())
 	}
 	if ret != "a1a2" {
-		t.Error("Reduce error")
+		t.Fatal("Reduce error")
 	}
 }
 
@@ -416,7 +419,7 @@ func TestObjCollection_Remove(t *testing.T) {
 
 	objColl := NewObjCollection([]Foo{a1, a2, a3})
 	r := objColl.Remove(0)
-	if r.Err() != nil{
+	if r.Err() != nil {
 		t.Fatal(r.Err())
 	}
 	r.DD()

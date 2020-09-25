@@ -1,20 +1,35 @@
 package collection
 
 import (
-	"errors"
 	"fmt"
 	"math/rand"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
+)
+
+type EleType int
+
+const (
+	TYPE_UNKNWON EleType = iota
+	Type_INT
+	Type_INT64
+	Type_INT32
+	TYPE_STRING
+	TYPE_FLOAT32
+	TYPE_FLOAT64
+	TYPE_OBJ
+	TYPE_OBJ_POINT
 )
 
 // 这个是一个虚函数，能实现的都实现
 type AbsCollection struct {
-	compare   func(interface{}, interface{}) int // 比较函数
-	err       error                              // 错误信息
-	isCopied  bool                               // 是否已经拷贝，如果设置了true，说明已经拷贝，任何操作不影响之前的数组
-	isNumType bool                               // 是否是数值类型
+	compare func(interface{}, interface{}) int // 比较函数
+	err     error                              // 错误信息
+
+	eleType EleType // 元素类型
 
 	ICollection
 	Parent ICollection //用于调用子类
@@ -41,8 +56,18 @@ func (arr *AbsCollection) mustSetCompare() *AbsCollection {
 }
 
 func (arr *AbsCollection) mustBeNumType() *AbsCollection {
-	if !arr.isNumType {
+	switch arr.eleType {
+	case TYPE_OBJ, TYPE_OBJ_POINT, TYPE_STRING, TYPE_UNKNWON:
 		err := errors.New("collection type must be num type")
+		arr.SetErr(err)
+	}
+	return arr
+}
+
+func (arr *AbsCollection) mustBeBaseType() *AbsCollection {
+	switch arr.eleType {
+	case TYPE_OBJ, TYPE_OBJ_POINT, TYPE_UNKNWON:
+		err := errors.New("collection type must be base type")
 		arr.SetErr(err)
 	}
 	return arr
@@ -63,8 +88,9 @@ func (arr *AbsCollection) NewEmpty(err ...error) ICollection {
 	if arr.Parent == nil {
 		panic("no parent")
 	}
-	arr.isNumType = true
-	return arr.Parent.NewEmpty(err...).SetCompare(arr.compare)
+	empty := arr.Parent.NewEmpty(err...)
+	empty.SetCompare(arr.compare)
+	return empty
 }
 
 func (arr *AbsCollection) Insert(index int, obj interface{}) ICollection {
@@ -73,11 +99,6 @@ func (arr *AbsCollection) Insert(index int, obj interface{}) ICollection {
 	}
 	if arr.Parent == nil {
 		panic("no parent")
-	}
-
-	if arr.isCopied == false {
-		arr.Copy()
-		arr.isCopied = true
 	}
 
 	return arr.Parent.Insert(index, obj)
@@ -89,10 +110,6 @@ func (arr *AbsCollection) Remove(index int) ICollection {
 	}
 	if arr.Parent == nil {
 		panic("no parent")
-	}
-	if arr.isCopied == false {
-		arr.Copy()
-		arr.isCopied = true
 	}
 	return arr.Parent.Remove(index)
 }
@@ -118,6 +135,9 @@ func (arr *AbsCollection) Copy() ICollection {
 	newArr := arr.Parent.Copy()
 	if newArr.GetCompare() == nil {
 		newArr.SetCompare(arr.compare)
+	}
+	if arr.Err() != nil {
+		newArr.SetErr(arr.Err())
 	}
 	return newArr
 }
@@ -266,12 +286,11 @@ func (arr *AbsCollection) Merge(arr2 ICollection) ICollection {
 		return arr.SetErr(errors.New("merge error collection"))
 	}
 
-	newArr := arr.NewEmpty(arr.Err())
 	for i := 0; i < arr2.Count(); i++ {
 		o, _ := arr2.Index(i).ToInterface()
-		newArr.Append(o)
+		arr.Append(o)
 	}
-	return newArr
+	return arr
 }
 
 func (arr *AbsCollection) Each(f func(item interface{}, key int)) {
@@ -330,7 +349,7 @@ func (arr *AbsCollection) Map(f func(item interface{}, key int) interface{}) ICo
 }
 
 func (arr *AbsCollection) Reduce(f func(carry IMix, item IMix) IMix) IMix {
-	arr.mustNotBeEmpty().mustBeNumType()
+	arr.mustNotBeEmpty().mustBeBaseType()
 	if arr.Err() != nil {
 		return NewErrorMix(arr.Err())
 	}
@@ -397,7 +416,7 @@ func (arr *AbsCollection) Nth(n int, offset int) ICollection {
 	}
 
 	newArr := arr.NewEmpty(arr.Err())
-	for i := 0; i < arr.Count(); i++ {
+	for i := offset; i < arr.Count(); i++ {
 		if (i-offset)%n == 0 {
 			o, _ := arr.Index(i).ToInterface()
 			newArr.Append(o)
@@ -545,8 +564,7 @@ func (arr *AbsCollection) Pluck(key string) ICollection {
 		return arr
 	}
 
-	arr.SetErr(errors.New("format not support"))
-	return arr
+	return arr.Parent.Pluck(key)
 }
 
 func (arr *AbsCollection) SortBy(key string) ICollection {
@@ -734,12 +752,8 @@ func (arr *AbsCollection) Sort() ICollection {
 		return arr
 	}
 
-	if arr.isCopied {
-		arr.qsort(0, arr.Count()-1, true)
-		return arr
-	}
-	arr.Copy()
-	return arr.Sort()
+	arr.qsort(0, arr.Count()-1, true)
+	return arr
 }
 
 func (arr *AbsCollection) SortDesc() ICollection {
@@ -752,12 +766,8 @@ func (arr *AbsCollection) SortDesc() ICollection {
 		return arr
 	}
 
-	if arr.isCopied {
-		arr.qsort(0, arr.Count()-1, false)
-		return arr
-	}
-	newArr := arr.Copy()
-	return newArr.SortDesc()
+	arr.qsort(0, arr.Count()-1, false)
+	return arr
 }
 
 func (arr *AbsCollection) Join(split string, format ...func(item interface{}) string) string {

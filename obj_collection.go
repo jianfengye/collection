@@ -2,9 +2,10 @@ package collection
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"reflect"
+
+	"github.com/pkg/errors"
 )
 
 // ObjCollection 代表数组集合
@@ -25,7 +26,7 @@ func NewObjCollection(objs interface{}) *ObjCollection {
 		typ:  typ,
 	}
 	arr.AbsCollection.Parent = arr
-	arr.AbsCollection.isNumType = false
+	arr.AbsCollection.eleType = TYPE_OBJ
 	return arr
 }
 
@@ -38,18 +39,29 @@ func NewObjCollectionByType(typ reflect.Type) *ObjCollection {
 		typ:  eleTyp,
 	}
 	arr.AbsCollection.Parent = arr
-	arr.AbsCollection.isNumType = false
+	arr.AbsCollection.eleType = TYPE_OBJ
+
 	return arr
 }
 
 // Copy 复制到新的数组
 func (arr *ObjCollection) Copy() ICollection {
-
 	objs2 := reflect.MakeSlice(arr.objs.Type(), arr.objs.Len(), arr.objs.Len())
 	reflect.Copy(objs2, arr.objs)
-	arr.objs = objs2
+	arr2 := &ObjPointCollection{
+		objs: objs2,
+		typ:  arr.objs.Type(),
+	}
+	if arr.Err() != nil {
+		arr2.SetErr(arr.Err())
+	}
+	if arr.compare != nil {
+		arr2.compare = arr.compare
+	}
+	arr2.Parent = arr2
+	arr.eleType = arr.eleType
 
-	return arr
+	return arr2
 }
 
 func (arr *ObjCollection) Insert(index int, obj interface{}) ICollection {
@@ -95,9 +107,8 @@ func (arr *ObjCollection) NewEmpty(err ...error) ICollection {
 		typ:  arr.typ,
 	}
 	ret.AbsCollection.Parent = ret
-	if len(err) != 0 {
-		ret.SetErr(err[0])
-	}
+	ret.AbsCollection.compare = arr.compare
+	ret.AbsCollection.eleType = arr.eleType
 	return ret
 }
 

@@ -2,9 +2,10 @@ package collection
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"reflect"
+
+	"github.com/pkg/errors"
 )
 
 // ObjCollection 代表数组集合
@@ -25,7 +26,7 @@ func NewObjPointCollection(objs interface{}) *ObjPointCollection {
 		typ:  typ,
 	}
 	arr.AbsCollection.Parent = arr
-	arr.AbsCollection.isNumType = false
+	arr.AbsCollection.eleType = TYPE_OBJ_POINT
 	return arr
 }
 
@@ -34,9 +35,20 @@ func (arr *ObjPointCollection) Copy() ICollection {
 
 	objs2 := reflect.MakeSlice(arr.objs.Type(), arr.objs.Len(), arr.objs.Len())
 	reflect.Copy(objs2, arr.objs)
-	arr.objs = objs2
+	arr2 := &ObjPointCollection{
+		objs: objs2,
+		typ:  arr.objs.Type(),
+	}
+	if arr.Err() != nil {
+		arr2.SetErr(arr.Err())
+	}
+	if arr.compare != nil {
+		arr2.compare = arr.compare
+	}
+	arr2.Parent = arr2
+	arr2.eleType = arr.eleType
 
-	return arr
+	return arr2
 }
 
 func (arr *ObjPointCollection) Insert(index int, obj interface{}) ICollection {
@@ -70,16 +82,16 @@ func (arr *ObjPointCollection) SetIndex(i int, val interface{}) ICollection {
 }
 
 func (arr *ObjPointCollection) NewEmpty(err ...error) ICollection {
-	objs := reflect.MakeSlice(arr.objs.Type(), 0, 0)
-	ret := &ObjCollection{
-		objs: objs,
-		typ:  arr.typ,
+	objs2 := reflect.MakeSlice(arr.objs.Type(), 0, 0)
+	arr2 := &ObjPointCollection{
+		objs: objs2,
+		typ:  arr.objs.Type(),
 	}
-	ret.AbsCollection.Parent = ret
-	if len(err) != 0 {
-		ret.SetErr(err[0])
-	}
-	return ret
+	arr2.compare = arr.compare
+	arr2.eleType = arr.eleType
+	arr2.Parent = arr2
+
+	return arr2
 }
 
 func (arr *ObjPointCollection) Remove(i int) ICollection {
@@ -108,6 +120,9 @@ func (arr *ObjPointCollection) Count() int {
 }
 
 func (arr *ObjPointCollection) DD() {
+	if arr.Err() != nil {
+		fmt.Println(arr.Err().Error())
+	}
 	ret := fmt.Sprintf("ObjCollection(%d)(%s):{\n", arr.Count(), arr.typ.String())
 	for i := 0; i < arr.objs.Len(); i++ {
 		ret = ret + fmt.Sprintf("\t%d:\t%+v\n", i, arr.objs.Index(i))
@@ -167,8 +182,8 @@ func (arr *ObjPointCollection) SortByDesc(key string) ICollection {
 	}
 
 	compare := func(a interface{}, b interface{}) int {
-		mixA := NewMix(reflect.ValueOf(a).FieldByName(key).Interface())
-		mixB := NewMix(reflect.ValueOf(b).FieldByName(key).Interface())
+		mixA := NewMix(reflect.ValueOf(a).Elem().FieldByName(key).Interface())
+		mixB := NewMix(reflect.ValueOf(b).Elem().FieldByName(key).Interface())
 		ret, _ := mixB.Compare(mixA)
 		return ret
 	}

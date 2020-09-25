@@ -2,8 +2,9 @@ package collection
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+
+	"github.com/pkg/errors"
 )
 
 type Int32Collection struct {
@@ -29,17 +30,14 @@ func NewInt32Collection(objs []int32) *Int32Collection {
 		objs: objs,
 	}
 	arr.AbsCollection.Parent = arr
-	arr.AbsCollection.isNumType = true
+	arr.AbsCollection.eleType = Type_INT32
 	arr.SetCompare(compareInt32)
 	return arr
 }
 
 // Copy copy collection
 func (arr *Int32Collection) Copy() ICollection {
-	objs2 := make([]int32, len(arr.objs))
-	copy(objs2, arr.objs)
-	arr.objs = objs2
-	return arr
+	return NewInt32Collection(arr.objs)
 }
 
 func (arr *Int32Collection) Insert(index int, obj interface{}) ICollection {
@@ -78,11 +76,7 @@ func (arr *Int32Collection) Remove(i int) ICollection {
 }
 
 func (arr *Int32Collection) NewEmpty(err ...error) ICollection {
-	int32Arr := NewInt32Collection([]int32{})
-	if len(err) != 0 {
-		int32Arr.err = err[0]
-	}
-	return int32Arr
+	return NewInt32Collection([]int32{})
 }
 
 func (arr *Int32Collection) Index(i int) IMix {

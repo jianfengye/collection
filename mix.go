@@ -2,9 +2,10 @@ package collection
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"reflect"
+
+	"github.com/pkg/errors"
 )
 
 // IMix是一个混合结构

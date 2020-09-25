@@ -57,9 +57,9 @@ type ICollection interface {
 	Every(func(item interface{}, key int) bool) bool
 	// 按照分页进行返回
 	ForPage(page int, perPage int) ICollection
-	// 获取第n位值组成数组
+	// 获取从索引offset开始为0，每n位值组成数组
 	Nth(n int, offset int) ICollection
-	// 将数组填充到这个数值，只能数值型生效
+	// 将数组填充到count个数，只能数值型生效
 	Pad(count int, def interface{}) ICollection
 	// 从队列右侧弹出结构
 	Pop() IMix

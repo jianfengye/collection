@@ -34,14 +34,13 @@ func TestObjPointCollection_Normal(t *testing.T) {
 
 	// 	[Append](#Append) 挂载一个元素到当前Collection
 	{
-		count := coll.Append(&FooBar{
+		count := coll.Copy().Append(&FooBar{
 			Foo: "cstring",
 			Bar: 3,
 		}).Count()
 		if count != 3 {
-			t.Error("append error")
+			t.Fatal("append error")
 		}
-		coll = NewObjPointCollection(objs)
 	}
 
 	// [Avg](#Avg) 返回Collection的数值平均数
@@ -52,21 +51,15 @@ func TestObjPointCollection_Normal(t *testing.T) {
 	// [Contain](#Contain) 判断一个元素是否在Collection中
 	{
 		obj := objs[0]
-		coll.SetCompare(func(a, b interface{}) int {
-			aObj := a.(*FooBar)
-			bObj := b.(*FooBar)
-			return aObj.Bar - bObj.Bar
-		})
 		if coll.Contains(obj) != true {
-			t.Error("contains error")
+			t.Fatal("contains error")
 		}
 	}
 
 	// [Copy](#Copy) 根据当前的数组，创造出一个同类型的数组
 	{
-		objs := coll.Copy()
-		if objs.Count() != 2 {
-			t.Error("copy error")
+		if coll.Copy().Count() != 2 {
+			t.Fatal("copy error")
 		}
 	}
 
@@ -77,6 +70,11 @@ func TestObjPointCollection_Normal(t *testing.T) {
 
 	// [Diff](#Diff) 获取前一个Collection不在后一个Collection中的元素
 	{
+		coll2 := NewObjPointCollection(objs).SetCompare(FooBarCompare)
+		newColl := coll.Diff(coll2)
+		if newColl.Count() != 0 {
+			t.Fatal("diff error")
+		}
 	}
 
 	// [Each](#Each) 对Collection中的每个函数都进行一次函数调用
@@ -87,7 +85,7 @@ func TestObjPointCollection_Normal(t *testing.T) {
 			sum = obj.Bar + sum
 		})
 		if sum != 3 {
-			t.Error("each error")
+			t.Fatal("each error")
 		}
 	}
 
@@ -101,7 +99,7 @@ func TestObjPointCollection_Normal(t *testing.T) {
 			return false
 		})
 		if check != true {
-			t.Error("every error")
+			t.Fatal("every error")
 		}
 
 		check = coll.Every(func(item interface{}, key int) bool {
@@ -112,7 +110,7 @@ func TestObjPointCollection_Normal(t *testing.T) {
 			return false
 		})
 		if check != false {
-			t.Error("every error")
+			t.Fatal("every error")
 		}
 	}
 
@@ -120,7 +118,7 @@ func TestObjPointCollection_Normal(t *testing.T) {
 	{
 		newColl := coll.ForPage(1, 1)
 		if newColl.Count() != 1 {
-			t.Error("for page error")
+			t.Fatal("for page error")
 		}
 	}
 
@@ -134,7 +132,7 @@ func TestObjPointCollection_Normal(t *testing.T) {
 			return false
 		})
 		if newColl.Count() != 1 {
-			t.Error("filter error")
+			t.Fatal("filter error")
 		}
 	}
 
@@ -149,7 +147,7 @@ func TestObjPointCollection_Normal(t *testing.T) {
 		})
 		f := first.MustToInterface().(*FooBar)
 		if f.Bar != 2 {
-			t.Error("first error")
+			t.Fatal("first error")
 		}
 
 	}
@@ -159,7 +157,7 @@ func TestObjPointCollection_Normal(t *testing.T) {
 		first := coll.Index(0)
 		f := first.MustToInterface().(*FooBar)
 		if f.Bar != 1 {
-			t.Error("Index error")
+			t.Fatal("Index error")
 		}
 
 	}
@@ -168,7 +166,7 @@ func TestObjPointCollection_Normal(t *testing.T) {
 	{
 		empty := coll.IsEmpty()
 		if empty != false {
-			t.Error("empty error")
+			t.Fatal("empty error")
 		}
 	}
 
@@ -176,7 +174,7 @@ func TestObjPointCollection_Normal(t *testing.T) {
 	{
 		empty := coll.IsNotEmpty()
 		if empty != true {
-			t.Error("is not empty error")
+			t.Fatal("is not empty error")
 		}
 	}
 
@@ -187,7 +185,7 @@ func TestObjPointCollection_Normal(t *testing.T) {
 			return ob.Foo
 		})
 		if str != "astring,bstring" {
-			t.Error("join error")
+			t.Fatal("join error")
 		}
 	}
 
@@ -195,7 +193,7 @@ func TestObjPointCollection_Normal(t *testing.T) {
 	{
 		last := coll.Last().MustToInterface().(*FooBar)
 		if last.Foo != "bstring" {
-			t.Error("last error")
+			t.Fatal("last error")
 		}
 	}
 
@@ -215,7 +213,7 @@ func TestObjPointCollection_Normal(t *testing.T) {
 		coll2 := NewObjPointCollection(foobar2)
 		coll3 := collCopy.Merge(coll2)
 		if coll3.Count() != 4 {
-			t.Error("merge error")
+			t.Fatal("merge error")
 		}
 
 	}
@@ -223,15 +221,13 @@ func TestObjPointCollection_Normal(t *testing.T) {
 	// [Map](#Map) 对Collection中的每个函数都进行一次函数调用
 	{
 		collCopy := coll.Copy()
-		collCopy.DD()
 		newColl := collCopy.Map(func(item interface{}, key int) interface{} {
 			ob := item.(*FooBar)
 			return ob.Foo
 		})
-		newColl.DD()
 		strs := newColl.Join(",")
 		if strs != "astring,bstring" {
-			t.Error("map error")
+			t.Fatal("map error")
 		}
 	}
 
@@ -239,7 +235,7 @@ func TestObjPointCollection_Normal(t *testing.T) {
 	{
 		mod := coll.Mode().MustToInterface().(*FooBar)
 		if mod.Bar != 1 {
-			t.Error("mod error")
+			t.Fatal("mod error")
 		}
 	}
 
@@ -247,7 +243,7 @@ func TestObjPointCollection_Normal(t *testing.T) {
 	{
 		max := coll.Max().MustToInterface().(*FooBar)
 		if max.Bar != 2 {
-			t.Error("max error")
+			t.Fatal("max error")
 		}
 	}
 
@@ -255,7 +251,7 @@ func TestObjPointCollection_Normal(t *testing.T) {
 	{
 		min := coll.Min().MustToInterface().(*FooBar)
 		if min.Bar != 1 {
-			t.Error("min error")
+			t.Fatal("min error")
 		}
 	}
 
@@ -263,54 +259,55 @@ func TestObjPointCollection_Normal(t *testing.T) {
 	{
 		err := coll.Median().Err()
 		if err == nil {
-			t.Error("median error")
+			t.Fatal("median error")
 		}
-
+		coll.SetErr(nil)
 	}
 
 	// [Nth](#Nth) 获取从offset偏移量开始的每第n个
 	{
-		newColl := coll.Nth(1, 1)
+		newColl := coll.Nth(2, 0)
 		if newColl.Count() != 1 {
-			t.Error("nth error")
+			t.Fatal("nth error")
 		}
 	}
 
 	// [Pad](#Pad) 填充Collection数组
 	{
-		err := coll.Pad(0, &FooBar{}).Err()
+		err := coll.Pad(5, &FooBar{}).Err()
 		if err == nil {
-			t.Error("pad error")
+			t.Fatal("pad error")
 		}
+		coll.SetErr(nil)
 	}
 
 	// [Pop](#Pop) 从Collection右侧弹出一个元素
 	{
-		obj := coll.Pop().MustToInterface().(*FooBar)
+		obj := coll.Copy().Pop().MustToInterface().(*FooBar)
 		if obj.Bar != 2 {
-			t.Error("pop error")
+			t.Fatal("pop error")
 		}
 	}
 
 	// [Push](#Push) 往Collection的右侧推入一个元素
 	{
-		newColl := coll.Push(&FooBar{
+		newColl := coll.Copy().Push(&FooBar{
 			Foo: "cstring",
 			Bar: 3,
 		})
 		if newColl.Count() != 3 {
-			t.Error("push error")
+			t.Fatal("push error")
 		}
 	}
 
 	// [Prepend](#Prepend) 往Collection左侧加入元素
 	{
-		newColl := coll.Prepend(&FooBar{
+		newColl := coll.Copy().Prepend(&FooBar{
 			Foo: "cstring",
 			Bar: 3,
 		})
 		if newColl.Index(0).MustToInterface().(*FooBar).Bar != 3 {
-			t.Error("prepend error")
+			t.Fatal("prepend error")
 		}
 	}
 
@@ -318,7 +315,7 @@ func TestObjPointCollection_Normal(t *testing.T) {
 	{
 		newColl := coll.Pluck("Foo")
 		if newColl.Index(0).MustToString() != "astring" {
-			t.Error("pluck error")
+			t.Fatal("pluck error")
 		}
 	}
 
@@ -332,7 +329,7 @@ func TestObjPointCollection_Normal(t *testing.T) {
 			return false
 		})
 		if newColl.Index(0).MustToInterface().(*FooBar).Bar != 1 {
-			t.Error("reject error")
+			t.Fatal("reject error")
 		}
 	}
 
@@ -342,8 +339,9 @@ func TestObjPointCollection_Normal(t *testing.T) {
 			return carry
 		}).Err()
 		if err == nil {
-			t.Error("reduce error")
+			t.Fatal("reduce error")
 		}
+		coll.SetErr(nil)
 	}
 
 	// [Random](#Random) 随机获取Collection中的元素
@@ -351,23 +349,23 @@ func TestObjPointCollection_Normal(t *testing.T) {
 		obj := coll.Random()
 		foobar := obj.MustToInterface().(*FooBar)
 		if foobar == nil {
-			t.Error("random error")
+			t.Fatal("random error")
 		}
 	}
 
 	// [Reverse](#Reverse) 将Collection数组进行转置
 	{
-		newColl := coll.Reverse()
+		newColl := coll.Copy().Reverse()
 		if newColl.Index(0).MustToInterface().(*FooBar).Bar != 2 {
-			t.Error("error")
+			t.Fatal("error")
 		}
 	}
 
 	// [Slice](#Slice) 获取Collection中的片段
 	{
-		newColl := coll.Slice(1)
+		newColl := coll.Copy().Slice(1)
 		if newColl.Count() != 1 {
-			t.Error("slice error")
+			t.Fatal("slice error")
 		}
 	}
 
@@ -379,15 +377,15 @@ func TestObjPointCollection_Normal(t *testing.T) {
 		}
 		index := coll.Search(search)
 		if index != 1 {
-			t.Error("search error")
+			t.Fatal("search error")
 		}
 	}
 
 	// [Sort](#Sort) 将Collection中的元素进行升序排列输出
 	{
-		newColl := coll.Sort()
+		newColl := coll.Copy().Sort()
 		if newColl.Index(1).MustToInterface().(*FooBar).Bar != 2 {
-			t.Error("sort error")
+			t.Fatal("sort error")
 		}
 	}
 
@@ -395,38 +393,39 @@ func TestObjPointCollection_Normal(t *testing.T) {
 	{
 		newColl := coll.Copy().SortDesc()
 		if newColl.Index(1).MustToInterface().(*FooBar).Bar != 1 {
-			t.Error("sortDesc error")
+			t.Fatal("sortDesc error")
 		}
 	}
 
 	// [Sum](#Sum) 返回Collection中的元素的和
 	{
 		if coll.Sum().Err() == nil {
-			t.Error("sum error")
+			t.Fatal("sum error")
 		}
+		coll.SetErr(nil)
 	}
 
 	// [Shuffle](#Shuffle) 将Collection中的元素进行乱序排列
 	{
 		newColl := coll.Shuffle()
 		if newColl.Count() != 2 {
-			t.Error("shuffle error")
+			t.Fatal("shuffle error")
 		}
 	}
 
 	// [SortBy](#SortBy) 根据对象数组中的某个元素进行Collection升序排列
 	{
-		newColl := coll.SortBy("Bar")
+		newColl := coll.Copy().SortBy("Bar")
 		if newColl.Index(1).MustToInterface().(*FooBar).Bar != 2 {
-			t.Error("sortby error")
+			t.Fatal("sortby error")
 		}
 	}
 
 	// [SortByDesc](#SortByDesc) 根据对象数组中的某个元素进行Collection降序排列
 	{
-		newColl := coll.SortByDesc("Bar")
+		newColl := coll.Copy().SortByDesc("Bar")
 		if newColl.Index(1).MustToInterface().(*FooBar).Bar != 1 {
-			t.Error("sortbydesc error")
+			t.Fatal("sortbydesc error")
 		}
 	}
 
@@ -444,7 +443,7 @@ func TestObjPointCollection_Normal(t *testing.T) {
 	{
 		objs, _ := coll.ToInterfaces()
 		if len(objs) != 2 {
-			t.Error("tointerface error")
+			t.Fatal("tointerface error")
 		}
 	}
 
@@ -456,7 +455,7 @@ func TestObjPointCollection_Normal(t *testing.T) {
 		}
 		newColl := coll.Append(c)
 		if newColl.Unique().Count() != 2 {
-			t.Error("unique error")
+			t.Fatal("unique error")
 		}
 
 	}
