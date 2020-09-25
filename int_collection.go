@@ -2,8 +2,9 @@ package collection
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+
+	"github.com/pkg/errors"
 )
 
 type IntCollection struct {
@@ -29,16 +30,14 @@ func NewIntCollection(objs []int) *IntCollection {
 		objs: objs,
 	}
 	arr.AbsCollection.Parent = arr
+	arr.AbsCollection.eleType = Type_INT
 	arr.SetCompare(compareInt)
 	return arr
 }
 
 // Copy copy collection
 func (arr *IntCollection) Copy() ICollection {
-	objs2 := make([]int, len(arr.objs))
-	copy(objs2, arr.objs)
-	arr.objs = objs2
-	return arr
+	return NewIntCollection(arr.objs)
 }
 
 func (arr *IntCollection) Insert(index int, obj interface{}) ICollection {
@@ -77,11 +76,7 @@ func (arr *IntCollection) Remove(i int) ICollection {
 }
 
 func (arr *IntCollection) NewEmpty(err ...error) ICollection {
-	intArr := NewIntCollection([]int{})
-	if len(err) != 0 {
-		intArr.err = err[0]
-	}
-	return intArr
+	return NewIntCollection([]int{})
 }
 
 func (arr *IntCollection) Index(i int) IMix {
@@ -115,7 +110,6 @@ func (arr *IntCollection) DD() {
 func (arr *IntCollection) ToJson() ([]byte, error) {
 	return json.Marshal(arr.objs)
 }
-
 
 func (arr *IntCollection) FromJson(data []byte) error {
 	return json.Unmarshal(data, &(arr.objs))

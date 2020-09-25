@@ -2,9 +2,10 @@ package collection
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 type StrCollection struct {
@@ -24,23 +25,17 @@ func NewStrCollection(objs []string) *StrCollection {
 	}
 	arr.AbsCollection.compare = compareString
 	arr.AbsCollection.Parent = arr
+	arr.AbsCollection.eleType = TYPE_STRING
 	return arr
 }
 
 // Copy copy collection
 func (arr *StrCollection) Copy() ICollection {
-	objs2 := make([]string, len(arr.objs))
-	copy(objs2, arr.objs)
-	arr.objs = objs2
-	return arr
+	return NewStrCollection(arr.objs)
 }
 
 func (arr *StrCollection) NewEmpty(err ...error) ICollection {
-	arr2 := NewStrCollection([]string{})
-	if len(err) != 0 {
-		arr2.SetErr(err[0])
-	}
-	return arr2
+	return NewStrCollection([]string{})
 }
 
 func (arr *StrCollection) Insert(index int, obj interface{}) ICollection {

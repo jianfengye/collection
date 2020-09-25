@@ -2,8 +2,9 @@ package collection
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+
+	"github.com/pkg/errors"
 )
 
 type Float64Collection struct {
@@ -29,16 +30,14 @@ func NewFloat64Collection(objs []float64) *Float64Collection {
 		objs: objs,
 	}
 	arr.AbsCollection.Parent = arr
+	arr.AbsCollection.eleType = TYPE_FLOAT64
 	arr.SetCompare(compareFloat64)
 	return arr
 }
 
 // Copy copy collection
 func (arr *Float64Collection) Copy() ICollection {
-	objs2 := make([]float64, len(arr.objs))
-	copy(objs2, arr.objs)
-	arr.objs = objs2
-	return arr
+	return NewFloat64Collection(arr.objs)
 }
 
 func (arr *Float64Collection) Insert(index int, obj interface{}) ICollection {
@@ -77,11 +76,7 @@ func (arr *Float64Collection) Remove(i int) ICollection {
 }
 
 func (arr *Float64Collection) NewEmpty(err ...error) ICollection {
-	intArr := NewFloat64Collection([]float64{})
-	if len(err) != 0 {
-		intArr.err = err[0]
-	}
-	return intArr
+	return NewFloat64Collection([]float64{})
 }
 
 func (arr *Float64Collection) Index(i int) IMix {

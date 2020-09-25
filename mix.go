@@ -2,9 +2,10 @@ package collection
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"reflect"
+
+	"github.com/pkg/errors"
 )
 
 // IMix是一个混合结构
@@ -40,7 +41,6 @@ type IMix interface {
 	Format() string // 打印成string
 	DD()
 
-
 	SetField(key string, val interface{}) IMix
 	RemoveFields(...string) IMix
 }
@@ -59,7 +59,7 @@ type Mix struct {
 }
 
 func (m *Mix) MarshalJSON() ([]byte, error) {
-	if m.typ.Kind() != reflect.Struct{
+	if m.typ.Kind() != reflect.Struct {
 		return json.Marshal(m.real)
 	}
 
@@ -76,7 +76,7 @@ func (m *Mix) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 	for k, v := range m.setFieldMaps {
-		 tmpMap[k] = v
+		tmpMap[k] = v
 	}
 	for _, k := range m.removeMaps {
 		if _, ok := tmpMap[k]; ok {
@@ -86,11 +86,14 @@ func (m *Mix) MarshalJSON() ([]byte, error) {
 	return json.Marshal(tmpMap)
 }
 
-
 func NewErrorMix(err error) *Mix {
 	mix := &Mix{}
 	mix.SetErr(err)
 	return mix
+}
+
+func NewEmptyMix() *Mix {
+	return &Mix{}
 }
 
 func NewMix(real interface{}) *Mix {
@@ -482,8 +485,7 @@ func (m *Mix) DD() {
 	fmt.Print(ret)
 }
 
-
-func (m *Mix)MustToString() string {
+func (m *Mix) MustToString() string {
 	ret, err := m.ToString()
 	if err != nil {
 		panic(err)
@@ -491,7 +493,7 @@ func (m *Mix)MustToString() string {
 	return ret
 }
 
-func (m *Mix)MustToInt64() int64 {
+func (m *Mix) MustToInt64() int64 {
 	ret, err := m.ToInt64()
 	if err != nil {
 		panic(err)
@@ -499,7 +501,7 @@ func (m *Mix)MustToInt64() int64 {
 	return ret
 }
 
-func (m *Mix)MustToInt32() int32 {
+func (m *Mix) MustToInt32() int32 {
 	ret, err := m.ToInt32()
 	if err != nil {
 		panic(err)
@@ -507,7 +509,7 @@ func (m *Mix)MustToInt32() int32 {
 	return ret
 }
 
-func (m *Mix)MustToInt() int {
+func (m *Mix) MustToInt() int {
 	ret, err := m.ToInt()
 	if err != nil {
 		panic(err)
@@ -515,7 +517,7 @@ func (m *Mix)MustToInt() int {
 	return ret
 }
 
-func (m *Mix)MustToFloat64() float64 {
+func (m *Mix) MustToFloat64() float64 {
 	ret, err := m.ToFloat64()
 	if err != nil {
 		panic(err)
@@ -523,7 +525,7 @@ func (m *Mix)MustToFloat64() float64 {
 	return ret
 }
 
-func (m *Mix)MustToFloat32() float32 {
+func (m *Mix) MustToFloat32() float32 {
 	ret, err := m.ToFloat32()
 	if err != nil {
 		panic(err)
@@ -531,7 +533,7 @@ func (m *Mix)MustToFloat32() float32 {
 	return ret
 }
 
-func (m *Mix)MustToInterface() interface{} {
+func (m *Mix) MustToInterface() interface{} {
 	ret, err := m.ToInterface()
 	if err != nil {
 		return ret

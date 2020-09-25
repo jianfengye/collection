@@ -4,6 +4,7 @@ Collection包目标是用于替换golang原生的Slice，使用场景是在大�
 
 | 版本 | 说明 |
 | ------| ------ |
+| 1.2.0 |  增加对象指针数组，增加测试覆盖率, 增加ToInterfaces方法 |
 | 1.1.2 |  增加一些空数组的判断，解决一些issue |
 | 1.1.1 |  对collection包进行了json解析和反解析的支持，对mix类型支持了SetField和RemoveFields的类型设置 |
 | 1.1.0 |  增加了对int32的支持，增加了延迟加载，增加了Copy函数，增加了compare从ICollection传递到IMix，使用快排加速了Sort方法 |
@@ -33,6 +34,8 @@ NewFloat32Collection(objs []float32) *Float32Collection
 NewStrCollection(objs []string) *StrCollection
 
 NewObjCollection(objs interface{}) *ObjCollection
+
+NewObjPointCollection(objs interface{}) *ObjPointCollection
 ```
 
 Collection的Error是随着Collection对象走，或者下沉到IMix中，所以可以放心在ICollection和IMix进行链式调用，只需要最后进行一次错误检查即可。
@@ -55,15 +58,15 @@ if err != nil {
 
 [Append](#Append) 挂载一个元素到当前Collection
 
-[Avg](#Avg) 返回Collection的数值平均数
+[Avg](#Avg) 返回Collection的数值平均数，只能数值类型coll调用
 
-[Contain](#Contain) 判断一个元素是否在Collection中
+[Contain](#Contain) 判断一个元素是否在Collection中。非数值类型必须设置对象compare方法。
 
 [Copy](#Copy) 根据当前的数组，创造出一个同类型的数组
 
 [DD](#DD) 按照友好的格式展示Collection
 
-[Diff](#Diff) 获取前一个Collection不在后一个Collection中的元素
+[Diff](#Diff) 获取前一个Collection不在后一个Collection中的元素, 只能数值类型Diff调用
 
 [Each](#Each) 对Collection中的每个函数都进行一次函数调用
 
@@ -145,6 +148,8 @@ if err != nil {
 
 [ToMixs](#ToMixs) 将Collection变化为Mix数组
 
+[ToInterfaces](#ToInterfaces) 将collection变化为interface{}数组
+
 [Unique](#Unique) 将Collection中重复的元素进行合并
 
 ### Append
@@ -179,10 +184,10 @@ IntCollection(3):{
 intColl := NewIntCollection([]int{1, 2, 2, 3})
 mode, err := intColl.Avg().ToFloat64()
 if err != nil {
-    t.Error(err.Error())
+    t.Fatal(err.Error())
 }
 if mode != 2.0 {
-    t.Error("Avg error")
+    t.Fatal("Avg error")
 }
 ```
 
@@ -196,10 +201,10 @@ func TestAbsCollection_Copy(t *testing.T) {
 	intColl2 := intColl.Copy()
 	intColl2.DD()
 	if intColl2.Count() != 2 {
-		t.Error("Copy失败")
+		t.Fatal("Copy失败")
 	}
 	if reflect.TypeOf(intColl2) != reflect.TypeOf(intColl) {
-		t.Error("Copy类型失败")
+		t.Fatal("Copy类型失败")
 	}
 }
 ```
@@ -215,10 +220,10 @@ func TestAbsCollection_Copy(t *testing.T) {
 ```go
 intColl := NewIntCollection([]int{1, 2, 2, 3})
 if intColl.Contains(1) != true {
-    t.Error("contain 错误1")
+    t.Fatal("contain 错误1")
 }
 if intColl.Contains(5) != false {
-    t.Error("contain 错误2")
+    t.Fatal("contain 错误2")
 }
 ```
 
@@ -235,7 +240,7 @@ intColl2 := NewIntCollection([]int{2, 3, 4})
 diff := intColl.Diff(intColl2)
 diff.DD()
 if diff.Count() != 1 {
-    t.Error("diff 错误")
+    t.Fatal("diff 错误")
 }
 
 /*
@@ -294,11 +299,11 @@ intColl.Each(func(item interface{}, key int) {
 })
 
 if intColl.Err() != nil {
-    t.Error(intColl.Err())
+    t.Fatal(intColl.Err())
 }
 
 if sum != 10 {
-    t.Error("Each 错误")
+    t.Fatal("Each 错误")
 }
 
 sum = 0
@@ -312,7 +317,7 @@ intColl.Each(func(item interface{}, key int) {
 })
 
 if sum != 6 {
-    t.Error("Each 错误")
+    t.Fatal("Each 错误")
 }
 
 /*
@@ -332,14 +337,14 @@ if intColl.Every(func(item interface{}, key int) bool {
     i := item.(int)
     return i > 1
 }) != false {
-    t.Error("Every错误")
+    t.Fatal("Every错误")
 }
 
 if intColl.Every(func(item interface{}, key int) bool {
     i := item.(int)
     return i > 0
 }) != true {
-    t.Error("Every错误")
+    t.Fatal("Every错误")
 }
 ```
 
@@ -355,7 +360,7 @@ ret := intColl.ForPage(1, 2)
 ret.DD()
 
 if ret.Count() != 2 {
-    t.Error("For page错误")
+    t.Fatal("For page错误")
 }
 
 /*
@@ -420,10 +425,10 @@ func TestIntCollection_Filter(t *testing.T) {
 	intColl := NewIntCollection([]int{1,2,3})
 	a, err := intColl.First().ToInt()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	if !reflect.DeepEqual(a, 1) {
-		t.Error("filter error")
+		t.Fatal("filter error")
 	}
 }
 ```
@@ -476,13 +481,13 @@ println(intColl.IsNotEmpty()) // true
 intColl := NewIntCollection([]int{2, 4, 3})
 out := intColl.Join(",")
 if out != "2,4,3" {
-    t.Error("join错误")
+    t.Fatal("join错误")
 }
 out = intColl.Join(",", func(item interface{}) string {
     return fmt.Sprintf("'%d'", item.(int))
 })
 if out != "'2','4','3'" {
-    t.Error("join 错误")
+    t.Fatal("join 错误")
 }
 ```
 
@@ -496,10 +501,10 @@ if out != "'2','4','3'" {
 intColl := NewIntCollection([]int{1, 2, 3, 4, 3, 2})
 last, err := intColl.Last().ToInt()
 if err != nil {
-    t.Error("last get error")
+    t.Fatal("last get error")
 }
 if last != 2 {
-    t.Error("last 获取错误")
+    t.Fatal("last 获取错误")
 }
 
 last, err = intColl.Last(func(item interface{}, key int) bool {
@@ -508,10 +513,10 @@ last, err = intColl.Last(func(item interface{}, key int) bool {
 }).ToInt()
 
 if err != nil {
-    t.Error("last get error")
+    t.Fatal("last get error")
 }
 if last != 3 {
-    t.Error("last 获取错误")
+    t.Fatal("last 获取错误")
 }
 ```
 
@@ -530,11 +535,11 @@ intColl2 := NewIntCollection([]int{3, 4})
 intColl.Merge(intColl2)
 
 if intColl.Err() != nil {
-    t.Error(intColl.Err())
+    t.Fatal(intColl.Err())
 }
 
 if intColl.Count() != 4 {
-    t.Error("Merge 错误")
+    t.Fatal("Merge 错误")
 }
 
 intColl.DD()
@@ -568,7 +573,7 @@ newIntColl := intColl.Map(func(item interface{}, key int) interface{} {
 newIntColl.DD()
 
 if newIntColl.Count() != 4 {
-    t.Error("Map错误")
+    t.Fatal("Map错误")
 }
 
 newIntColl2 := intColl.Map(func(item interface{}, key int) interface{} {
@@ -608,20 +613,20 @@ IntCollection(3):{
 intColl := NewIntCollection([]int{1, 2, 2, 3, 4, 5, 6})
 mode, err := intColl.Mode().ToInt()
  if err != nil {
-     t.Error(err.Error())
+     t.Fatal(err.Error())
  }
  if mode != 2 {
-     t.Error("Mode error")
+     t.Fatal("Mode error")
  }
  
  intColl = NewIntCollection([]int{1, 2, 2, 3, 4, 4, 5, 6})
  
  mode, err = intColl.Mode().ToInt()
  if err != nil {
-     t.Error(err.Error())
+     t.Fatal(err.Error())
  }
  if mode != 2 {
-     t.Error("Mode error")
+     t.Fatal("Mode error")
  }
 ```
 
@@ -637,11 +642,11 @@ mode, err := intColl.Mode().ToInt()
 intColl := NewIntCollection([]int{1, 2, 2, 3})
 max, err := intColl.Max().ToInt()
 if err != nil {
-    t.Error(err)
+    t.Fatal(err)
 }
 
 if max != 3 {
-    t.Error("max错误")
+    t.Fatal("max错误")
 }
 
 ```
@@ -656,11 +661,11 @@ if max != 3 {
 intColl := NewIntCollection([]int{1, 2, 2, 3})
 min, err := intColl.Min().ToInt()
 if err != nil {
-    t.Error(err)
+    t.Fatal(err)
 }
 
 if min != 1 {
-    t.Error("min错误")
+    t.Fatal("min错误")
 }
 
 ```
@@ -676,11 +681,11 @@ if min != 1 {
 intColl := NewIntCollection([]int{1, 2, 2, 3})
 median, err := intColl.Median().ToFloat64()
 if err != nil {
-    t.Error(err)
+    t.Fatal(err)
 }
 
 if median != 2.0 {
-    t.Error("Median 错误" + fmt.Sprintf("%v", median))
+    t.Fatal("Median 错误" + fmt.Sprintf("%v", median))
 }
 ```
 
@@ -714,7 +719,7 @@ ret := intColl.Nth(4, 1)
 ret.DD()
 
 if ret.Count() != 2 {
-    t.Error("Nth 错误")
+    t.Fatal("Nth 错误")
 }
 
 /*
@@ -735,21 +740,21 @@ IntCollection(2):{
 intColl := NewIntCollection([]int{1, 2, 3})
 ret := intColl.Pad(5, 0)
 if ret.Err() != nil {
-    t.Error(ret.Err().Error())
+    t.Fatal(ret.Err().Error())
 }
 
 ret.DD()
 if ret.Count() != 5 {
-    t.Error("Pad 错误")
+    t.Fatal("Pad 错误")
 }
 
 ret = intColl.Pad(-5, 0)
 if ret.Err() != nil {
-    t.Error(ret.Err().Error())
+    t.Fatal(ret.Err().Error())
 }
 ret.DD()
 if ret.Count() != 5 {
-    t.Error("Pad 错误")
+    t.Fatal("Pad 错误")
 }
 
 /*
@@ -781,14 +786,14 @@ intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
 pop := intColl.Pop()
 in, err := pop.ToInt()
 if err != nil {
-    t.Error(err.Error())
+    t.Fatal(err.Error())
 }
 if in != 6 {
-    t.Error("Pop 错误")
+    t.Fatal("Pop 错误")
 }
 intColl.DD()
 if intColl.Count() != 5 {
-    t.Error("Pop 后本体错误")
+    t.Fatal("Pop 后本体错误")
 }
 
 /*
@@ -813,7 +818,7 @@ intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
 intColl.Push(7)
 intColl.DD()
 if intColl.Count() != 7 {
-    t.Error("Push 后本体错误")
+    t.Fatal("Push 后本体错误")
 }
 
 /*
@@ -839,12 +844,12 @@ IntCollection(7):{
 intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
 intColl.Prepend(0)
 if intColl.Err() != nil {
-    t.Error(intColl.Err().Error())
+    t.Fatal(intColl.Err().Error())
 }
 
 intColl.DD()
 if intColl.Count() != 7 {
-    t.Error("Prepend错误")
+    t.Fatal("Prepend错误")
 }
 
 /*
@@ -903,7 +908,7 @@ retColl := intColl.Reject(func(item interface{}, key int) bool {
     return i > 3
 })
 if retColl.Count() != 3 {
-    t.Error("Reject 重复错误")
+    t.Fatal("Reject 重复错误")
 }
 
 retColl.DD()
@@ -937,10 +942,10 @@ sumMix.DD()
 
 sum, err := sumMix.ToInt()
 if err != nil {
-    t.Error(err.Error())
+    t.Fatal(err.Error())
 }
 if sum != 10 {
-    t.Error("Reduce计算错误")
+    t.Fatal("Reduce计算错误")
 }
 
 /*
@@ -961,7 +966,7 @@ out.DD()
 
 _, err := out.ToInt()
 if err != nil {
-    t.Error(err.Error())
+    t.Fatal(err.Error())
 }
 
 /*
@@ -1003,12 +1008,12 @@ IntCollection(6):{
 ```go
 intColl := NewIntCollection([]int{1,2})
 if intColl.Search(2) != 1 {
-    t.Error("Search 错误")
+    t.Fatal("Search 错误")
 }
 
 intColl = NewIntCollection([]int{1,2, 3, 3, 2})
 if intColl.Search(3) != 2 {
-    t.Error("Search 重复错误")
+    t.Fatal("Search 重复错误")
 }
 ```
 
@@ -1026,21 +1031,21 @@ if intColl.Search(3) != 2 {
 intColl := NewIntCollection([]int{1, 2, 3, 4, 5})
 retColl := intColl.Slice(2)
 if retColl.Count() != 3 {
-    t.Error("Slice 错误")
+    t.Fatal("Slice 错误")
 }
 
 retColl.DD()
 
 retColl = intColl.Slice(2,2)
 if retColl.Count() != 2 {
-    t.Error("Slice 两个参数错误")
+    t.Fatal("Slice 两个参数错误")
 }
 
 retColl.DD()
 
 retColl = intColl.Slice(2, -1)
 if retColl.Count() != 3 {
-    t.Error("Slice第二个参数为-1错误")
+    t.Fatal("Slice第二个参数为-1错误")
 }
 
 retColl.DD()
@@ -1076,7 +1081,7 @@ intColl := NewIntCollection([]int{1, 2, 2, 3})
 newColl := intColl.Shuffle()
 newColl.DD()
 if newColl.Err() != nil {
-    t.Error(newColl.Err())
+    t.Fatal(newColl.Err())
 }
 
 /*
@@ -1099,7 +1104,7 @@ IntCollection(4):{
 intColl := NewIntCollection([]int{2, 4, 3})
 intColl2 := intColl.Sort()
 if intColl2.Err() != nil {
-    t.Error(intColl2.Err())
+    t.Fatal(intColl2.Err())
 }
 intColl2.DD()
 
@@ -1122,7 +1127,7 @@ IntCollection(3):{
 intColl := NewIntCollection([]int{2, 4, 3})
 intColl2 := intColl.SortDesc()
 if intColl2.Err() != nil {
-    t.Error(intColl2.Err())
+    t.Fatal(intColl2.Err())
 }
 intColl2.DD()
 
@@ -1147,11 +1152,11 @@ intColl := NewIntCollection([]int{1, 2, 2, 3})
 intColl.Sum().DD()
 sum, err := intColl.Sum().ToInt()
 if err != nil {
-    t.Error(err)
+    t.Fatal(err)
 }
 
 if sum != 8 {
-    t.Error("sum 错误")
+    t.Fatal("sum 错误")
 }
 
 /*
@@ -1185,12 +1190,12 @@ func TestObjCollection_SortBy(t *testing.T) {
 
 	obj, err := newObjColl.Index(0).ToInterface()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	foo := obj.(Foo)
 	if foo.B != 2 {
-		t.Error("SortBy error")
+		t.Fatal("SortBy error")
 	}
 }
 
@@ -1228,12 +1233,12 @@ func TestObjCollection_SortByDesc(t *testing.T) {
 
 	obj, err := newObjColl.Index(0).ToInterface()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	foo := obj.(Foo)
 	if foo.B != 3 {
-		t.Error("SortBy error")
+		t.Fatal("SortBy error")
 	}
 }
 
@@ -1257,10 +1262,10 @@ ObjCollection(2)(collection.Foo):{
 intColl := NewIntCollection([]int{1, 2, 2, 3})
 arr, err := intColl.ToInts()
 if err != nil {
-    t.Error(err)
+    t.Fatal(err)
 }
 if len(arr) != 4 {
-    t.Error(errors.New("ToInts error"))
+    t.Fatal(errors.New("ToInts error"))
 }
 ```
 
@@ -1274,10 +1279,10 @@ if len(arr) != 4 {
 intColl := NewInt64Collection([]int{1, 2, 2, 3})
 arr, err := intColl.ToInts()
 if err != nil {
-    t.Error(err)
+    t.Fatal(err)
 }
 if len(arr) != 4 {
-    t.Error(errors.New("ToInts error"))
+    t.Fatal(errors.New("ToInts error"))
 }
 ```
 
@@ -1294,11 +1299,11 @@ arr.DD()
 
 max, err := arr.Max().ToFloat64()
 if err != nil {
-    t.Error(err)
+    t.Fatal(err)
 }
 
 if max != 5 {
-    t.Error(errors.New("max error"))
+    t.Fatal(errors.New("max error"))
 }
 
 
@@ -1310,12 +1315,12 @@ arr2 := arr.Filter(func(obj interface{}, index int) bool {
     return false
 })
 if arr2.Count() != 3 {
-    t.Error(errors.New("filter error"))
+    t.Fatal(errors.New("filter error"))
 }
 
 out, err := arr2.ToFloat64s()
 if err != nil || len(out) != 3 {
-    t.Error(errors.New("to float64s error"))
+    t.Fatal(errors.New("to float64s error"))
 }
 
 ```
@@ -1333,11 +1338,11 @@ arr.DD()
 
 max, err := arr.Max().ToFloat32()
 if err != nil {
-    t.Error(err)
+    t.Fatal(err)
 }
 
 if max != 5 {
-    t.Error(errors.New("max error"))
+    t.Fatal(errors.New("max error"))
 }
 
 
@@ -1349,12 +1354,12 @@ arr2 := arr.Filter(func(obj interface{}, index int) bool {
     return false
 })
 if arr2.Count() != 3 {
-    t.Error(errors.New("filter error"))
+    t.Fatal(errors.New("filter error"))
 }
 
 out, err := arr2.ToFloat32s()
 if err != nil || len(out) != 3 {
-    t.Error(errors.New("to float32s error"))
+    t.Fatal(errors.New("to float32s error"))
 }
 ```
 
@@ -1368,12 +1373,18 @@ if err != nil || len(out) != 3 {
 intColl := NewIntCollection([]int{1, 2, 2, 3})
 arr, err := intColl.ToMixs()
 if err != nil {
-    t.Error(err)
+    t.Fatal(err)
 }
 if len(arr) != 4 {
-    t.Error(errors.New("ToInts error"))
+    t.Fatal(errors.New("ToInts error"))
 }
 ```
+
+### ToInterfaces
+
+`ToInterfaces() ([]interface{}, error)`
+
+将Collection变化为Interface{}数组，如果Collection内的元素类型不符合，或者Collection有错误，则返回错误
 
 ### Unique
 
@@ -1387,7 +1398,7 @@ if len(arr) != 4 {
 intColl := NewIntCollection([]int{1,2, 3, 3, 2})
 uniqColl := intColl.Unique()
 if uniqColl.Count() != 3 {
-    t.Error("Unique 重复错误")
+    t.Fatal("Unique 重复错误")
 }
 
 uniqColl.DD()
