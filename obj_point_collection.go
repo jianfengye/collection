@@ -8,19 +8,19 @@ import (
 )
 
 // ObjCollection 代表数组集合
-type ObjCollection struct {
+type ObjPointCollection struct {
 	AbsCollection
 	objs reflect.Value // 数组对象，是一个slice
 	typ  reflect.Type  // 数组对象每个元素类型
 }
 
 // NewObjCollection 根据对象数组创建
-func NewObjCollection(objs interface{}) *ObjCollection {
+func NewObjPointCollection(objs interface{}) *ObjPointCollection {
 
 	vals := reflect.ValueOf(objs)
 	typ := reflect.TypeOf(objs).Elem()
 
-	arr := &ObjCollection{
+	arr := &ObjPointCollection{
 		objs: vals,
 		typ:  typ,
 	}
@@ -29,21 +29,8 @@ func NewObjCollection(objs interface{}) *ObjCollection {
 	return arr
 }
 
-// NewObjCollectionByType 根据类型创建一个空的数组, 传进来的Type是slice类型
-func NewObjCollectionByType(typ reflect.Type) *ObjCollection {
-	vals := reflect.MakeSlice(typ, 0, 0)
-	eleTyp := typ.Elem()
-	arr := &ObjCollection{
-		objs: vals,
-		typ:  eleTyp,
-	}
-	arr.AbsCollection.Parent = arr
-	arr.AbsCollection.isNumType = false
-	return arr
-}
-
 // Copy 复制到新的数组
-func (arr *ObjCollection) Copy() ICollection {
+func (arr *ObjPointCollection) Copy() ICollection {
 
 	objs2 := reflect.MakeSlice(arr.objs.Type(), arr.objs.Len(), arr.objs.Len())
 	reflect.Copy(objs2, arr.objs)
@@ -52,7 +39,7 @@ func (arr *ObjCollection) Copy() ICollection {
 	return arr
 }
 
-func (arr *ObjCollection) Insert(index int, obj interface{}) ICollection {
+func (arr *ObjPointCollection) Insert(index int, obj interface{}) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -73,22 +60,16 @@ func (arr *ObjCollection) Insert(index int, obj interface{}) ICollection {
 	return arr
 }
 
-func (arr *ObjCollection) Index(i int) IMix {
-	if i < 0 || i >= arr.Count() {
-		return NewErrorMix(errors.New("index exceeded"))
-	}
+func (arr *ObjPointCollection) Index(i int) IMix {
 	return NewMix(arr.objs.Index(i).Interface()).SetCompare(arr.compare)
 }
 
-func (arr *ObjCollection) SetIndex(i int, val interface{}) ICollection {
-	if i < 0 || i >= arr.Count() {
-		return arr.SetErr(errors.New("index exceeded"))
-	}
+func (arr *ObjPointCollection) SetIndex(i int, val interface{}) ICollection {
 	arr.objs.Index(i).Set(reflect.ValueOf(val))
 	return arr
 }
 
-func (arr *ObjCollection) NewEmpty(err ...error) ICollection {
+func (arr *ObjPointCollection) NewEmpty(err ...error) ICollection {
 	objs := reflect.MakeSlice(arr.objs.Type(), 0, 0)
 	ret := &ObjCollection{
 		objs: objs,
@@ -101,13 +82,13 @@ func (arr *ObjCollection) NewEmpty(err ...error) ICollection {
 	return ret
 }
 
-func (arr *ObjCollection) Remove(i int) ICollection {
+func (arr *ObjPointCollection) Remove(i int) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
 
 	len := arr.Count()
-	if i < 0 || i >= len {
+	if i >= len {
 		return arr.SetErr(errors.New("index exceeded"))
 	}
 
@@ -122,11 +103,11 @@ func (arr *ObjCollection) Remove(i int) ICollection {
 	return arr
 }
 
-func (arr *ObjCollection) Count() int {
+func (arr *ObjPointCollection) Count() int {
 	return arr.objs.Len()
 }
 
-func (arr *ObjCollection) DD() {
+func (arr *ObjPointCollection) DD() {
 	ret := fmt.Sprintf("ObjCollection(%d)(%s):{\n", arr.Count(), arr.typ.String())
 	for i := 0; i < arr.objs.Len(); i++ {
 		ret = ret + fmt.Sprintf("\t%d:\t%+v\n", i, arr.objs.Index(i))
@@ -136,14 +117,14 @@ func (arr *ObjCollection) DD() {
 }
 
 // 将对象的某个key作为Slice的value，作为slice返回
-func (arr *ObjCollection) Pluck(key string) ICollection {
+func (arr *ObjPointCollection) Pluck(key string) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
 
 	var objs ICollection
 
-	field, found := arr.typ.FieldByName(key)
+	field, found := arr.typ.Elem().FieldByName(key)
 	if !found {
 		err := errors.New("ObjCollection.Pluck:key not found")
 		arr.SetErr(err)
@@ -152,7 +133,7 @@ func (arr *ObjCollection) Pluck(key string) ICollection {
 
 	objs = NewMixCollection(field.Type)
 	for i := 0; i < arr.objs.Len(); i++ {
-		v := arr.objs.Index(i).FieldByName(key).Interface()
+		v := arr.objs.Index(i).Elem().FieldByName(key).Interface()
 		objs.Append(v)
 	}
 
@@ -160,14 +141,14 @@ func (arr *ObjCollection) Pluck(key string) ICollection {
 }
 
 // 按照某个字段进行排序
-func (arr *ObjCollection) SortBy(key string) ICollection {
+func (arr *ObjPointCollection) SortBy(key string) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
 
 	compare := func(a interface{}, b interface{}) int {
-		mixA := NewMix(reflect.ValueOf(a).FieldByName(key).Interface())
-		mixB := NewMix(reflect.ValueOf(b).FieldByName(key).Interface())
+		mixA := NewMix(reflect.ValueOf(a).Elem().FieldByName(key).Interface())
+		mixB := NewMix(reflect.ValueOf(b).Elem().FieldByName(key).Interface())
 		ret, _ := mixA.Compare(mixB)
 		return ret
 	}
@@ -180,7 +161,7 @@ func (arr *ObjCollection) SortBy(key string) ICollection {
 }
 
 // 按照某个字段进行排序,倒序
-func (arr *ObjCollection) SortByDesc(key string) ICollection {
+func (arr *ObjPointCollection) SortByDesc(key string) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
@@ -199,11 +180,11 @@ func (arr *ObjCollection) SortByDesc(key string) ICollection {
 	return newArr
 }
 
-func (arr *ObjCollection) ToJson() ([]byte, error) {
+func (arr *ObjPointCollection) ToJson() ([]byte, error) {
 	return json.Marshal(arr.objs.Interface())
 }
 
-func (arr *ObjCollection) FromJson(data []byte) error {
+func (arr *ObjPointCollection) FromJson(data []byte) error {
 	vals := reflect.MakeSlice(reflect.SliceOf(arr.typ), 0, 0)
 	objs := vals.Interface()
 	err := json.Unmarshal(data, &objs)

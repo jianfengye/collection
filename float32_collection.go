@@ -29,6 +29,7 @@ func NewFloat32Collection(objs []float32) *Float32Collection {
 		objs: objs,
 	}
 	arr.AbsCollection.Parent = arr
+	arr.AbsCollection.isNumType = true
 	arr.SetCompare(compareFloat32)
 	return arr
 }
@@ -112,11 +113,9 @@ func (arr *Float32Collection) DD() {
 	fmt.Print(ret)
 }
 
-
 func (arr *Float32Collection) ToJson() ([]byte, error) {
 	return json.Marshal(arr.objs)
 }
-
 
 func (arr *Float32Collection) FromJson(data []byte) error {
 	return json.Unmarshal(data, &(arr.objs))

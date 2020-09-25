@@ -33,6 +33,8 @@ NewFloat32Collection(objs []float32) *Float32Collection
 NewStrCollection(objs []string) *StrCollection
 
 NewObjCollection(objs interface{}) *ObjCollection
+
+NewObjPointCollection(objs interface{}) *ObjPointCollection
 ```
 
 Collection的Error是随着Collection对象走，或者下沉到IMix中，所以可以放心在ICollection和IMix进行链式调用，只需要最后进行一次错误检查即可。
@@ -55,15 +57,15 @@ if err != nil {
 
 [Append](#Append) 挂载一个元素到当前Collection
 
-[Avg](#Avg) 返回Collection的数值平均数
+[Avg](#Avg) 返回Collection的数值平均数，只能数值类型coll调用
 
-[Contain](#Contain) 判断一个元素是否在Collection中
+[Contain](#Contain) 判断一个元素是否在Collection中。非数值类型必须设置对象compare方法。
 
 [Copy](#Copy) 根据当前的数组，创造出一个同类型的数组
 
 [DD](#DD) 按照友好的格式展示Collection
 
-[Diff](#Diff) 获取前一个Collection不在后一个Collection中的元素
+[Diff](#Diff) 获取前一个Collection不在后一个Collection中的元素, 只能数值类型Diff调用
 
 [Each](#Each) 对Collection中的每个函数都进行一次函数调用
 

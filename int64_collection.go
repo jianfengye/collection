@@ -29,6 +29,7 @@ func NewInt64Collection(objs []int64) *Int64Collection {
 		objs: objs,
 	}
 	arr.AbsCollection.Parent = arr
+	arr.AbsCollection.isNumType = true
 	arr.SetCompare(compareInt64)
 	return arr
 }
@@ -69,7 +70,7 @@ func (arr *Int64Collection) Remove(i int) ICollection {
 	}
 
 	len := arr.Count()
-	if  i < 0 || i >= len {
+	if i < 0 || i >= len {
 		return arr.SetErr(errors.New("index exceeded"))
 	}
 	arr.objs = append(arr.objs[0:i], arr.objs[i+1:len]...)

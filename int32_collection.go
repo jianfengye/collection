@@ -29,6 +29,7 @@ func NewInt32Collection(objs []int32) *Int32Collection {
 		objs: objs,
 	}
 	arr.AbsCollection.Parent = arr
+	arr.AbsCollection.isNumType = true
 	arr.SetCompare(compareInt32)
 	return arr
 }
@@ -114,7 +115,6 @@ func (arr *Int32Collection) DD() {
 func (arr *Int32Collection) ToJson() ([]byte, error) {
 	return json.Marshal(arr.objs)
 }
-
 
 func (arr *Int32Collection) FromJson(data []byte) error {
 	return json.Unmarshal(data, &(arr.objs))

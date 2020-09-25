@@ -59,8 +59,8 @@ type ICollection interface {
 	ForPage(page int, perPage int) ICollection
 	// 获取第n位值组成数组
 	Nth(n int, offset int) ICollection
-	// 组成的个数
-	Pad(start int, def interface{}) ICollection
+	// 将数组填充到这个数值，只能数值型生效
+	Pad(count int, def interface{}) ICollection
 	// 从队列右侧弹出结构
 	Pop() IMix
 	// 推入元素
@@ -138,6 +138,8 @@ type ICollection interface {
 	ToFloat64s() ([]float64, error)
 	// 转化为float32数组
 	ToFloat32s() ([]float32, error)
+	// 转化为interface{} 数组
+	ToInterfaces() ([]interface{}, error)
 
 	// 转换为Json
 	ToJson() ([]byte, error)

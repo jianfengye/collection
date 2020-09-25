@@ -24,6 +24,7 @@ func NewStrCollection(objs []string) *StrCollection {
 	}
 	arr.AbsCollection.compare = compareString
 	arr.AbsCollection.Parent = arr
+	arr.AbsCollection.isNumType = false
 	return arr
 }
 

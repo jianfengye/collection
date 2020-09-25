@@ -29,6 +29,7 @@ func NewFloat64Collection(objs []float64) *Float64Collection {
 		objs: objs,
 	}
 	arr.AbsCollection.Parent = arr
+	arr.AbsCollection.isNumType = true
 	arr.SetCompare(compareFloat64)
 	return arr
 }
