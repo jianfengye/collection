@@ -56,3 +56,18 @@ func TestStrCollection_Remove(t *testing.T) {
 		t.Fatal(r.Err())
 	}
 }
+
+func TestStrCollection_Diff(t *testing.T) {
+	old := NewStrCollection([]string{"1", "2"})
+	new := NewStrCollection([]string{"2", "3"})
+	o := old.Diff(new)
+
+	n, err := o.ToStrings()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(n) != 1 {
+		t.Fatal("diff error ")
+	}
+}
