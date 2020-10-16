@@ -73,6 +73,16 @@ func (arr *AbsCollection) mustBeBaseType() *AbsCollection {
 	return arr
 }
 
+func (arr *AbsCollection) mustNotBeBaseType() *AbsCollection {
+	switch arr.eleType {
+	case TYPE_OBJ, TYPE_OBJ_POINT, TYPE_UNKNWON:
+		return arr
+	}
+	err := errors.New("collection type must not be base type")
+	arr.SetErr(err)
+	return arr
+}
+
 func (arr *AbsCollection) mustNotBeEmpty() *AbsCollection {
 	if arr.Parent.Count() == 0 {
 		err := errors.New("collection should not be empty")
@@ -658,6 +668,21 @@ func (arr *AbsCollection) Contains(obj interface{}) bool {
 	return false
 }
 
+func (arr *AbsCollection) ContainsCount(obj interface{}) int {
+	arr.mustSetCompare()
+	if arr.Err() != nil {
+		return 0
+	}
+	sum := 0
+	for i := 0; i < arr.Count(); i++ {
+		o, _ := arr.Index(i).ToInterface()
+		if arr.compare(o, obj) == 0 {
+			sum++
+		}
+	}
+	return sum
+}
+
 func (arr *AbsCollection) Diff(arr2 ICollection) ICollection {
 	arr.mustSetCompare()
 	if arr.Err() != nil {
@@ -1044,6 +1069,12 @@ func (arr *AbsCollection) ToInterfaces() ([]interface{}, error) {
 		ret[i] = t
 	}
 	return ret, nil
+}
+
+func (arr *AbsCollection) ToObjs(objs interface{}) error {
+	arr.mustNotBeBaseType()
+
+	return arr.Parent.ToObjs(objs)
 }
 
 func (arr *AbsCollection) FromJson(data []byte) error {

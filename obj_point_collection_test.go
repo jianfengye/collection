@@ -447,6 +447,17 @@ func TestObjPointCollection_Normal(t *testing.T) {
 		}
 	}
 
+	{
+		out := []*FooBar{}
+		err := coll.ToObjs(&out)
+		if err != nil {
+			t.Fatal("to objs error", err.Error())
+		}
+		if len(out) != 2 {
+			t.Fatal("to objs len error")
+		}
+	}
+
 	// [Unique](#Unique) 将Collection中重复的元素进行合并
 	{
 		c := &FooBar{

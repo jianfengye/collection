@@ -209,3 +209,17 @@ func (arr *ObjPointCollection) FromJson(data []byte) error {
 	arr.objs = reflect.ValueOf(objs)
 	return nil
 }
+
+func (arr *ObjPointCollection) ToObjs(objs interface{}) error {
+	arr.mustNotBeBaseType()
+
+	objs2 := reflect.MakeSlice(arr.objs.Type(), arr.objs.Len(), arr.objs.Len())
+	reflect.Copy(objs2, arr.objs)
+
+	objVal := reflect.ValueOf(objs)
+	if !objVal.Elem().CanSet() {
+		objVal.Elem().Set(objs2)
+		return nil
+	}
+	return errors.New("element should be can set")
+}
