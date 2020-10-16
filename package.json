@@ -1,0 +1,47 @@
+{
+  "name": "collection",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "docs:build": "vuepress build docs --dest=./dist",
+    "docs:dev": "vuepress dev docs --temp .temp"
+  },
+  "dependencies": {
+    "@vuepress/plugin-back-to-top": "^1.5.4",
+    "@vuepress/plugin-last-updated": "^1.5.4",
+    "@vuepress/plugin-medium-zoom": "^1.5.4",
+    "@vuepress/shared-utils": "^1.5.4",
+    "@vuepress/theme-vue": "^1.5.4",
+    "core-js": "^3.6.4",
+    "vue": "^2.6.11",
+    "vuepress": "^1.7.1"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~4.3.0",
+    "@vue/cli-plugin-eslint": "~4.3.0",
+    "@vue/cli-service": "~4.3.0",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^6.7.2",
+    "eslint-plugin-vue": "^6.2.2",
+    "vue-template-compiler": "^2.6.11"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/essential",
+      "eslint:recommended"
+    ],
+    "parserOptions": {
+      "parser": "babel-eslint"
+    },
+    "rules": {}
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

@@ -2,9 +2,10 @@ package collection
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"reflect"
+
+	"github.com/pkg/errors"
 )
 
 // ObjCollection 代表数组集合
@@ -25,6 +26,7 @@ func NewObjCollection(objs interface{}) *ObjCollection {
 		typ:  typ,
 	}
 	arr.AbsCollection.Parent = arr
+	arr.AbsCollection.eleType = TYPE_OBJ
 	return arr
 }
 
@@ -37,17 +39,29 @@ func NewObjCollectionByType(typ reflect.Type) *ObjCollection {
 		typ:  eleTyp,
 	}
 	arr.AbsCollection.Parent = arr
+	arr.AbsCollection.eleType = TYPE_OBJ
+
 	return arr
 }
 
 // Copy 复制到新的数组
 func (arr *ObjCollection) Copy() ICollection {
-
 	objs2 := reflect.MakeSlice(arr.objs.Type(), arr.objs.Len(), arr.objs.Len())
 	reflect.Copy(objs2, arr.objs)
-	arr.objs = objs2
+	arr2 := &ObjPointCollection{
+		objs: objs2,
+		typ:  arr.objs.Type(),
+	}
+	if arr.Err() != nil {
+		arr2.SetErr(arr.Err())
+	}
+	if arr.compare != nil {
+		arr2.compare = arr.compare
+	}
+	arr2.Parent = arr2
+	arr.eleType = arr.eleType
 
-	return arr
+	return arr2
 }
 
 func (arr *ObjCollection) Insert(index int, obj interface{}) ICollection {
@@ -56,11 +70,15 @@ func (arr *ObjCollection) Insert(index int, obj interface{}) ICollection {
 	}
 
 	ret := arr.objs.Slice(0, index)
+
 	length := arr.objs.Len()
 	tail := arr.objs.Slice(index, length)
+
+	tailNew := reflect.MakeSlice(arr.objs.Type(), length-index, length-index)
+	reflect.Copy(tailNew, tail)
 	ret = reflect.Append(ret, reflect.ValueOf(obj))
 	for i := 0; i < tail.Len(); i++ {
-		ret = reflect.Append(ret, tail.Index(i))
+		ret = reflect.Append(ret, tailNew.Index(i))
 	}
 	arr.objs = ret
 	arr.AbsCollection.Parent = arr
@@ -68,10 +86,16 @@ func (arr *ObjCollection) Insert(index int, obj interface{}) ICollection {
 }
 
 func (arr *ObjCollection) Index(i int) IMix {
+	if i < 0 || i >= arr.Count() {
+		return NewErrorMix(errors.New("index exceeded"))
+	}
 	return NewMix(arr.objs.Index(i).Interface()).SetCompare(arr.compare)
 }
 
 func (arr *ObjCollection) SetIndex(i int, val interface{}) ICollection {
+	if i < 0 || i >= arr.Count() {
+		return arr.SetErr(errors.New("index exceeded"))
+	}
 	arr.objs.Index(i).Set(reflect.ValueOf(val))
 	return arr
 }
@@ -83,9 +107,8 @@ func (arr *ObjCollection) NewEmpty(err ...error) ICollection {
 		typ:  arr.typ,
 	}
 	ret.AbsCollection.Parent = ret
-	if len(err) != 0 {
-		ret.SetErr(err[0])
-	}
+	ret.AbsCollection.compare = arr.compare
+	ret.AbsCollection.eleType = arr.eleType
 	return ret
 }
 
@@ -95,7 +118,7 @@ func (arr *ObjCollection) Remove(i int) ICollection {
 	}
 
 	len := arr.Count()
-	if i >= len {
+	if i < 0 || i >= len {
 		return arr.SetErr(errors.New("index exceeded"))
 	}
 
@@ -202,3 +225,16 @@ func (arr *ObjCollection) FromJson(data []byte) error {
 	return nil
 }
 
+func (arr *ObjCollection) ToObjs(objs interface{}) error {
+	arr.mustNotBeBaseType()
+
+	objs2 := reflect.MakeSlice(arr.objs.Type(), arr.objs.Len(), arr.objs.Len())
+	reflect.Copy(objs2, arr.objs)
+
+	objVal := reflect.ValueOf(objs)
+	if !objVal.Elem().CanSet() {
+		objVal.Elem().Set(objs2)
+		return nil
+	}
+	return errors.New("element should be can set")
+}

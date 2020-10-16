@@ -2,8 +2,9 @@ package collection
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+
+	"github.com/pkg/errors"
 )
 
 type Float32Collection struct {
@@ -29,16 +30,14 @@ func NewFloat32Collection(objs []float32) *Float32Collection {
 		objs: objs,
 	}
 	arr.AbsCollection.Parent = arr
+	arr.AbsCollection.eleType = TYPE_FLOAT32
 	arr.SetCompare(compareFloat32)
 	return arr
 }
 
 // Copy copy collection
 func (arr *Float32Collection) Copy() ICollection {
-	objs2 := make([]float32, len(arr.objs))
-	copy(objs2, arr.objs)
-	arr.objs = objs2
-	return arr
+	return NewFloat32Collection(arr.objs)
 }
 
 func (arr *Float32Collection) Insert(index int, obj interface{}) ICollection {
@@ -69,7 +68,7 @@ func (arr *Float32Collection) Remove(i int) ICollection {
 	}
 
 	len := arr.Count()
-	if i >= len {
+	if i < 0 || i >= len {
 		return arr.SetErr(errors.New("index exceeded"))
 	}
 	arr.objs = append(arr.objs[0:i], arr.objs[i+1:len]...)
@@ -77,18 +76,20 @@ func (arr *Float32Collection) Remove(i int) ICollection {
 }
 
 func (arr *Float32Collection) NewEmpty(err ...error) ICollection {
-	intArr := NewFloat32Collection([]float32{})
-	if len(err) != 0 {
-		intArr.err = err[0]
-	}
-	return intArr
+	return NewFloat32Collection([]float32{})
 }
 
 func (arr *Float32Collection) Index(i int) IMix {
+	if i < 0 || i >= arr.Count() {
+		return NewErrorMix(errors.New("index exceeded"))
+	}
 	return NewMix(arr.objs[i]).SetCompare(arr.compare)
 }
 
 func (arr *Float32Collection) SetIndex(i int, val interface{}) ICollection {
+	if i < 0 || i >= arr.Count() {
+		return arr.SetErr(errors.New("index exceeded"))
+	}
 	arr.objs[i] = val.(float32)
 	return arr
 }
@@ -106,11 +107,9 @@ func (arr *Float32Collection) DD() {
 	fmt.Print(ret)
 }
 
-
 func (arr *Float32Collection) ToJson() ([]byte, error) {
 	return json.Marshal(arr.objs)
 }
-
 
 func (arr *Float32Collection) FromJson(data []byte) error {
 	return json.Unmarshal(data, &(arr.objs))

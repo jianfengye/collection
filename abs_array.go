@@ -1,19 +1,35 @@
 package collection
 
 import (
-	"errors"
 	"fmt"
 	"math/rand"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
+)
+
+type EleType int
+
+const (
+	TYPE_UNKNWON EleType = iota
+	Type_INT
+	Type_INT64
+	Type_INT32
+	TYPE_STRING
+	TYPE_FLOAT32
+	TYPE_FLOAT64
+	TYPE_OBJ
+	TYPE_OBJ_POINT
 )
 
 // 这个是一个虚函数，能实现的都实现
 type AbsCollection struct {
-	compare  func(interface{}, interface{}) int // 比较函数
-	err      error                              // 错误信息
-	isCopied bool                               // 是否已经拷贝，如果设置了true，说明已经拷贝，任何操作不影响之前的数组
+	compare func(interface{}, interface{}) int // 比较函数
+	err     error                              // 错误信息
+
+	eleType EleType // 元素类型
 
 	ICollection
 	Parent ICollection //用于调用子类
@@ -29,14 +45,62 @@ func (arr *AbsCollection) SetErr(err error) ICollection {
 }
 
 /*
+下面几个函数是内部函数
+*/
+func (arr *AbsCollection) mustSetCompare() *AbsCollection {
+	if arr.compare == nil {
+		err := errors.New("compare function must be set")
+		arr.SetErr(err)
+	}
+	return arr
+}
+
+func (arr *AbsCollection) mustBeNumType() *AbsCollection {
+	switch arr.eleType {
+	case TYPE_OBJ, TYPE_OBJ_POINT, TYPE_STRING, TYPE_UNKNWON:
+		err := errors.New("collection type must be num type")
+		arr.SetErr(err)
+	}
+	return arr
+}
+
+func (arr *AbsCollection) mustBeBaseType() *AbsCollection {
+	switch arr.eleType {
+	case TYPE_OBJ, TYPE_OBJ_POINT, TYPE_UNKNWON:
+		err := errors.New("collection type must be base type")
+		arr.SetErr(err)
+	}
+	return arr
+}
+
+func (arr *AbsCollection) mustNotBeBaseType() *AbsCollection {
+	switch arr.eleType {
+	case TYPE_OBJ, TYPE_OBJ_POINT, TYPE_UNKNWON:
+		return arr
+	}
+	err := errors.New("collection type must not be base type")
+	arr.SetErr(err)
+	return arr
+}
+
+func (arr *AbsCollection) mustNotBeEmpty() *AbsCollection {
+	if arr.Parent.Count() == 0 {
+		err := errors.New("collection should not be empty")
+		arr.SetErr(err)
+	}
+	return arr
+}
+
+/*
 下面的几个函数必须要实现
 */
 func (arr *AbsCollection) NewEmpty(err ...error) ICollection {
 	if arr.Parent == nil {
 		panic("no parent")
 	}
-	arr.isCopied = true
-	return arr.Parent.NewEmpty(err...).SetCompare(arr.compare)
+	empty := arr.Parent.NewEmpty(err...)
+	empty.SetCompare(arr.compare)
+	return empty
 }
 
 func (arr *AbsCollection) Insert(index int, obj interface{}) ICollection {
@@ -45,11 +109,6 @@ func (arr *AbsCollection) Insert(index int, obj interface{}) ICollection {
 	}
 	if arr.Parent == nil {
 		panic("no parent")
-	}
-
-	if arr.isCopied == false {
-		arr.Copy()
-		arr.isCopied = true
 	}
 
 	return arr.Parent.Insert(index, obj)
@@ -61,10 +120,6 @@ func (arr *AbsCollection) Remove(index int) ICollection {
 	}
 	if arr.Parent == nil {
 		panic("no parent")
-	}
-	if arr.isCopied == false {
-		arr.Copy()
-		arr.isCopied = true
 	}
 	return arr.Parent.Remove(index)
 }
@@ -87,8 +142,14 @@ func (arr *AbsCollection) Copy() ICollection {
 	if arr.Parent == nil {
 		panic("no parent")
 	}
-	arr.isCopied = true
-	return arr.Parent.Copy().SetCompare(arr.compare)
+	newArr := arr.Parent.Copy()
+	if newArr.GetCompare() == nil {
+		newArr.SetCompare(arr.compare)
+	}
+	if arr.Err() != nil {
+		newArr.SetErr(arr.Err())
+	}
+	return newArr
 }
 
 func (arr *AbsCollection) Count() int {
@@ -128,12 +189,9 @@ func (arr *AbsCollection) IsNotEmpty() bool {
 }
 
 func (arr *AbsCollection) Search(item interface{}) int {
+	arr.mustSetCompare()
 	if arr.Err() != nil {
 		return -1
-	}
-
-	if arr.compare == nil {
-		arr.SetErr(errors.New("compare must be set"))
 	}
 
 	for i := 0; i < arr.Count(); i++ {
@@ -146,7 +204,11 @@ func (arr *AbsCollection) Search(item interface{}) int {
 }
 
 func (arr *AbsCollection) Unique() ICollection {
+	arr.mustSetCompare()
 	if arr.Err() != nil {
+		return arr
+	}
+	if arr.Count() == 0 {
 		return arr
 	}
 	newArr := arr.NewEmpty(arr.Err())
@@ -163,6 +225,9 @@ func (arr *AbsCollection) Reject(f func(item interface{}, key int) bool) ICollec
 	if arr.Err() != nil {
 		return arr
 	}
+	if arr.Count() == 0 {
+		return arr
+	}
 	newArr := arr.NewEmpty(arr.Err())
 	for i := 0; i < arr.Count(); i++ {
 		o, _ := arr.Index(i).ToInterface()
@@ -177,11 +242,12 @@ func (arr *AbsCollection) Reject(f func(item interface{}, key int) bool) ICollec
 }
 
 func (arr *AbsCollection) Last(fs ...func(item interface{}, key int) bool) IMix {
+	arr.mustNotBeEmpty()
 	if arr.Err() != nil {
 		return NewErrorMix(arr.Err())
 	}
 	if len(fs) > 1 {
-		panic("Last 参数个数错误")
+		return NewErrorMix(errors.New("param error"))
 	}
 
 	if len(fs) == 0 {
@@ -198,6 +264,9 @@ func (arr *AbsCollection) Slice(ps ...int) ICollection {
 	}
 	if len(ps) > 2 || len(ps) == 0 {
 		panic("Slice params count error")
+	}
+	if arr.Count() == 0 {
+		return arr
 	}
 
 	start := ps[0]
@@ -238,6 +307,9 @@ func (arr *AbsCollection) Each(f func(item interface{}, key int)) {
 	if arr.Err() != nil {
 		return
 	}
+	if arr.Count() == 0 {
+		return
+	}
 	for i := 0; i < arr.Count(); i++ {
 		o, _ := arr.Index(i).ToInterface()
 		f(o, i)
@@ -258,32 +330,39 @@ func (arr *AbsCollection) Map(f func(item interface{}, key int) interface{}) ICo
 		return arr
 	}
 
-	o, _ := arr.Index(0).ToInterface()
-	first := f(o, 0)
-	ret := NewMixCollection(reflect.TypeOf(first))
-	ret.Append(first)
-	for i := 1; i < arr.Count(); i++ {
-		o, _ = arr.Index(i).ToInterface()
+	ret := make([]interface{}, 0, arr.Count())
+	for i := 0; i < arr.Count(); i++ {
+		o, _ := arr.Index(i).ToInterface()
 		o2 := f(o, i)
 
 		if arr.Err() != nil {
 			break
 		}
 
-		ret.Append(o2)
+		// 如果返回空，则默认为continue
+		if o2 == nil {
+			continue
+		}
+
+		ret = append(ret, o2)
 	}
-	return ret
+
+	if len(ret) == 0 {
+		return nil
+	}
+	newColl := NewMixCollection(reflect.TypeOf(ret[0]))
+	for _, v := range ret {
+		newColl.Append(v)
+	}
+	newColl.SetErr(arr.err)
+	return newColl
 }
 
 func (arr *AbsCollection) Reduce(f func(carry IMix, item IMix) IMix) IMix {
+	arr.mustNotBeEmpty().mustBeBaseType()
 	if arr.Err() != nil {
 		return NewErrorMix(arr.Err())
 	}
-
-	if arr.Count() == 0 {
-		return nil
-	}
-
 	if arr.Count() == 1 {
 		o, _ := arr.Index(0).ToInterface()
 		return NewMix(o)
@@ -330,6 +409,9 @@ func (arr *AbsCollection) ForPage(page int, perPage int) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
+	if arr.Count() == 0 {
+		return arr
+	}
 
 	start := page * perPage
 	return arr.Slice(start, perPage)
@@ -339,9 +421,12 @@ func (arr *AbsCollection) Nth(n int, offset int) ICollection {
 	if arr.Err() != nil {
 		return arr
 	}
+	if arr.Count() == 0 {
+		return arr
+	}
 
 	newArr := arr.NewEmpty(arr.Err())
-	for i := 0; i < arr.Count(); i++ {
+	for i := offset; i < arr.Count(); i++ {
 		if (i-offset)%n == 0 {
 			o, _ := arr.Index(i).ToInterface()
 			newArr.Append(o)
@@ -351,7 +436,11 @@ func (arr *AbsCollection) Nth(n int, offset int) ICollection {
 }
 
 func (arr *AbsCollection) Pad(count int, def interface{}) ICollection {
+	arr.mustBeNumType()
 	if arr.Err() != nil {
+		return arr
+	}
+	if arr.Count() == 0 {
 		return arr
 	}
 
@@ -397,6 +486,10 @@ func (arr *AbsCollection) Pop() IMix {
 		return nil
 	}
 
+	if arr.Count() == 0 {
+		return NewErrorMix(errors.New("Collection can not be empty"))
+	}
+
 	ret := arr.Index(arr.Count() - 1)
 	arr.Remove(arr.Count() - 1)
 
@@ -424,6 +517,10 @@ func (arr *AbsCollection) Random() IMix {
 		return nil
 	}
 
+	if arr.Count() == 0 {
+		return NewErrorMix(errors.New("Collection can not be empty"))
+	}
+
 	s := rand.NewSource(time.Now().Unix())
 	r := rand.New(s)
 	index := r.Intn(arr.Count())
@@ -432,6 +529,9 @@ func (arr *AbsCollection) Random() IMix {
 
 func (arr *AbsCollection) Reverse() ICollection {
 	if arr.Err() != nil {
+		return arr
+	}
+	if arr.Count() == 0 {
 		return arr
 	}
 
@@ -445,6 +545,9 @@ func (arr *AbsCollection) Reverse() ICollection {
 
 func (arr *AbsCollection) Shuffle() ICollection {
 	if arr.Err() != nil {
+		return arr
+	}
+	if arr.Count() == 0 {
 		return arr
 	}
 
@@ -471,12 +574,15 @@ func (arr *AbsCollection) Pluck(key string) ICollection {
 		return arr
 	}
 
-	arr.SetErr(errors.New("format not support"))
-	return arr
+	return arr.Parent.Pluck(key)
 }
 
 func (arr *AbsCollection) SortBy(key string) ICollection {
 	if arr.Err() != nil {
+		return arr
+	}
+
+	if arr.Count() == 0 {
 		return arr
 	}
 
@@ -486,6 +592,10 @@ func (arr *AbsCollection) SortBy(key string) ICollection {
 
 func (arr *AbsCollection) SortByDesc(key string) ICollection {
 	if arr.Err() != nil {
+		return arr
+	}
+
+	if arr.Count() == 0 {
 		return arr
 	}
 
@@ -503,11 +613,9 @@ func (arr *AbsCollection) GetCompare() func(a interface{}, b interface{}) int {
 }
 
 func (arr *AbsCollection) Max() IMix {
+	arr.mustSetCompare().mustNotBeEmpty()
 	if arr.Err() != nil {
-		return nil
-	}
-	if arr.compare == nil {
-		return NewErrorMix(errors.New("max: compare must be set"))
+		return NewErrorMix(arr.Err())
 	}
 
 	if arr.Count() == 0 {
@@ -526,11 +634,9 @@ func (arr *AbsCollection) Max() IMix {
 }
 
 func (arr *AbsCollection) Min() IMix {
+	arr.mustSetCompare().mustNotBeEmpty()
 	if arr.Err() != nil {
-		return nil
-	}
-	if arr.compare == nil {
-		return NewErrorMix(errors.New("min: compare must be set"))
+		return NewErrorMix(arr.Err())
 	}
 
 	if arr.Count() == 0 {
@@ -549,6 +655,7 @@ func (arr *AbsCollection) Min() IMix {
 }
 
 func (arr *AbsCollection) Contains(obj interface{}) bool {
+	arr.mustSetCompare()
 	if arr.Err() != nil {
 		return false
 	}
@@ -561,7 +668,23 @@ func (arr *AbsCollection) Contains(obj interface{}) bool {
 	return false
 }
 
+func (arr *AbsCollection) ContainsCount(obj interface{}) int {
+	arr.mustSetCompare()
+	if arr.Err() != nil {
+		return 0
+	}
+	sum := 0
+	for i := 0; i < arr.Count(); i++ {
+		o, _ := arr.Index(i).ToInterface()
+		if arr.compare(o, obj) == 0 {
+			sum++
+		}
+	}
+	return sum
+}
+
 func (arr *AbsCollection) Diff(arr2 ICollection) ICollection {
+	arr.mustSetCompare()
 	if arr.Err() != nil {
 		return arr
 	}
@@ -577,6 +700,9 @@ func (arr *AbsCollection) Diff(arr2 ICollection) ICollection {
 }
 
 func (arr *AbsCollection) qsort(left, right int, isAscOrder bool) {
+	if arr.Err() != nil {
+		return
+	}
 	tmp := arr.Index(left)
 	p := left
 	i, j := left, right
@@ -642,36 +768,31 @@ func (arr *AbsCollection) qsort(left, right int, isAscOrder bool) {
 }
 
 func (arr *AbsCollection) Sort() ICollection {
-
+	arr.mustSetCompare()
 	if arr.Err() != nil {
 		return arr
 	}
-	if arr.compare == nil {
-		return arr.SetErr(errors.New("sort: compare must be set"))
-	}
 
-	if arr.isCopied {
-		arr.qsort(0, arr.Count()-1, true)
+	if arr.Count() == 0 {
 		return arr
 	}
-	arr.Copy()
-	return arr.Sort()
+
+	arr.qsort(0, arr.Count()-1, true)
+	return arr
 }
 
 func (arr *AbsCollection) SortDesc() ICollection {
+	arr.mustSetCompare()
 	if arr.Err() != nil {
 		return arr
 	}
-	if arr.compare == nil {
-		return arr.SetErr(errors.New("sort: compare must be set"))
-	}
 
-	if arr.isCopied {
-		arr.qsort(0, arr.Count()-1, false)
+	if arr.Count() == 0 {
 		return arr
 	}
-	arr.Copy()
-	return arr.SortDesc()
+
+	arr.qsort(0, arr.Count()-1, false)
+	return arr
 }
 
 func (arr *AbsCollection) Join(split string, format ...func(item interface{}) string) string {
@@ -698,13 +819,10 @@ func (arr *AbsCollection) Join(split string, format ...func(item interface{}) st
 }
 
 func (arr *AbsCollection) Avg() IMix {
+	arr.mustSetCompare().mustNotBeEmpty().mustBeNumType()
 	if arr.Err() != nil {
 		return NewErrorMix(arr.Err())
 	}
-	if arr.Count() == 0 {
-		return NewErrorMix(errors.New("avg: arr count can not be empty"))
-	}
-
 	var sum IMix
 	var err error
 	o0, _ := arr.Index(0).ToInterface()
@@ -723,9 +841,11 @@ func (arr *AbsCollection) Avg() IMix {
 }
 
 func (arr *AbsCollection) Median() IMix {
+	arr.mustSetCompare().mustNotBeEmpty().mustBeNumType()
 	if arr.Err() != nil {
 		return NewErrorMix(arr.Err())
 	}
+
 	newArr := arr.Sort()
 	if newArr.Count()%2 == 0 {
 		imax, err := newArr.Index(newArr.Count()/2 - 1).Add(newArr.Index(newArr.Count() / 2))
@@ -743,6 +863,7 @@ func (arr *AbsCollection) Median() IMix {
 }
 
 func (arr *AbsCollection) Mode() IMix {
+	arr.mustNotBeEmpty().mustSetCompare()
 	if arr.Err() != nil {
 		return NewErrorMix(arr.Err())
 	}
@@ -767,12 +888,9 @@ func (arr *AbsCollection) Mode() IMix {
 }
 
 func (arr *AbsCollection) Sum() IMix {
+	arr.mustBeNumType().mustNotBeEmpty().mustSetCompare()
 	if arr.Err() != nil {
 		return NewErrorMix(arr.Err())
-	}
-
-	if arr.Count() == 0 {
-		return NewErrorMix(errors.New("sum: collection size can not be zero"))
 	}
 
 	o0, _ := arr.Index(0).ToInterface()
@@ -786,6 +904,9 @@ func (arr *AbsCollection) Sum() IMix {
 
 func (arr *AbsCollection) Filter(f func(obj interface{}, index int) bool) ICollection {
 	if arr.Err() != nil {
+		return arr
+	}
+	if arr.Count() == 0 {
 		return arr
 	}
 
@@ -809,8 +930,10 @@ func (arr *AbsCollection) First(f ...func(obj interface{}, index int) bool) IMix
 		return arr.Parent.Index(0)
 	}
 	fun := f[0]
-
-	l := arr.Parent.Count()
+	if arr.Count() == 0 {
+		return NewEmptyMix()
+	}
+	l := arr.Count()
 	for i := 0; i < l; i++ {
 		obj, _ := arr.Index(i).ToInterface()
 		if fun(obj, i) == true {
@@ -931,6 +1054,27 @@ func (arr *AbsCollection) ToJson() ([]byte, error) {
 	}
 
 	return arr.Parent.ToJson()
+}
+
+func (arr *AbsCollection) ToInterfaces() ([]interface{}, error) {
+	if arr.Err() != nil {
+		return nil, arr.Err()
+	}
+	ret := make([]interface{}, arr.Count())
+	for i := 0; i < arr.Count(); i++ {
+		t, err := arr.Index(i).ToInterface()
+		if err != nil {
+			return nil, err
+		}
+		ret[i] = t
+	}
+	return ret, nil
+}
+
+func (arr *AbsCollection) ToObjs(objs interface{}) error {
+	arr.mustNotBeBaseType()
+
+	return arr.Parent.ToObjs(objs)
 }
 
 func (arr *AbsCollection) FromJson(data []byte) error {
