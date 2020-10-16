@@ -2,8 +2,9 @@ package collection
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+
+	"github.com/pkg/errors"
 )
 
 type Int64Collection struct {
@@ -29,16 +30,14 @@ func NewInt64Collection(objs []int64) *Int64Collection {
 		objs: objs,
 	}
 	arr.AbsCollection.Parent = arr
+	arr.AbsCollection.eleType = Type_INT64
 	arr.SetCompare(compareInt64)
 	return arr
 }
 
 // Copy copy collection
 func (arr *Int64Collection) Copy() ICollection {
-	objs2 := make([]int64, len(arr.objs))
-	copy(objs2, arr.objs)
-	arr.objs = objs2
-	return arr
+	return NewInt64Collection(arr.objs)
 }
 
 func (arr *Int64Collection) Insert(index int, obj interface{}) ICollection {
@@ -69,7 +68,7 @@ func (arr *Int64Collection) Remove(i int) ICollection {
 	}
 
 	len := arr.Count()
-	if i >= len {
+	if i < 0 || i >= len {
 		return arr.SetErr(errors.New("index exceeded"))
 	}
 	arr.objs = append(arr.objs[0:i], arr.objs[i+1:len]...)
@@ -77,18 +76,20 @@ func (arr *Int64Collection) Remove(i int) ICollection {
 }
 
 func (arr *Int64Collection) NewEmpty(err ...error) ICollection {
-	intArr := NewInt64Collection([]int64{})
-	if len(err) != 0 {
-		intArr.err = err[0]
-	}
-	return intArr
+	return NewInt64Collection([]int64{})
 }
 
 func (arr *Int64Collection) Index(i int) IMix {
+	if i < 0 || i >= arr.Count() {
+		return NewErrorMix(errors.New("index exceeded"))
+	}
 	return NewMix(arr.objs[i]).SetCompare(arr.compare)
 }
 
 func (arr *Int64Collection) SetIndex(i int, val interface{}) ICollection {
+	if i < 0 || i >= arr.Count() {
+		return arr.SetErr(errors.New("index exceeded"))
+	}
 	arr.objs[i] = val.(int64)
 	return arr
 }

@@ -2,9 +2,10 @@ package collection
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 type StrCollection struct {
@@ -24,23 +25,17 @@ func NewStrCollection(objs []string) *StrCollection {
 	}
 	arr.AbsCollection.compare = compareString
 	arr.AbsCollection.Parent = arr
+	arr.AbsCollection.eleType = TYPE_STRING
 	return arr
 }
 
 // Copy copy collection
 func (arr *StrCollection) Copy() ICollection {
-	objs2 := make([]string, len(arr.objs))
-	copy(objs2, arr.objs)
-	arr.objs = objs2
-	return arr
+	return NewStrCollection(arr.objs)
 }
 
 func (arr *StrCollection) NewEmpty(err ...error) ICollection {
-	arr2 := NewStrCollection(arr.objs)
-	if len(err) != 0 {
-		arr2.SetErr(err[0])
-	}
-	return arr2
+	return NewStrCollection([]string{})
 }
 
 func (arr *StrCollection) Insert(index int, obj interface{}) ICollection {
@@ -51,15 +46,14 @@ func (arr *StrCollection) Insert(index int, obj interface{}) ICollection {
 		length := len(arr.objs)
 
 		// 如果是append操作，直接调用系统的append，不新创建collection
-		if index == length {
+		if index >= length {
 			arr.objs = append(arr.objs, i)
 			return arr
 		}
 
-		new := arr.objs[0:index]
-		new = append(new, i)
-		new = append(new, arr.objs[index:length]...)
-		arr.objs = new
+		arr.objs = append(arr.objs, "0")
+		copy(arr.objs[index+1:], arr.objs[index:])
+		arr.objs[index] = i
 	} else {
 		return arr.SetErr(errors.New("Insert: type error"))
 	}
@@ -72,7 +66,7 @@ func (arr *StrCollection) Remove(i int) ICollection {
 	}
 
 	len := arr.Count()
-	if i >= len {
+	if i < 0 || i >= len {
 		return arr.SetErr(errors.New("index exceeded"))
 	}
 	arr.objs = append(arr.objs[0:i], arr.objs[i+1:len]...)
@@ -80,10 +74,16 @@ func (arr *StrCollection) Remove(i int) ICollection {
 }
 
 func (arr *StrCollection) Index(i int) IMix {
+	if i < 0 || i >= arr.Count() {
+		return NewErrorMix(errors.New("index exceeded"))
+	}
 	return NewMix(arr.objs[i]).SetCompare(arr.compare)
 }
 
 func (arr *StrCollection) SetIndex(i int, val interface{}) ICollection {
+	if i < 0 || i >= arr.Count() {
+		return arr.SetErr(errors.New("index exceeded"))
+	}
 	arr.objs[i] = val.(string)
 	return arr
 }
