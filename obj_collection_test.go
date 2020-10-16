@@ -430,13 +430,6 @@ func TestObjCollection_ToObjs(t *testing.T) {
 	a2 := Foo{A: "a2", B: 2}
 	a3 := Foo{A: "a3", B: 3}
 
-	// aArr := []Foo{a1, a2, a3}
-	// bArr := []Foo{a1, a1, a1}
-
-	// arrV := reflect.ValueOf(aArr)
-	// brrV := reflect.ValueOf(bArr)
-	// num := reflect.Copy(brrV, arrV)
-	// fmt.Println(num)
 	bArr := []Foo{}
 	objColl := NewObjCollection([]Foo{a1, a2, a3})
 	err := objColl.ToObjs(&bArr)
