@@ -1,7 +1,7 @@
 ---
 home: true
 actionText: 开始体验
-actionLink: /guide/introduce
+actionLink: /method/append
 footer: MIT Licensed | Copyright © 2020-present didi 
 features:
   - title: 快速开发 
