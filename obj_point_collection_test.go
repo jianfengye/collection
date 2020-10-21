@@ -472,3 +472,42 @@ func TestObjPointCollection_Normal(t *testing.T) {
 	}
 
 }
+
+func TestObjPointCollection_ToObjs(t *testing.T) {
+	a1 := &Foo{A: "a1", B: 1}
+	a2 := &Foo{A: "a2", B: 2}
+	a3 := &Foo{A: "a3", B: 3}
+
+	bArr := []*Foo{}
+	objColl := NewObjPointCollection([]*Foo{a1, a2, a3})
+	err := objColl.ToObjs(&bArr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(bArr) != 3 {
+		t.Fatal("toObjs error len")
+	}
+	if bArr[1].A != "a2" {
+		t.Fatal("toObjs error copy")
+	}
+}
+
+func TestObjCollection_ToObjs2(t *testing.T) {
+	a1 := Foo{A: "a1", B: 1}
+	a2 := Foo{A: "a2", B: 2}
+	a3 := Foo{A: "a3", B: 3}
+
+	bArr := []Foo{}
+
+	objColl := NewObjCollection([]Foo{a1, a2, a3})
+	err := objColl.ToObjs(&bArr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(bArr) != 3 {
+		t.Fatal("toObjs error len")
+	}
+	if bArr[1].A != "a2" {
+		t.Fatal("toObjs error copy")
+	}
+}

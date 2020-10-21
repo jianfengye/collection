@@ -217,7 +217,7 @@ func (arr *ObjPointCollection) ToObjs(objs interface{}) error {
 	reflect.Copy(objs2, arr.objs)
 
 	objVal := reflect.ValueOf(objs)
-	if !objVal.Elem().CanSet() {
+	if objVal.Elem().CanSet() {
 		objVal.Elem().Set(objs2)
 		return nil
 	}
