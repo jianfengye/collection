@@ -596,3 +596,11 @@ func TestAbsCollection_ToMixs(t *testing.T) {
 		t.Fatal(errors.New("ToInts error"))
 	}
 }
+
+func TestAbsCollection_ContainsCount(t *testing.T) {
+	intColl := NewIntCollection([]int{1, 2, 2, 3})
+	count := intColl.ContainsCount(2)
+	if count != 2 {
+		t.Fatal(errors.New("contains count error"))
+	}
+}
