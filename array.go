@@ -100,7 +100,7 @@ type ICollection interface {
 	Min() IMix
 	// 判断是否包含某个元素，（并不进行定位），对基础Collection生效
 	Contains(obj interface{}) bool
-	// 判断包含某个元素的个数
+	// 判断包含某个元素的个数，返回0代表没有找到，返回正整数代表个数。必须设置compare函数
 	ContainsCount(obj interface{}) int
 	// 比较两个数组，获取第一个数组不在第二个数组中的元素，组成新数组
 	Diff(arr ICollection) ICollection

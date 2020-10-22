@@ -30,7 +30,8 @@ module.exports = {
           children: [
             "append",
             "avg",
-            "contain",
+            "contains",
+            "containscount",
             "copy",
             "dd",
             "diff",
@@ -87,7 +88,8 @@ module.exports = {
           children: [
             "install",
             "introduce",
-            "benchmark"
+            "benchmark",
+            "v1.3.1"
           ],
         },
       ],
