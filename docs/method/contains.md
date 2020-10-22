@@ -1,4 +1,4 @@
-# Contain
+# Contains
 
 `Contains(obj interface{}) bool`
 
