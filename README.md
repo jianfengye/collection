@@ -7,16 +7,16 @@ Collection的使用手册线上地址：http://collection.funaio.cn
 
 | 版本 | 说明 |
 | ------| ------ |
-| 1.3.0 |  增加文档说明 |
-| 1.2.0 |  增加对象指针数组，增加测试覆盖率, 增加ToInterfaces方法 |
+| v1.3.1 |  增加一些说明文档 |
+| v1.3.0 |  增加文档说明 |
+| v1.2.0 |  增加对象指针数组，增加测试覆盖率, 增加ToInterfaces方法 |
 | 1.1.2 |  增加一些空数组的判断，解决一些issue |
 | 1.1.1 |  对collection包进行了json解析和反解析的支持，对mix类型支持了SetField和RemoveFields的类型设置 |
 | 1.1.0 |  增加了对int32的支持，增加了延迟加载，增加了Copy函数，增加了compare从ICollection传递到IMix，使用快排加速了Sort方法 |
 | 1.0.1 |  第一次发布 |
 
-`go get github.com/jianfengye/collection`
+`go get github.com/jianfengye/collection@v1.3.1`
 
-创建collection库的说明文章见：[一个让业务开发效率提高10倍的golang库](https://www.cnblogs.com/yjf512/p/10818089.html)
 
 Collection包目前支持的元素类型：int32, int, int64, float32, float64, string, struct, struct_point。
 
