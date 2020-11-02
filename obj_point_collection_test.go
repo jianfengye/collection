@@ -471,6 +471,19 @@ func TestObjPointCollection_Normal(t *testing.T) {
 
 	}
 
+	{
+		newColl := coll.Copy().SortBy("Bar")
+		newArr := []*FooBar{}
+		err := newColl.ToObjs(&newArr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(newArr) != newColl.Count() {
+			t.Fatal("len error")
+		}
+
+	}
+
 }
 
 func TestObjPointCollection_ToObjs(t *testing.T) {
