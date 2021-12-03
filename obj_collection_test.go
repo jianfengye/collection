@@ -443,3 +443,19 @@ func TestObjCollection_ToObjs(t *testing.T) {
 		t.Fatal("toObjs error copy")
 	}
 }
+
+func TestObjCollection_GroupBy(t *testing.T) {
+	a1 := Foo{A: "a1", B: 1}
+	a2 := Foo{A: "a2", B: 2}
+	a3 := Foo{A: "a3", B: 3}
+	a4 := Foo{A: "a3", B: 2}
+	objColl := NewObjCollection([]Foo{a1, a2, a3, a4})
+	groupBy := objColl.GroupBy(func(item interface{}, i2 int) interface{} {
+		foo := item.(Foo)
+		return foo.A
+	})
+	for k, collection := range groupBy {
+		t.Log(k)
+		collection.DD()
+	}
+}

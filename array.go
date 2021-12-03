@@ -73,6 +73,8 @@ type ICollection interface {
 	Reverse() ICollection
 	// 随机乱置
 	Shuffle() ICollection
+	// GroupBy 类scala groupby 设计
+	GroupBy(func(interface{}, int) interface{}) map[interface{}]ICollection
 	// 打印出当前数组结构
 	DD()
 
