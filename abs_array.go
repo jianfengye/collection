@@ -320,6 +320,35 @@ func (arr *AbsCollection) Each(f func(item interface{}, key int)) {
 	}
 }
 
+func (arr *AbsCollection) GroupBy(f func(item interface{}, key int) interface{}) map[interface{}]ICollection {
+	if arr.Err() != nil {
+		return nil
+	}
+
+	size := arr.Count()
+	if size == 0 {
+		return nil
+	}
+	objMap := make(map[interface{}]ICollection, size)
+	for i := 0; i < size; i++ {
+		o, _ := arr.Index(i).ToInterface()
+		key := f(o, i)
+		// 如果返回空，则默认为continue
+		if key == nil {
+			continue
+		}
+		if value, isOk := objMap[key]; isOk {
+			value.Append(o)
+		} else {
+			ret := arr.NewEmpty()
+			ret.Append(o)
+			objMap[key] = ret
+		}
+	}
+
+	return objMap
+}
+
 func (arr *AbsCollection) Map(f func(item interface{}, key int) interface{}) ICollection {
 	if arr.Err() != nil {
 		return arr

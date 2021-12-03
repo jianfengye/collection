@@ -87,3 +87,15 @@ func TestInt32Collection_Remove(t *testing.T) {
 		t.Fatal(r.Err())
 	}
 }
+
+func TestInt32Collection_GroupBy(t *testing.T) {
+	objColl := NewInt32Collection([]int32{1, 1, 20, 4})
+	groupBy := objColl.GroupBy(func(item interface{}, i2 int) interface{} {
+		foo := item.(int32)
+		return foo
+	})
+	for k, collection := range groupBy {
+		t.Log(k)
+		collection.DD()
+	}
+}
