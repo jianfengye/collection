@@ -78,6 +78,8 @@ module.exports = {
             "tomixs",
             "unique",
             "toobjects",
+            "split",
+            "groupby"
           ],
         },
       ],
@@ -89,7 +91,8 @@ module.exports = {
             "install",
             "introduce",
             "benchmark",
-            "v1.3.1"
+            "v1.3.1",
+            "v1.4.0"
           ],
         },
       ],
