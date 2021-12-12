@@ -22,7 +22,6 @@ func TestObjCollection_Insert(t *testing.T) {
 	{
 		objColl := NewObjCollection([]Foo{a1, a2})
 		objColl2 := objColl.Insert(0, a3)
-		objColl2.DD()
 		i, err := objColl2.Index(0).ToInterface()
 		if err != nil {
 			t.Fatal(err)
@@ -53,7 +52,6 @@ func TestObjCollection_Insert(t *testing.T) {
 		if !reflect.DeepEqual(f1, a3) {
 			t.Fatal("insert 0 error")
 		}
-		objColl2.DD()
 	}
 }
 
@@ -64,8 +62,6 @@ func TestObjCollection_Pluck(t *testing.T) {
 	objColl := NewObjCollection([]Foo{a1, a2})
 
 	strColl := objColl.Pluck("A")
-
-	strColl.DD()
 
 	str, err := strColl.Index(0).ToString()
 	if err != nil {
@@ -89,7 +85,6 @@ func TestObjCollection_SortBy(t *testing.T) {
 	if count != 3 {
 		t.Fatal("sort By count error")
 	}
-	newObjColl.DD()
 	obj, err := newObjColl.Index(0).ToInterface()
 	if err != nil {
 		t.Fatal(err)
@@ -101,7 +96,6 @@ func TestObjCollection_SortBy(t *testing.T) {
 	}
 
 	new2 := newObjColl.Slice(0, 2)
-	new2.DD()
 	if new2.Count() != 2 {
 		t.Fatal("slice error")
 	}
@@ -120,7 +114,6 @@ func TestObjCollection_Sort(t *testing.T) {
 	objColl.SetCompare(compare)
 
 	newObjColl := objColl.Sort()
-	newObjColl.DD()
 
 	obj, err := newObjColl.Index(0).ToInterface()
 	if err != nil {
@@ -181,8 +174,6 @@ func TestObjCollection_Copy(t *testing.T) {
 
 	newObjColl := objColl.Copy()
 
-	newObjColl.DD()
-
 	if newObjColl.Count() != 3 {
 		t.Fatal("Copy count error")
 	}
@@ -205,8 +196,6 @@ func TestObjCollection_SortByDesc(t *testing.T) {
 
 	newObjColl := objColl.SortByDesc("B")
 
-	newObjColl.DD()
-
 	obj, err := newObjColl.Index(0).ToInterface()
 	if err != nil {
 		t.Fatal(err)
@@ -223,7 +212,6 @@ func TestObjCollection(t *testing.T) {
 	a2 := Foo{A: "a2"}
 
 	objColl := NewObjCollection([]Foo{a1, a2})
-	objColl.DD()
 
 	if objColl.IsNotEmpty() != true {
 		t.Fatal("Is Not Empty error")
@@ -255,7 +243,6 @@ func TestObjCollection(t *testing.T) {
 		return 0
 	})
 
-	objColl.DD()
 	if objColl.Search(Foo{A: "a3"}) != 2 {
 		t.Fatal("Search error")
 	}
@@ -291,15 +278,20 @@ func TestObjCollection(t *testing.T) {
 		t.Fatal("Reduce error")
 	}
 
-	objColl.ForPage(1, 2).DD()
+	pager := objColl.ForPage(1, 2)
+	if pager.Err() != nil {
+		t.Fatal("error")
+	}
 
 	aColl := objColl.Pluck("A")
-	aColl.DD()
+	if aColl.Err() != nil {
+		t.Fatal("error")
+	}
 
 	a0 := Foo{A: "a0"}
 	objColl.Append(a0)
 
-	objColl.Sort().DD()
+	objColl.Sort()
 	o, err := objColl.Index(0).ToInterface()
 	if err != nil {
 		t.Fatal(err)
@@ -309,7 +301,6 @@ func TestObjCollection(t *testing.T) {
 		t.Fatal("sort result error")
 	}
 
-	objColl.DD()
 	objColl.SetCompare(func(a interface{}, b interface{}) int {
 		aFoo := a.(Foo)
 		bFoo := b.(Foo)
@@ -398,7 +389,6 @@ func TestObjCollection_map(t *testing.T) {
 		foo := item.(Foo)
 		return foo.A
 	})
-	maps.DD()
 	ret, err := maps.Reduce(func(carry IMix, item IMix) IMix {
 		ret, _ := carry.ToString()
 		join, _ := item.ToString()
@@ -422,7 +412,6 @@ func TestObjCollection_Remove(t *testing.T) {
 	if r.Err() != nil {
 		t.Fatal(r.Err())
 	}
-	r.DD()
 }
 
 func TestObjCollection_ToObjs(t *testing.T) {

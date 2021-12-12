@@ -59,7 +59,7 @@ func (arr *ObjCollection) Copy() ICollection {
 		arr2.compare = arr.compare
 	}
 	arr2.Parent = arr2
-	arr.eleType = arr.eleType
+	arr2.eleType = arr.eleType
 
 	return arr2
 }

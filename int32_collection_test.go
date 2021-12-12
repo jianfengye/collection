@@ -10,8 +10,6 @@ import (
 func TestInt32Collection(t *testing.T) {
 	arr := NewInt32Collection([]int32{1, 2, 3, 4, 5})
 
-	arr.DD()
-
 	max, err := arr.Max().ToInt32()
 	if err != nil {
 		t.Fatal(err)
@@ -94,6 +92,7 @@ func TestInt32Collection_GroupBy(t *testing.T) {
 		foo := item.(int32)
 		return foo
 	})
+
 	for k, collection := range groupBy {
 		t.Log(k)
 		collection.DD()

@@ -37,20 +37,18 @@ func TestAbsCollection_NewEmpty(t *testing.T) {
 func TestAbsCollection_Append(t *testing.T) {
 	intColl := NewIntCollection([]int{1, 2})
 	intColl.Append(3)
-	if intColl.Err() == nil {
-		intColl.DD()
+	if intColl.Err() != nil {
+		t.Fatal("error")
 	}
 
 	if intColl.Count() != 3 {
 		t.Fatal("Append 失败")
 	}
-	intColl.DD()
 }
 
 func TestAbsCollection_Index(t *testing.T) {
 	intColl := NewIntCollection([]int{1, 2})
 	foo := intColl.Index(1)
-	foo.DD()
 	i, err := foo.ToInt()
 	if err != nil {
 		t.Fatal("Index 类型错误")
@@ -62,7 +60,7 @@ func TestAbsCollection_Index(t *testing.T) {
 
 func TestAbsCollection_IsEmpty(t *testing.T) {
 	intColl := NewIntCollection([]int{1, 2})
-	println(intColl.IsEmpty())
+	// println(intColl.IsEmpty())
 	if intColl.IsEmpty() != false {
 		t.Fatal("IsEmpty 错误")
 	}
@@ -70,7 +68,7 @@ func TestAbsCollection_IsEmpty(t *testing.T) {
 
 func TestAbsCollection_IsNotEmpty(t *testing.T) {
 	intColl := NewIntCollection([]int{1, 2})
-	println(intColl.IsNotEmpty())
+	// println(intColl.IsNotEmpty())
 	if intColl.IsNotEmpty() != true {
 		t.Fatal("IsNotEmpty 错误")
 	}
@@ -95,7 +93,6 @@ func TestAbsCollection_Unique(t *testing.T) {
 		t.Fatal("Unique 重复错误")
 	}
 
-	uniqColl.DD()
 }
 
 func TestAbsCollection_Reject(t *testing.T) {
@@ -108,7 +105,6 @@ func TestAbsCollection_Reject(t *testing.T) {
 		t.Fatal("Reject 重复错误")
 	}
 
-	retColl.DD()
 }
 
 func TestAbsCollection_Last(t *testing.T) {
@@ -141,21 +137,19 @@ func TestAbsCollection_Slice(t *testing.T) {
 		t.Fatal("Slice 错误")
 	}
 
-	retColl.DD()
-
 	retColl = intColl.Slice(2, 2)
 	if retColl.Count() != 2 {
 		t.Fatal("Slice 两个参数错误")
 	}
 
-	retColl.DD()
+	// retColl.DD()
 
 	retColl = intColl.Slice(2, -1)
 	if retColl.Count() != 3 {
 		t.Fatal("Slice第二个参数为-1错误")
 	}
 
-	retColl.DD()
+	// retColl.DD()
 }
 
 func TestAbsCollection_Merge(t *testing.T) {
@@ -173,7 +167,6 @@ func TestAbsCollection_Merge(t *testing.T) {
 		t.Fatal("Merge 错误")
 	}
 
-	intColl.DD()
 }
 
 func TestAbsCollection_Each(t *testing.T) {
@@ -213,7 +206,6 @@ func TestAbsCollection_Map(t *testing.T) {
 		v := item.(int)
 		return v * 2
 	})
-	newIntColl.DD()
 
 	if newIntColl.Count() != 4 {
 		t.Fatal("Map错误")
@@ -261,7 +253,7 @@ func TestAbsCollection_Reduce(t *testing.T) {
 		return NewMix(carryInt + itemInt)
 	})
 
-	sumMix.DD()
+	// sumMix.DD()
 
 	sum, err := sumMix.ToInt()
 	if err != nil {
@@ -292,7 +284,6 @@ func TestAbsCollection_Every(t *testing.T) {
 func TestAbsCollection_ForPage(t *testing.T) {
 	intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
 	ret := intColl.ForPage(1, 2)
-	ret.DD()
 
 	if ret.Count() != 2 {
 		t.Fatal("For page错误")
@@ -302,7 +293,6 @@ func TestAbsCollection_ForPage(t *testing.T) {
 func TestAbsCollection_Nth(t *testing.T) {
 	intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
 	ret := intColl.Nth(4, 1)
-	ret.DD()
 
 	if ret.Count() != 2 {
 		t.Fatal("Nth 错误")
@@ -316,7 +306,6 @@ func TestAbsCollection_Pad(t *testing.T) {
 		t.Fatal(ret.Err().Error())
 	}
 
-	ret.DD()
 	if ret.Count() != 5 {
 		t.Fatal("Pad 错误")
 	}
@@ -325,7 +314,6 @@ func TestAbsCollection_Pad(t *testing.T) {
 	if ret.Err() != nil {
 		t.Fatal(ret.Err().Error())
 	}
-	ret.DD()
 	if ret.Count() != 5 {
 		t.Fatal("Pad 错误")
 	}
@@ -341,7 +329,6 @@ func TestAbsCollection_Pop(t *testing.T) {
 	if in != 6 {
 		t.Fatal("Pop 错误")
 	}
-	intColl.DD()
 	if intColl.Count() != 5 {
 		t.Fatal("Pop 后本体错误")
 	}
@@ -350,7 +337,6 @@ func TestAbsCollection_Pop(t *testing.T) {
 func TestAbsCollection_Push(t *testing.T) {
 	intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
 	intColl.Push(7)
-	intColl.DD()
 	if intColl.Count() != 7 {
 		t.Fatal("Push 后本体错误")
 	}
@@ -364,7 +350,6 @@ func TestAbsCollection_Prepend(t *testing.T) {
 		t.Fatal(intColl.Err().Error())
 	}
 
-	intColl.DD()
 	if intColl.Count() != 7 {
 		t.Fatal("Prepend错误")
 	}
@@ -381,7 +366,6 @@ func TestAbsCollection_Prepend(t *testing.T) {
 func TestAbsCollection_Random(t *testing.T) {
 	intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
 	out := intColl.Random()
-	out.DD()
 
 	_, err := out.ToInt()
 	if err != nil {
@@ -392,7 +376,9 @@ func TestAbsCollection_Random(t *testing.T) {
 func TestAbsCollection_Reverse(t *testing.T) {
 	intColl := NewIntCollection([]int{1, 2, 3, 4, 5, 6})
 	vs := intColl.Reverse()
-	vs.DD()
+	if vs.Count() != 6 {
+		t.Fatal("Reverse error")
+	}
 }
 
 func TestAbsCollection_Mode(t *testing.T) {
@@ -430,7 +416,7 @@ func TestAbsCollection_Avg(t *testing.T) {
 func TestAbsCollection_Shuffle(t *testing.T) {
 	intColl := NewIntCollection([]int{1, 2, 2, 3})
 	newColl := intColl.Shuffle()
-	newColl.DD()
+	// newColl.DD()
 	if newColl.Err() != nil {
 		t.Fatal(newColl.Err())
 	}
@@ -476,7 +462,7 @@ func TestAbsCollection_Diff(t *testing.T) {
 	intColl2 := NewIntCollection([]int{2, 3, 4})
 
 	diff := intColl.Diff(intColl2)
-	diff.DD()
+	// diff.DD()
 	if diff.Count() != 1 {
 		t.Fatal("diff 错误")
 	}
@@ -488,7 +474,6 @@ func TestAbsCollection_Sort(t *testing.T) {
 	if intColl2.Err() != nil {
 		t.Fatal(intColl2.Err())
 	}
-	intColl2.DD()
 	ins, err := intColl2.ToInts()
 	if err != nil {
 		t.Fatal(err)
@@ -504,7 +489,6 @@ func TestAbsCollection_SortDesc(t *testing.T) {
 	if intColl2.Err() != nil {
 		t.Fatal(intColl2.Err())
 	}
-	intColl2.DD()
 	ins, err := intColl2.ToInts()
 	if err != nil {
 		t.Fatal(err)
@@ -542,7 +526,6 @@ func TestAbsCollection_Median(t *testing.T) {
 
 func TestAbsCollection_Sum(t *testing.T) {
 	intColl := NewIntCollection([]int{1, 2, 2, 3})
-	intColl.Sum().DD()
 	sum, err := intColl.Sum().ToInt()
 	if err != nil {
 		t.Fatal(err)
@@ -555,24 +538,24 @@ func TestAbsCollection_Sum(t *testing.T) {
 
 func TestAbsCollection_Filter(t *testing.T) {
 	intColl := NewIntCollection([]int{1, 2, 2, 3})
-	intColl.Filter(func(obj interface{}, index int) bool {
+	ret := intColl.Filter(func(obj interface{}, index int) bool {
 		val := obj.(int)
-		if val == 2 {
-			return true
-		}
-		return false
-	}).DD()
+		return val == 2
+	})
+	if ret.Count() != 2 {
+		t.Fatal("filter error")
+	}
 }
 
 func TestAbsCollection_First(t *testing.T) {
 	intColl := NewIntCollection([]int{1, 2, 2, 3})
-	intColl.First(func(obj interface{}, index int) bool {
+	ret := intColl.First(func(obj interface{}, index int) bool {
 		val := obj.(int)
-		if val > 2 {
-			return true
-		}
-		return false
-	}).DD()
+		return val > 2
+	})
+	if ret.MustToInt() != 3 {
+		t.Fatal("first error")
+	}
 }
 
 func TestAbsCollection_ToInts(t *testing.T) {

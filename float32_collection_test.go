@@ -9,8 +9,6 @@ import (
 func TestFloat32Collection(t *testing.T) {
 	arr := NewFloat32Collection([]float32{1.0, 2.0, 3.0, 4.0, 5.0})
 
-	arr.DD()
-
 	max, err := arr.Max().ToFloat32()
 	if err != nil {
 		t.Fatal(err)

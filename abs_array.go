@@ -1033,6 +1033,51 @@ func (arr *AbsCollection) ToInts() ([]int, error) {
 	return ret, nil
 }
 
+func (arr *AbsCollection) ToUInt64s() ([]uint64, error) {
+	if arr.Err() != nil {
+		return nil, arr.Err()
+	}
+	ret := make([]uint64, arr.Count())
+	for i := 0; i < arr.Count(); i++ {
+		t, err := arr.Index(i).ToUInt64()
+		if err != nil {
+			return nil, err
+		}
+		ret[i] = t
+	}
+	return ret, nil
+}
+
+func (arr *AbsCollection) ToUInt32s() ([]uint32, error) {
+	if arr.Err() != nil {
+		return nil, arr.Err()
+	}
+	ret := make([]uint32, arr.Count())
+	for i := 0; i < arr.Count(); i++ {
+		t, err := arr.Index(i).ToUInt32()
+		if err != nil {
+			return nil, err
+		}
+		ret[i] = t
+	}
+	return ret, nil
+}
+
+func (arr *AbsCollection) ToUInts() ([]uint, error) {
+	if arr.Err() != nil {
+		return nil, arr.Err()
+	}
+	ret := make([]uint, arr.Count())
+	for i := 0; i < arr.Count(); i++ {
+		t, err := arr.Index(i).ToUInt()
+		if err != nil {
+			return nil, err
+		}
+		ret[i] = t
+	}
+	return ret, nil
+}
+
 func (arr *AbsCollection) ToMixs() ([]IMix, error) {
 	if arr.Err() != nil {
 		return nil, arr.Err()
@@ -1123,4 +1168,33 @@ func (arr *AbsCollection) MarshalJSON() ([]byte, error) {
 
 func (arr *AbsCollection) UnmarshalJSON(data []byte) error {
 	return arr.FromJson(data)
+}
+
+func (arr *AbsCollection) Split(size int) []ICollection {
+	if arr.Err() != nil {
+		return []ICollection{arr}
+	}
+
+	if size <= 0 {
+		arr.SetErr(errors.New("size can not be zero"))
+		return []ICollection{arr}
+	}
+
+	total := arr.Count()
+	mod := total % size
+	sliceCount := total / size
+	if mod > 0 {
+		sliceCount = sliceCount + 1
+	}
+	ret := make([]ICollection, sliceCount)
+	for i := 0; i < arr.Count(); i++ {
+		idx := i / size
+		idm := i % size
+		if idm == 0 {
+			ret[idx] = arr.NewEmpty()
+		}
+
+		ret[idx].Append(arr.Index(i).MustToInterface())
+	}
+	return ret
 }

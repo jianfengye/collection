@@ -5,6 +5,7 @@ Collection包目标是用于替换golang原生的Slice，使用场景是在大�
 
 | 版本 | 说明 |
 | ------| ------ |
+| v1.4.0 |  增加三种新类型 uint32, uint, uint64, 增加GroupBy 和 Split 方法 |
 | v1.3.0 |  增加文档说明 |
 | 1.2.0 |  增加对象指针数组，增加测试覆盖率, 增加ToInterfaces方法 |
 | 1.1.2 |  增加一些空数组的判断，解决一些issue |
@@ -12,9 +13,9 @@ Collection包目标是用于替换golang原生的Slice，使用场景是在大�
 | 1.1.0 |  增加了对int32的支持，增加了延迟加载，增加了Copy函数，增加了compare从ICollection传递到IMix，使用快排加速了Sort方法 |
 | 1.0.1 |  第一次发布 |
 
-`go get github.com/jianfengye/collection@v1.3.0`
+`go get github.com/jianfengye/collection@v1.4.0`
 
-Collection包目前支持的元素类型：int32, int, int64, float32, float64, string, struct, struct_point。
+Collection包目前支持的元素类型：int32, int, int64, uint32, uint, uint64, float32, float64, string, struct, struct_point。
 
 使用下列几个方法进行初始化Collection:
 
@@ -24,6 +25,12 @@ NewIntCollection(objs []int) *IntCollection
 NewInt64Collection(objs []int64) *Int64Collection
 
 NewInt32Collection(objs []int32) *Int32Collection
+
+NewUIntCollection(objs []uint) *UIntCollection
+
+NewUInt64Collection(objs []uint64) *UInt64Collection
+
+NewUInt32Collection(objs []uint32) *UInt32Collection
 
 NewFloat64Collection(objs []float64) *Float64Collection
 
