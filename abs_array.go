@@ -1198,3 +1198,39 @@ func (arr *AbsCollection) Split(size int) []ICollection {
 	}
 	return ret
 }
+
+// Union 两个集合的并集
+func (arr *AbsCollection) Union(arr2 ICollection) ICollection {
+	arr.mustSetCompare()
+	if arr.Err() != nil {
+		return arr
+	}
+
+	newArr := arr.Copy()
+	for i := 0; i < arr2.Count(); i++ {
+		o, _ := arr2.Index(i).ToInterface()
+		if arr.Contains(o) == false {
+			newArr.Append(o)
+		}
+	}
+
+	return newArr
+}
+
+// Intersect 两个集合的交集
+func (arr *AbsCollection) Intersect (arr2 ICollection) ICollection {
+	arr.mustSetCompare()
+	if arr.Err() != nil {
+		return arr
+	}
+
+	newArr := arr.NewEmpty()
+	for i := 0; i < arr.Count(); i++ {
+		o, _ := arr.Index(i).ToInterface()
+		if arr2.Contains(o) == true {
+			newArr.Append(o)
+		}
+	}
+
+	return newArr
+}

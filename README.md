@@ -162,7 +162,7 @@ type ICollection interface {
 	Contains(obj interface{}) bool
 	// ContainsCount 判断包含某个元素的个数，返回0代表没有找到，返回正整数代表个数。必须设置compare函数
 	ContainsCount(obj interface{}) int
-	// Diff 比较两个数组，获取第一个数组不在第二个数组中的元素，组成新数组
+	// Diff 比较两个数组，获取第一个数组不在第二个数组中的元素，组成新数组,仅对基础元素生效
 	Diff(arr ICollection) ICollection
 	// Sort 进行排序, 升序
 	Sort() ICollection
@@ -170,6 +170,10 @@ type ICollection interface {
 	SortDesc() ICollection
 	// Join 进行拼接
 	Join(split string, format ...func(item interface{}) string) string
+	// Union 比较两个数组，获取两个数组并集，仅对基础元素生效
+	Union (arr ICollection) ICollection
+	// Intersect 比较两个数组，获取两个数组交集，仅对基础元素生效
+	Intersect (arr ICollection) ICollection
 
 	/*
 		下面的方法对基础Collection生效

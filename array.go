@@ -114,6 +114,10 @@ type ICollection interface {
 	SortDesc() ICollection
 	// Join 进行拼接
 	Join(split string, format ...func(item interface{}) string) string
+	// Union 两个集合的并集
+	Union(arr ICollection) ICollection
+	// Intersect 两个集合的交集
+	Intersect(arr ICollection) ICollection
 
 	/*
 		下面的方法对基础Collection生效
