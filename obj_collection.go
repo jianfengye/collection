@@ -3,9 +3,8 @@ package collection
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
-
 	"github.com/pkg/errors"
+	"reflect"
 )
 
 // ObjCollection 代表数组集合
@@ -146,7 +145,7 @@ func (arr *ObjCollection) DD() {
 	fmt.Print(ret)
 }
 
-// 将对象的某个key作为Slice的value，作为slice返回
+// Pluck 将对象的某个key作为Slice的value，作为slice返回
 func (arr *ObjCollection) Pluck(key string) ICollection {
 	if arr.Err() != nil {
 		return arr
@@ -170,7 +169,7 @@ func (arr *ObjCollection) Pluck(key string) ICollection {
 	return objs
 }
 
-// 按照某个字段进行排序
+// SortBy 按照某个字段进行排序
 func (arr *ObjCollection) SortBy(key string) ICollection {
 	if arr.Err() != nil {
 		return arr
@@ -190,7 +189,7 @@ func (arr *ObjCollection) SortBy(key string) ICollection {
 	return newArr
 }
 
-// 按照某个字段进行排序,倒序
+// SortByDesc 按照某个字段进行排序,倒序
 func (arr *ObjCollection) SortByDesc(key string) ICollection {
 	if arr.Err() != nil {
 		return arr
@@ -208,6 +207,28 @@ func (arr *ObjCollection) SortByDesc(key string) ICollection {
 	newArr := arr.Sort()
 	newArr.SetCompare(oldCompare)
 	return newArr
+}
+
+// KeyByStrField 按照某个字段进行排序,倒序
+func (arr *ObjCollection) KeyByStrField(key string) (map[string]interface{}, error) {
+	if arr.Err() != nil {
+		return nil, arr.Err()
+	}
+
+	ret := make(map[string]interface{})
+	if arr.Count() == 0 {
+		return ret, nil
+	}
+	for i := 0; i < arr.Count(); i++ {
+		o, err := arr.Index(i).ToInterface()
+		if err != nil {
+			return nil, errors.New("key by string field error: " + err.Error())
+		}
+
+		strVal := reflect.ValueOf(o).FieldByName(key).String()
+		ret[strVal] = o
+	}
+	return ret, nil
 }
 
 func (arr *ObjCollection) ToJson() ([]byte, error) {

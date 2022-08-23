@@ -89,6 +89,8 @@ type ICollection interface {
 	SortBy(key string) ICollection
 	// SortByDesc 按照某个字段进行排序,倒序
 	SortByDesc(key string) ICollection
+	// KeyByStrField 根据某个字段为key，返回一个map,要求key对应的field是string
+	KeyByStrField(key string) (map[string]interface{}, error)
 
 	/*
 		下面的方法对基础Collection生效，但是ObjCollection一旦设置了Compare函数也生效

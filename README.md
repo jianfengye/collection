@@ -13,15 +13,16 @@ npm run docs:dev
 // 访问地址： http://localhost:2333/
 ```
 
-| 版本 | 说明 |
-| ------| ------ |
-| v1.4.0 |  增加三种新类型 uint32, uint, uint64, 增加GroupBy 和 Split 方法 |
-| v1.3.0 |  增加文档说明 |
-| 1.2.0 |  增加对象指针数组，增加测试覆盖率, 增加ToInterfaces方法 |
-| 1.1.2 |  增加一些空数组的判断，解决一些issue |
-| 1.1.1 |  对collection包进行了json解析和反解析的支持，对mix类型支持了SetField和RemoveFields的类型设置 |
-| 1.1.0 |  增加了对int32的支持，增加了延迟加载，增加了Copy函数，增加了compare从ICollection传递到IMix，使用快排加速了Sort方法 |
-| 1.0.1 |  第一次发布 |
+| 版本     | 说明                                                                         |
+|--------|----------------------------------------------------------------------------|
+| v1.4.1 | 增加KeyByStrField方法                                                          |
+| v1.4.0 | 增加三种新类型 uint32, uint, uint64, 增加GroupBy 和 Split 方法                         |
+| v1.3.0 | 增加文档说明                                                                     |
+| 1.2.0  | 增加对象指针数组，增加测试覆盖率, 增加ToInterfaces方法                                         |
+| 1.1.2  | 增加一些空数组的判断，解决一些issue                                                       |
+| 1.1.1  | 对collection包进行了json解析和反解析的支持，对mix类型支持了SetField和RemoveFields的类型设置           |
+| 1.1.0  | 增加了对int32的支持，增加了延迟加载，增加了Copy函数，增加了compare从ICollection传递到IMix，使用快排加速了Sort方法 |
+| 1.0.1  | 第一次发布                                                                      |
 
 `go get github.com/jianfengye/collection@v1.4.0`
 
@@ -145,6 +146,8 @@ type ICollection interface {
 	SortBy(key string) ICollection
 	// SortByDesc 按照某个字段进行排序,倒序
 	SortByDesc(key string) ICollection
+	// KeyByStrField 根据某个字段为key，返回一个map, 要求key对应的field是string
+	KeyByStrField(key string) (map[string]interface{}, error)
 
 	/*
 		下面的方法对基础Collection生效，但是ObjCollection一旦设置了Compare函数也生效

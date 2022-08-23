@@ -73,6 +73,17 @@ func (arr *AbsCollection) mustBeBaseType() *AbsCollection {
 	return arr
 }
 
+func (arr *AbsCollection) mustBeObjType() *AbsCollection {
+	switch arr.eleType {
+	case TYPE_OBJ, TYPE_OBJ_POINT:
+		return arr
+	default:
+		err := errors.New("collection type must be collection type")
+		arr.SetErr(err)
+	}
+	return arr
+}
+
 func (arr *AbsCollection) mustNotBeBaseType() *AbsCollection {
 	switch arr.eleType {
 	case TYPE_OBJ, TYPE_OBJ_POINT, TYPE_UNKNWON:
@@ -1218,7 +1229,7 @@ func (arr *AbsCollection) Union(arr2 ICollection) ICollection {
 }
 
 // Intersect 两个集合的交集
-func (arr *AbsCollection) Intersect (arr2 ICollection) ICollection {
+func (arr *AbsCollection) Intersect(arr2 ICollection) ICollection {
 	arr.mustSetCompare()
 	if arr.Err() != nil {
 		return arr
@@ -1233,4 +1244,16 @@ func (arr *AbsCollection) Intersect (arr2 ICollection) ICollection {
 	}
 
 	return newArr
+}
+
+func (arr *AbsCollection) KeyByStrField(key string) (map[string]interface{}, error) {
+	arr.mustBeObjType()
+	if arr.Err() != nil {
+		return nil, arr.Err()
+	}
+	if arr.Parent == nil {
+		return nil, errors.New("missing parent")
+	}
+
+	return arr.Parent.KeyByStrField(key)
 }

@@ -220,3 +220,25 @@ func (arr *ObjPointCollection) ToObjs(objs interface{}) error {
 	}
 	return errors.New("element should be can set")
 }
+
+// KeyByStrField 按照某个字段进行排序,倒序
+func (arr *ObjPointCollection) KeyByStrField(key string) (map[string]interface{}, error) {
+	if arr.Err() != nil {
+		return nil, arr.Err()
+	}
+
+	ret := make(map[string]interface{})
+	if arr.Count() == 0 {
+		return ret, nil
+	}
+	for i := 0; i < arr.Count(); i++ {
+		o, err := arr.Index(i).ToInterface()
+		if err != nil {
+			return nil, errors.New("key by string field error: " + err.Error())
+		}
+
+		strVal := reflect.ValueOf(o).Elem().FieldByName(key).String()
+		ret[strVal] = o
+	}
+	return ret, nil
+}
