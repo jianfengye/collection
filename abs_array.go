@@ -214,17 +214,17 @@ func NewCollection[T any](values []T) *Collection[T] {
 	return coll
 }
 
-// NewEmptyCollection 初始化一个空的compare
+// NewEmptyCollection 返回一个空的Collection
 func NewEmptyCollection[T any]() *Collection[T] {
 	return NewCollection[T](nil)
 }
 
-// Err 获取错误信息
+// Err 返回Collection的错误信息
 func (c *Collection[T]) Err() error {
 	return c.err
 }
 
-// SetErr 设置错误信息
+// SetErr 设置Collection的错误信息
 func (c *Collection[T]) SetErr(err error) *Collection[T] {
 	c.err = err
 	return c
@@ -385,21 +385,24 @@ func (c *Collection[T]) Last() T {
 
 // Slice 获取数组片段
 func (c *Collection[T]) Slice(params ...int) *Collection[T] {
-	if c.err != nil {
-		return c
-	}
-
-	// 获取数组片段，对所有Collection生效
 	if len(params) == 0 {
-		return c
+		return NewCollection[T](nil).SetErr(fmt.Errorf("invalid params"))
 	}
 	start := params[0]
-	end := len(c.value)
-	if len(params) > 1 {
-		end = params[1]
+	if start < 0 || start >= len(c.value) {
+		return NewCollection[T](nil).SetErr(fmt.Errorf("invalid start index"))
 	}
-
-	return NewCollection[T](c.value[start:end])
+	if len(params) == 1 {
+		return NewCollection(c.value[start:]).SetErr(nil)
+	}
+	end := params[1]
+	if end < 0 || end > len(c.value) {
+		return NewCollection[T](nil).SetErr(fmt.Errorf("invalid end index"))
+	}
+	if start > end {
+		return NewCollection[T](nil).SetErr(fmt.Errorf("start index should be less than end index"))
+	}
+	return NewCollection(c.value[start:end]).SetErr(nil)
 }
 
 // Index 获取某个下标
@@ -800,7 +803,7 @@ func (c *Collection[T]) Max() T {
 }
 
 // Min 数组中最小的元素，仅对基础Collection生效
-func (c *Collection[T]) Min(compare func(T, T) bool) T {
+func (c *Collection[T]) Min() T {
 	var zero T
 
 	if !c.isComparable() {
