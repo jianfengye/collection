@@ -631,9 +631,19 @@ func (c *Collection[T]) DD() {
 // PluckString 按照某个字段进行筛选
 func (c *Collection[T]) PluckString(key string) *Collection[string] {
 	res := make([]string, 0, len(c.value))
+	if c.typ.Kind() != reflect.Struct && c.typ.Kind() != reflect.Pointer {
+		c.SetErr(errors.New("invalid collection"))
+		return nil
+	}
+
 	for _, v := range c.value {
-		val := reflect.ValueOf(v).FieldByName(key)
-		kind := reflect.ValueOf(v).Type().Kind()
+		var val reflect.Value
+		if c.typ.Kind() == reflect.Ptr {
+			val = reflect.ValueOf(v).Elem().FieldByName(key)
+		} else if c.typ.Kind() == reflect.Struct {
+			val = reflect.ValueOf(v).FieldByName(key)
+		}
+		kind := val.Type().Kind()
 		if kind != reflect.String {
 			c.SetErr(errors.New("invalid type"))
 			return nil
@@ -648,8 +658,13 @@ func (c *Collection[T]) PluckString(key string) *Collection[string] {
 func (c *Collection[T]) PluckInt64(key string) *Collection[int64] {
 	res := make([]int64, 0, len(c.value))
 	for _, v := range c.value {
-		val := reflect.ValueOf(v).FieldByName(key)
-		if val.CanInt() {
+		var val reflect.Value
+		if c.typ.Kind() == reflect.Ptr {
+			val = reflect.ValueOf(v).Elem().FieldByName(key)
+		} else if c.typ.Kind() == reflect.Struct {
+			val = reflect.ValueOf(v).FieldByName(key)
+		}
+		if !val.CanInt() {
 			c.SetErr(errors.New("invalid type"))
 			return nil
 		}
@@ -663,8 +678,13 @@ func (c *Collection[T]) PluckInt64(key string) *Collection[int64] {
 func (c *Collection[T]) PluckFloat64(key string) *Collection[float64] {
 	res := make([]float64, 0, len(c.value))
 	for _, v := range c.value {
-		val := reflect.ValueOf(v).FieldByName(key)
-		if val.CanFloat() {
+		var val reflect.Value
+		if c.typ.Kind() == reflect.Ptr {
+			val = reflect.ValueOf(v).Elem().FieldByName(key)
+		} else if c.typ.Kind() == reflect.Struct {
+			val = reflect.ValueOf(v).FieldByName(key)
+		}
+		if !val.CanFloat() {
 			c.SetErr(errors.New("invalid type"))
 			return nil
 		}
@@ -678,8 +698,13 @@ func (c *Collection[T]) PluckFloat64(key string) *Collection[float64] {
 func (c *Collection[T]) PluckUint64(key string) *Collection[uint64] {
 	res := make([]uint64, 0, len(c.value))
 	for _, v := range c.value {
-		val := reflect.ValueOf(v).FieldByName(key)
-		if val.CanUint() {
+		var val reflect.Value
+		if c.typ.Kind() == reflect.Ptr {
+			val = reflect.ValueOf(v).Elem().FieldByName(key)
+		} else if c.typ.Kind() == reflect.Struct {
+			val = reflect.ValueOf(v).FieldByName(key)
+		}
+		if !val.CanUint() {
 			c.SetErr(errors.New("invalid type"))
 			return nil
 		}
@@ -693,7 +718,12 @@ func (c *Collection[T]) PluckUint64(key string) *Collection[uint64] {
 func (c *Collection[T]) PluckBool(key string) *Collection[bool] {
 	res := make([]bool, 0, len(c.value))
 	for _, v := range c.value {
-		val := reflect.ValueOf(v).FieldByName(key)
+		var val reflect.Value
+		if c.typ.Kind() == reflect.Ptr {
+			val = reflect.ValueOf(v).Elem().FieldByName(key)
+		} else if c.typ.Kind() == reflect.Struct {
+			val = reflect.ValueOf(v).FieldByName(key)
+		}
 		if val.Kind() != reflect.Bool {
 			c.SetErr(errors.New("invalid type"))
 			return nil
@@ -882,10 +912,7 @@ func (c *Collection[T]) Sort() *Collection[T] {
 	}
 
 	sort.Slice(c.value, func(i, j int) bool {
-		if c.cfun(c.value[i], c.value[j]) > 0 {
-			return true
-		}
-		return false
+		return c.cfun(c.value[i], c.value[j]) < 0
 	})
 	return c
 }
@@ -893,10 +920,7 @@ func (c *Collection[T]) Sort() *Collection[T] {
 // SortDesc 进行排序，倒序
 func (c *Collection[T]) SortDesc() *Collection[T] {
 	sort.Slice(c.value, func(i, j int) bool {
-		if c.cfun(c.value[i], c.value[j]) < 0 {
-			return true
-		}
-		return false
+		return c.cfun(c.value[i], c.value[j]) > 0
 	})
 	return c
 }
@@ -924,7 +948,7 @@ func (c *Collection[T]) Union(arr *Collection[T]) *Collection[T] {
 		return nil
 	}
 
-	res := NewCollection([]T{})
+	res := c.Copy()
 	for _, v := range arr.value {
 		if !c.Contains(v) {
 			res.Append(v)
@@ -962,7 +986,9 @@ func (c *Collection[T]) Avg() float64 {
 	return c.Sum() / float64(len(c.value))
 }
 
-// Median 获取中位值
+// Median 获取中位值。
+// 中位数（Median）又称中值，统计学中的专有名词，是按顺序排列的一组数据中居于中间位置的数，代表一个样本、种群或概率分布中的一个数值，其可将数值集合划分为相等的上下两部分。
+// 对于有限的数集，可以通过把所有观察值高低排序后找出正中间的一个作为中位数。如果观察值有偶数个，通常取最中间的两个数值的平均数作为中位数。
 func (c *Collection[T]) Median() float64 {
 	if !c.isFloatable() {
 		c.SetErr(errors.New("collection is not floatable"))
@@ -972,10 +998,10 @@ func (c *Collection[T]) Median() float64 {
 	coll := c.Sort()
 	newColl := NewCollection([]T{})
 	if len(coll.value)%2 == 0 {
-		newColl.Append(coll.Index(len(coll.value)/2 - 1)).Append(coll.Index(len(coll.value)/2 - 1))
+		newColl.Append(coll.Index(len(coll.value)/2 - 1)).Append(coll.Index(len(coll.value) / 2))
 		return newColl.Avg()
 	}
-	newColl.Append(coll.Index(len(coll.value)/2 - 1))
+	newColl.Append(coll.Index(len(coll.value) / 2))
 	return newColl.Avg()
 }
 
@@ -1003,7 +1029,7 @@ func (c *Collection[T]) Mode() T {
 	// 查找index的地址
 	indexSummary := func(item any, summary []tCount) int {
 		for i, val := range summary {
-			if c.cfun(val, item) == 0 {
+			if c.cfun(val.item, item) == 0 {
 				return i
 			}
 		}

@@ -108,7 +108,7 @@ func TestCollectionInsert(t *testing.T) {
 	coll := NewCollection([]int{1, 2, 3})
 
 	// insert a new element at the beginning
-	coll.Insert(0, 0)
+	coll = coll.Insert(0, 0)
 
 	// check if the element was inserted correctly
 	if coll.value[0] != 0 {
@@ -116,10 +116,18 @@ func TestCollectionInsert(t *testing.T) {
 	}
 
 	// insert a new element at the end
-	coll.Insert(4, 4)
+	coll = coll.Insert(4, 4)
 
 	// check if the element was inserted correctly
 	if coll.value[4] != 4 {
+		t.Errorf("Insert did not insert the element correctly")
+	}
+
+	// insert a new element in the middle
+	coll = coll.Insert(2, 5)
+
+	// check if the element was inserted correctly
+	if coll.value[2] != 5 {
 		t.Errorf("Insert did not insert the element correctly")
 	}
 }
@@ -575,7 +583,7 @@ func TestPrepend(t *testing.T) {
 	coll := NewCollection([]int{1, 2, 3})
 
 	// prepend a new element to the collection
-	coll.Prepend(0)
+	coll = coll.Prepend(0)
 
 	// check if the length of the collection is correct
 	if len(coll.value) != 4 {
@@ -699,16 +707,25 @@ func TestDD(t *testing.T) {
 }
 
 // TestPluckString tests the PluckString method of the Collection struct
+type Person struct {
+	Name string
+	Age  string
+}
+
 func TestPluckString(t *testing.T) {
 	// create a new Collection with some elements
-	coll := NewCollection([]map[string]string{
-		{"name": "Alice", "age": "20"},
-		{"name": "Bob", "age": "30"},
-		{"name": "Charlie", "age": "40"},
+	coll := NewCollection([]Person{
+		{"Alice", "20"},
+		{"Bob", "30"},
+		{"Charlie", "40"},
 	})
 
 	// pluck the "name" field from the collection
-	pluckedColl := coll.PluckString("name")
+	pluckedColl := coll.PluckString("Name")
+
+	if pluckedColl.Err() != nil {
+		t.Errorf("PluckString return err")
+	}
 
 	// check if the length of the plucked collection is correct
 	if len(pluckedColl.value) != 3 {
@@ -719,27 +736,57 @@ func TestPluckString(t *testing.T) {
 	if pluckedColl.value[0] != "Alice" || pluckedColl.value[1] != "Bob" || pluckedColl.value[2] != "Charlie" {
 		t.Errorf("PluckString did not return the correct elements")
 	}
+
 }
 
-// TestPluckInt64 tests the PluckInt64 method of the Collection struct
-func TestPluckInt64(t *testing.T) {
+func TestPluckStringPointer(t *testing.T) {
 	// create a new Collection with some elements
-	coll := NewCollection([]map[string]int64{
-		{"id": 1, "age": 20},
-		{"id": 2, "age": 30},
-		{"id": 3, "age": 40},
-	})
+	person1 := Person{"Alice", "20"}
+	person2 := Person{"Bob", "30"}
+	person3 := Person{"Charlie", "40"}
+	coll := NewCollection([]*Person{&person1, &person2, &person3})
 
-	// pluck the "id" field from the collection
-	pluckedColl := coll.PluckInt64("id")
+	// pluck the "name" field from the collection
+	pluckedColl := coll.PluckString("Name")
+
+	if pluckedColl.Err() != nil {
+		t.Errorf("PluckString return err")
+	}
 
 	// check if the length of the plucked collection is correct
 	if len(pluckedColl.value) != 3 {
+		t.Errorf("PluckString did not return the correct number of elements")
+	}
+
+	// check if the plucked collection contains the correct elements
+	if pluckedColl.value[0] != "Alice" || pluckedColl.value[1] != "Bob" || pluckedColl.value[2] != "Charlie" {
+		t.Errorf("PluckString did not return the correct elements")
+	}
+
+}
+
+func TestPluckInt64(t *testing.T) {
+	// create a new Collection with some elements
+	type Person struct {
+		Id  int64
+		Age int64
+	}
+	coll := NewCollection([]Person{
+		{1, 20},
+		{2, 30},
+		{3, 40},
+	})
+
+	// pluck the "id" field from the collection
+	pluckedColl := coll.PluckInt64("Id")
+
+	// check if the length of the plucked collection is correct
+	if pluckedColl.Count() != 3 {
 		t.Errorf("PluckInt64 did not return the correct number of elements")
 	}
 
 	// check if the plucked collection contains the correct elements
-	if pluckedColl.value[0] != 1 || pluckedColl.value[1] != 2 || pluckedColl.value[2] != 3 {
+	if pluckedColl.Index(0) != 1 {
 		t.Errorf("PluckInt64 did not return the correct elements")
 	}
 }
@@ -747,22 +794,26 @@ func TestPluckInt64(t *testing.T) {
 // TestPluckFloat64 tests the PluckFloat64 method of the Collection struct
 func TestPluckFloat64(t *testing.T) {
 	// create a new Collection with some elements
-	coll := NewCollection([]map[string]float64{
-		{"price": 1.99, "quantity": 10},
-		{"price": 2.99, "quantity": 20},
-		{"price": 3.99, "quantity": 30},
+	type Product struct {
+		Price    float64
+		Quantity int
+	}
+	coll := NewCollection([]Product{
+		{1.99, 10},
+		{2.99, 20},
+		{3.99, 30},
 	})
 
 	// pluck the "price" field from the collection
-	pluckedColl := coll.PluckFloat64("price")
+	pluckedColl := coll.PluckFloat64("Price")
 
 	// check if the length of the plucked collection is correct
-	if len(pluckedColl.value) != 3 {
+	if pluckedColl.Count() != 3 {
 		t.Errorf("PluckFloat64 did not return the correct number of elements")
 	}
 
 	// check if the plucked collection contains the correct elements
-	if pluckedColl.value[0] != 1.99 || pluckedColl.value[1] != 2.99 || pluckedColl.value[2] != 3.99 {
+	if pluckedColl.Index(0) != 1.99 || pluckedColl.Index(1) != 2.99 || pluckedColl.Index(2) != 3.99 {
 		t.Errorf("PluckFloat64 did not return the correct elements")
 	}
 }
@@ -770,22 +821,26 @@ func TestPluckFloat64(t *testing.T) {
 // TestPluckUint64 tests the PluckUint64 method of the Collection struct
 func TestPluckUint64(t *testing.T) {
 	// create a new Collection with some elements
-	coll := NewCollection([]map[string]uint64{
-		{"id": 1, "age": 20},
-		{"id": 2, "age": 30},
-		{"id": 3, "age": 40},
+	type Person struct {
+		Id  uint64
+		Age uint64
+	}
+	coll := NewCollection([]Person{
+		{1, 20},
+		{2, 30},
+		{3, 40},
 	})
 
 	// pluck the "id" field from the collection
-	pluckedColl := coll.PluckUint64("id")
+	pluckedColl := coll.PluckUint64("Id")
 
 	// check if the length of the plucked collection is correct
-	if len(pluckedColl.value) != 3 {
+	if pluckedColl.Count() != 3 {
 		t.Errorf("PluckUint64 did not return the correct number of elements")
 	}
 
 	// check if the plucked collection contains the correct elements
-	if pluckedColl.value[0] != 1 || pluckedColl.value[1] != 2 || pluckedColl.value[2] != 3 {
+	if pluckedColl.Index(0) != 1 || pluckedColl.Index(1) != 2 || pluckedColl.Index(2) != 3 {
 		t.Errorf("PluckUint64 did not return the correct elements")
 	}
 }
@@ -793,22 +848,26 @@ func TestPluckUint64(t *testing.T) {
 // TestPluckBool tests the PluckBool method of the Collection struct
 func TestPluckBool(t *testing.T) {
 	// create a new Collection with some elements
-	coll := NewCollection([]map[string]bool{
-		{"is_active": true, "is_admin": false},
-		{"is_active": false, "is_admin": true},
-		{"is_active": true, "is_admin": true},
+	type User struct {
+		IsActive bool
+		IsAdmin  bool
+	}
+	coll := NewCollection([]User{
+		{true, false},
+		{false, true},
+		{true, true},
 	})
 
 	// pluck the "is_active" field from the collection
-	pluckedColl := coll.PluckBool("is_active")
+	pluckedColl := coll.PluckBool("IsActive")
 
 	// check if the length of the plucked collection is correct
-	if len(pluckedColl.value) != 3 {
+	if pluckedColl.Count() != 3 {
 		t.Errorf("PluckBool did not return the correct number of elements")
 	}
 
 	// check if the plucked collection contains the correct elements
-	if pluckedColl.value[0] != true || pluckedColl.value[1] != false || pluckedColl.value[2] != true {
+	if pluckedColl.Index(0) != true || pluckedColl.Index(1) != false || pluckedColl.Index(2) != true {
 		t.Errorf("PluckBool did not return the correct elements")
 	}
 }
@@ -816,14 +875,18 @@ func TestPluckBool(t *testing.T) {
 // TestSortBy tests the SortBy method of the Collection struct
 func TestSortBy(t *testing.T) {
 	// create a new Collection with some elements
-	coll := NewCollection([]map[string]int{
-		{"id": 3, "age": 20},
-		{"id": 1, "age": 30},
-		{"id": 2, "age": 40},
+	type Person struct {
+		Id  int
+		Age int
+	}
+	coll := NewCollection([]Person{
+		{3, 20},
+		{1, 30},
+		{2, 40},
 	})
 
 	// sort the collection by the "id" field
-	sortedColl := coll.SortBy("id")
+	sortedColl := coll.SortBy("Id")
 
 	// check if the length of the sorted collection is correct
 	if len(sortedColl.value) != 3 {
@@ -831,7 +894,7 @@ func TestSortBy(t *testing.T) {
 	}
 
 	// check if the sorted collection contains the correct elements
-	if sortedColl.value[0]["id"] != 1 || sortedColl.value[1]["id"] != 2 || sortedColl.value[2]["id"] != 3 {
+	if sortedColl.value[0].Id != 1 || sortedColl.value[1].Id != 2 || sortedColl.value[2].Id != 3 {
 		t.Errorf("SortBy did not return the correct elements")
 	}
 }
@@ -839,22 +902,26 @@ func TestSortBy(t *testing.T) {
 // TestSortByDesc tests the SortByDesc method of the Collection struct
 func TestSortByDesc(t *testing.T) {
 	// create a new Collection with some elements
-	coll := NewCollection([]map[string]int{
-		{"id": 3, "age": 20},
-		{"id": 1, "age": 30},
-		{"id": 2, "age": 40},
+	type Person struct {
+		Id  int
+		Age int
+	}
+	coll := NewCollection([]Person{
+		{3, 20},
+		{1, 30},
+		{2, 40},
 	})
 
 	// sort the collection by the "id" field in descending order
-	sortedColl := coll.SortByDesc("id")
+	sortedColl := coll.SortByDesc("Id")
 
 	// check if the length of the sorted collection is correct
-	if len(sortedColl.value) != 3 {
+	if sortedColl.Count() != 3 {
 		t.Errorf("SortByDesc did not return the correct number of elements")
 	}
 
 	// check if the sorted collection contains the correct elements
-	if sortedColl.value[0]["id"] != 3 || sortedColl.value[1]["id"] != 2 || sortedColl.value[2]["id"] != 1 {
+	if sortedColl.Index(0).Id != 3 || sortedColl.Index(1).Id != 2 || sortedColl.Index(2).Id != 1 {
 		t.Errorf("SortByDesc did not return the correct elements")
 	}
 }
@@ -862,14 +929,18 @@ func TestSortByDesc(t *testing.T) {
 // TestKeyByStrField tests the KeyByStrField method of the Collection struct
 func TestKeyByStrField(t *testing.T) {
 	// create a new Collection with some elements
-	coll := NewCollection([]map[string]string{
-		{"name": "Alice", "age": "20"},
-		{"name": "Bob", "age": "30"},
-		{"name": "Charlie", "age": "40"},
+	type Person struct {
+		Name string
+		Age  string
+	}
+	coll := NewCollection([]Person{
+		{"Alice", "20"},
+		{"Bob", "30"},
+		{"Charlie", "40"},
 	})
 
 	// key the collection by the "name" field
-	keyedColl, err := coll.KeyByStrField("name")
+	keyedColl, err := coll.KeyByStrField("Name")
 
 	// check if the error is nil
 	if err != nil {
@@ -978,14 +1049,15 @@ func TestSort(t *testing.T) {
 	sortedColl := coll.Sort()
 
 	// check if the length of the sorted collection is correct
-	if len(sortedColl.value) != 5 {
+	if sortedColl.Count() != 5 {
 		t.Errorf("Sort did not return the correct number of elements")
 	}
 
 	// check if the sorted collection contains the correct elements
-	if sortedColl.value[0] != 1 || sortedColl.value[1] != 2 || sortedColl.value[2] != 3 || sortedColl.value[3] != 4 || sortedColl.value[4] != 5 {
+	if sortedColl.Index(0) != 1 || sortedColl.Index(1) != 2 || sortedColl.Index(2) != 3 || sortedColl.Index(3) != 4 || sortedColl.Index(4) != 5 {
 		t.Errorf("Sort did not return the correct elements")
 	}
+
 }
 
 // TestSortDesc tests the SortDesc method of the Collection struct
@@ -1041,13 +1113,14 @@ func TestUnion(t *testing.T) {
 	unionColl := coll1.Union(coll2)
 
 	// check if the length of the union collection is correct
-	if len(unionColl.value) != 5 {
+	if unionColl.Count() != 5 {
 		t.Errorf("Union did not return the correct number of elements")
 	}
 
 	// check if the union collection contains the correct elements
-	if unionColl.value[0] != 1 || unionColl.value[1] != 2 || unionColl.value[2] != 3 || unionColl.value[3] != 4 || unionColl.value[4] != 5 {
+	if unionColl.Index(0) != 1 || unionColl.Index(1) != 2 || unionColl.Index(2) != 3 || unionColl.Index(3) != 4 || unionColl.Index(4) != 5 {
 		t.Errorf("Union did not return the correct elements")
+
 	}
 }
 
@@ -1095,7 +1168,18 @@ func TestMedian(t *testing.T) {
 
 	// check if the median is correct
 	if median != 3 {
-		t.Errorf("Median did not return the correct value")
+		t.Errorf("Median did not return the correct value, get the median: %v", median)
+	}
+
+	// create a new Collection with some even number of elements
+	coll2 := NewCollection([]int{1, 2, 3, 4, 5, 6})
+
+	// get the median of the elements in the collection
+	median2 := coll2.Median()
+
+	// check if the median is correct
+	if median2 != 3.5 {
+		t.Errorf("Median did not return the correct value, get the median: %v", median2)
 	}
 }
 
