@@ -62,10 +62,10 @@ func (c *Collection[T]) isFloatable() bool {
 type Collection[T any] struct {
 	value []T // 数组
 
-	err error // 错误信息
-	typ reflect.Type
+	err error        // 错误信息
+	typ reflect.Type // collection 中每个元素的类型，在new的时候就定义了
 
-	cfun func(any, any) int // 比较函数
+	cfun func(any, any) int // 比较函数，在new的时候定义了，也可以通过
 }
 
 // NewCollection 初始化一个compare
