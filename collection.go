@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"reflect"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -206,6 +207,12 @@ func NewCollection[T any](values []T) *Collection[T] {
 				return -1
 			}
 			return 0
+		}
+	case reflect.String:
+		coll.cfun = func(a, b any) int {
+			vala := a.(string)
+			valb := b.(string)
+			return strings.Compare(vala, valb)
 		}
 	default:
 		coll.cfun = nil
