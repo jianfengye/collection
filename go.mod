@@ -1,4 +1,4 @@
-module github.com/jianfengye/collection
+module github.com/jianfengye/collection/v2
 
 go 1.18
 
