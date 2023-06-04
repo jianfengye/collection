@@ -625,7 +625,12 @@ func (c *Collection[T]) Split(size int) []*Collection[T] {
 
 // DD 打印出当前数组结构
 func (c *Collection[T]) DD() {
-	fmt.Println(c.value)
+	ret := fmt.Sprintf("Collection(%d, %s):{\n", c.Count(), c.typ.String())
+	for k, v := range c.value {
+		ret = ret + fmt.Sprintf("\t%d:\t%v\n", k, v)
+	}
+	ret = ret + "}\n"
+	fmt.Print(ret)
 }
 
 // PluckString 按照某个字段进行筛选
