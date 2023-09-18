@@ -194,6 +194,34 @@ func TestFilter(t *testing.T) {
 	}
 }
 
+// TestFilterObject tests the Filter method of the Collection struct
+func TestFilterObject(t *testing.T) {
+	// create a new Collection with some elements
+	coll := NewCollection([]Person{
+		{"Alice", "20"},
+		{"Bob", "30"},
+		{"Charlie", "40"},
+	})
+
+	// define a filter function that only keeps even numbers
+	filterFunc := func(item Person, key int) bool {
+		return item.Age >= "30"
+	}
+
+	// apply the filter function to the collection
+	filteredColl := coll.Filter(filterFunc)
+
+	// check if the length of the filtered collection is correct
+	if len(filteredColl.value) != 2 {
+		t.Errorf("Filter did not return the correct number of elements")
+	}
+
+	// check if the filtered collection contains the correct elements
+	if filteredColl.value[0].Name == "Alice" || filteredColl.value[1].Name == "Bob" {
+		t.Errorf("Filter did not return the correct elements")
+	}
+}
+
 // TestReject tests the Reject method of the Collection struct
 func TestReject(t *testing.T) {
 	// create a new Collection with some elements

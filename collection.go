@@ -340,10 +340,6 @@ func (c *Collection[T]) Filter(f func(item T, key int) bool) *Collection[T] {
 	if c.err != nil {
 		return c
 	}
-	if !c.isComparable() {
-		c.SetErr(errors.New("element can not be comparable"))
-		return c
-	}
 
 	// 按照某个方法进行过滤, 保留符合的
 	res := make([]T, 0, len(c.value))
