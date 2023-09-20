@@ -1005,26 +1005,21 @@ func TestKeyByIntField(t *testing.T) {
 	})
 
 	fields := []string{"Int", "Int64", "Int8"}
+	checkInts := [][]interface{}{{9, 10, 11}, {int64(10), int64(11), int64(12)}, {int8(11), int8(12), int8(13)}}
 
 	for i, field := range fields {
 		// key the collection by the "int" field
-		keyedColl, err := coll.KeyByIntField(field)
-
-		// check if the error is nil
-		if err != nil {
-			t.Errorf("KeyByIntField returned an error")
-		}
+		keyedColl := coll.KeyBy(field)
 
 		// check if the length of the keyed collection is correct
 		if len(keyedColl) != 3 {
-			t.Errorf("KeyByIntField did not return the correct number of elements")
+			t.Errorf("KeyBy did not return the correct number of elements")
 		}
 
-		checkInts := []int{9 + i, 10 + i, 11 + i}
-		for _, checkInt := range checkInts {
+		for _, checkInt := range checkInts[i] {
 			// check if the keyed collection contains the correct elements
 			if _, ok := keyedColl[checkInt]; !ok {
-				t.Errorf("KeyByIntField did not return the correct elements")
+				t.Errorf("KeyBy did not return the correct elements")
 			}
 		}
 	}

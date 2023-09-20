@@ -819,30 +819,16 @@ func (c *Collection[T]) KeyByStrField(key string) (map[string]T, error) {
 	return res, nil
 }
 
-// KeyByIntField 根据某个字段为key，返回一个map,要求key对应的field是int
-func (c *Collection[T]) KeyByIntField(key string) (map[int]T, error) {
-	res := make(map[int]T)
+// KeyBy 根据某个字段为key，返回一个map
+func (c *Collection[T]) KeyBy(key string) map[interface{}]T {
+	res := make(map[interface{}]T)
 	for _, v := range c.value {
 		valRef := reflect.ValueOf(v).FieldByName(key)
 		if valRef.IsValid() && valRef.CanInterface() {
-			val := valRef.Interface()
-			switch val.(type) {
-			case int:
-				res[val.(int)] = v
-			case int8:
-				res[int(val.(int8))] = v
-			case int16:
-				res[int(val.(int16))] = v
-			case int32:
-				res[int(val.(int32))] = v
-			case int64:
-				res[int(val.(int64))] = v
-			default:
-				return nil, fmt.Errorf("key is not int")
-			}
+			res[valRef.Interface()] = v
 		}
 	}
-	return res, nil
+	return res
 }
 
 // Max 数组中最大的元素，仅对基础Collection生效, 可以传递一个比较函数
