@@ -990,6 +990,46 @@ func TestKeyByStrField(t *testing.T) {
 	}
 }
 
+// TestKeyByStrField tests the KeyByStrField method of the Collection struct
+func TestKeyByIntField(t *testing.T) {
+	// create a new Collection with some elements
+	type Person struct {
+		Int   int
+		Int64 int64
+		Int8  int8
+	}
+	coll := NewCollection([]Person{
+		{9, 10, 11},
+		{10, 11, 12},
+		{11, 12, 13},
+	})
+
+	fields := []string{"Int", "Int64", "Int8"}
+
+	for i, field := range fields {
+		// key the collection by the "int" field
+		keyedColl, err := coll.KeyByIntField(field)
+
+		// check if the error is nil
+		if err != nil {
+			t.Errorf("KeyByIntField returned an error")
+		}
+
+		// check if the length of the keyed collection is correct
+		if len(keyedColl) != 3 {
+			t.Errorf("KeyByIntField did not return the correct number of elements")
+		}
+
+		checkInts := []int{9 + i, 10 + i, 11 + i}
+		for _, checkInt := range checkInts {
+			// check if the keyed collection contains the correct elements
+			if _, ok := keyedColl[checkInt]; !ok {
+				t.Errorf("KeyByIntField did not return the correct elements")
+			}
+		}
+	}
+}
+
 // TestMax tests the Max method of the Collection struct
 func TestMax(t *testing.T) {
 	// create a new Collection with some elements

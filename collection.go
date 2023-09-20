@@ -823,11 +823,21 @@ func (c *Collection[T]) KeyByStrField(key string) (map[string]T, error) {
 func (c *Collection[T]) KeyByIntField(key string) (map[int]T, error) {
 	res := make(map[int]T)
 	for _, v := range c.value {
-		val := reflect.ValueOf(v).FieldByName(key)
-		if val.IsValid() && val.CanInterface() {
-			if str, ok := val.Interface().(int); ok {
-				res[str] = v
-			} else {
+		valRef := reflect.ValueOf(v).FieldByName(key)
+		if valRef.IsValid() && valRef.CanInterface() {
+			val := valRef.Interface()
+			switch val.(type) {
+			case int:
+				res[val.(int)] = v
+			case int8:
+				res[int(val.(int8))] = v
+			case int16:
+				res[int(val.(int16))] = v
+			case int32:
+				res[int(val.(int32))] = v
+			case int64:
+				res[int(val.(int64))] = v
+			default:
 				return nil, fmt.Errorf("key is not int")
 			}
 		}
