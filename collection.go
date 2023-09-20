@@ -819,6 +819,22 @@ func (c *Collection[T]) KeyByStrField(key string) (map[string]T, error) {
 	return res, nil
 }
 
+// KeyByIntField 根据某个字段为key，返回一个map,要求key对应的field是int
+func (c *Collection[T]) KeyByIntField(key string) (map[int]T, error) {
+	res := make(map[int]T)
+	for _, v := range c.value {
+		val := reflect.ValueOf(v).FieldByName(key)
+		if val.IsValid() && val.CanInterface() {
+			if str, ok := val.Interface().(int); ok {
+				res[str] = v
+			} else {
+				return nil, fmt.Errorf("key is not int")
+			}
+		}
+	}
+	return res, nil
+}
+
 // Max 数组中最大的元素，仅对基础Collection生效, 可以传递一个比较函数
 func (c *Collection[T]) Max() T {
 	var zero T
