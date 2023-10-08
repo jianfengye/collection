@@ -740,6 +740,10 @@ type Person struct {
 	Age  string
 }
 
+func (p Person) Key() string {
+	return p.Name + p.Age
+}
+
 func TestPluckString(t *testing.T) {
 	// create a new Collection with some elements
 	coll := NewCollection([]Person{
@@ -897,6 +901,34 @@ func TestPluckBool(t *testing.T) {
 	// check if the plucked collection contains the correct elements
 	if pluckedColl.Index(0) != true || pluckedColl.Index(1) != false || pluckedColl.Index(2) != true {
 		t.Errorf("PluckBool did not return the correct elements")
+	}
+}
+
+func TestGetter(t *testing.T) {
+	v := Person{"Alice", "20"}
+
+	c := NewCollection([]Person{v})
+
+	if c.getter(v, "Name").String() != "Alice" {
+		t.Errorf("Getter did not return the correct value")
+	}
+
+	if c.getter(v, "Key").String() != "Alice20" {
+		t.Errorf("Getter did not return the correct value")
+	}
+}
+
+func TestGetterPoint(t *testing.T) {
+	v := &Person{"Alice", "20"}
+
+	c := NewCollection([]*Person{v})
+
+	if c.getter(v, "Name").String() != "Alice" {
+		t.Errorf("Getter did not return the correct value")
+	}
+
+	if c.getter(v, "Key").String() != "Alice20" {
+		t.Errorf("Getter did not return the correct value")
 	}
 }
 
