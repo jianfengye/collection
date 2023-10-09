@@ -73,6 +73,11 @@ type Collection[T any] struct {
 func NewCollection[T any](values []T) *Collection[T] {
 	var zero T
 	typ := reflect.TypeOf(zero)
+
+	if typ == nil {
+		typ = reflect.TypeOf(&zero).Elem()
+	}
+
 	coll := &Collection[T]{value: values, typ: typ}
 
 	switch typ.Kind() {
@@ -724,24 +729,29 @@ func (c *Collection[T]) PluckBool(key string) *Collection[bool] {
 
 func (c *Collection[T]) getter(v any, key string) reflect.Value {
 	var ref reflect.Value
+	var field reflect.Value
 
 	if c.typ.Kind() == reflect.Ptr {
 		ref = reflect.ValueOf(v).Elem()
 	} else if c.typ.Kind() == reflect.Struct {
 		ref = reflect.ValueOf(v)
+	} else if c.typ.Kind() == reflect.Interface {
+		ref = reflect.ValueOf(v)
+		goto m
 	}
 
-	field := ref.FieldByName(key)
+	field = ref.FieldByName(key)
 	if field.IsValid() {
 		return field
 	}
+m:
 
 	method := ref.MethodByName(key)
 	if method.IsValid() && method.Type().NumIn() == 0 && method.Type().NumOut() == 1 {
 		return method.Call(nil)[0]
 	}
 
-	return field
+	return ref
 }
 
 // SortBy 按照某个字段进行排序

@@ -17,6 +17,21 @@ func TestNewCollection(t *testing.T) {
 	}
 }
 
+func TestNewInterfaceCollection(t *testing.T) {
+	// Test that NewCollection returns a non-nil pointer to a Collection struct
+	arr := []Personal{Person{
+		Name: "Alice",
+		Age:  "20",
+	}, Person{
+		Name: "Bob",
+		Age:  "10",
+	}}
+	c := NewCollection(arr)
+	if c == nil {
+		t.Error("NewCollection returned nil")
+	}
+}
+
 func TestNewEmptyCollection(t *testing.T) {
 	c := NewEmptyCollection[int32]()
 	if c == nil {
@@ -744,6 +759,10 @@ func (p Person) Key() string {
 	return p.Name + p.Age
 }
 
+type Personal interface {
+	Key() string
+}
+
 func TestPluckString(t *testing.T) {
 	// create a new Collection with some elements
 	coll := NewCollection([]Person{
@@ -924,6 +943,21 @@ func TestGetterPoint(t *testing.T) {
 	c := NewCollection([]*Person{v})
 
 	if c.getter(v, "Name").String() != "Alice" {
+		t.Errorf("Getter did not return the correct value")
+	}
+
+	if c.getter(v, "Key").String() != "Alice20" {
+		t.Errorf("Getter did not return the correct value")
+	}
+}
+
+func TestGetterInterface(t *testing.T) {
+	v := &Person{"Alice", "20"}
+
+	c := NewCollection([]Personal{v})
+
+	// interface only can get from getter method
+	if c.getter(v, "Name").String() == "Alice" {
 		t.Errorf("Getter did not return the correct value")
 	}
 
