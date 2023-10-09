@@ -813,6 +813,31 @@ func TestPluckStringPointer(t *testing.T) {
 	if pluckedColl.value[0] != "Alice" || pluckedColl.value[1] != "Bob" || pluckedColl.value[2] != "Charlie" {
 		t.Errorf("PluckString did not return the correct elements")
 	}
+}
+
+func TestPluckStringInterface(t *testing.T) {
+	// create a new Collection with some elements
+	person1 := Person{"Alice", "20"}
+	person2 := Person{"Bob", "30"}
+	person3 := Person{"Charlie", "40"}
+	coll := NewCollection([]Personal{&person1, &person2, &person3})
+
+	// pluck the "name" field from the collection
+	pluckedColl := coll.PluckString("Key")
+
+	if pluckedColl.Err() != nil {
+		t.Errorf("PluckString return err")
+	}
+
+	// check if the length of the plucked collection is correct
+	if len(pluckedColl.value) != 3 {
+		t.Errorf("PluckString did not return the correct number of elements")
+	}
+
+	// check if the plucked collection contains the correct elements
+	if pluckedColl.value[0] != "Alice20" || pluckedColl.value[1] != "Bob30" || pluckedColl.value[2] != "Charlie40" {
+		t.Errorf("PluckString did not return the correct elements")
+	}
 
 }
 

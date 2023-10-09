@@ -644,10 +644,6 @@ func (c *Collection[T]) DD() {
 // PluckString 按照某个字段进行筛选
 func (c *Collection[T]) PluckString(key string) *Collection[string] {
 	res := make([]string, 0, len(c.value))
-	if c.typ.Kind() != reflect.Struct && c.typ.Kind() != reflect.Pointer {
-		c.SetErr(errors.New("invalid collection"))
-		return nil
-	}
 
 	for _, v := range c.value {
 		val := c.getter(v, key)
