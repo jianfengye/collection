@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -734,6 +735,22 @@ func (c *Collection[T]) getter(v any, key string) reflect.Value {
 	} else if c.typ.Kind() == reflect.Interface {
 		ref = reflect.ValueOf(v)
 		goto m
+	} else if c.typ.Kind() == reflect.Map {
+		if c.typ.Key().Kind() == reflect.String {
+			return reflect.ValueOf(v.(map[string]interface{})[key])
+		}
+
+		if c.typ.Key().Kind() == reflect.Int {
+			atoi, err := strconv.Atoi(key)
+			if err != nil {
+				c.SetErr(err)
+				return reflect.Value{}
+			}
+			return reflect.ValueOf(v.(map[int]interface{})[atoi])
+		}
+
+		c.SetErr(errors.New("invalid type"))
+		return reflect.Value{}
 	}
 
 	field = ref.FieldByName(key)

@@ -991,6 +991,23 @@ func TestGetterInterface(t *testing.T) {
 	}
 }
 
+func TestGetterMapInterface(t *testing.T) {
+	v := map[string]interface{}{
+		"Name": "Alice",
+	}
+
+	c := NewCollection([]map[string]interface{}{v})
+
+	if c.getter(v, "Name").String() != "Alice" {
+		t.Errorf("Getter did not return the correct value")
+	}
+
+	by := c.KeyBy("Name")
+	if g, ok := by["Alice"]; !ok || g["Name"].(string) != "Alice" {
+		t.Errorf("KeyBy did not return the correct value")
+	}
+}
+
 // TestSortBy tests the SortBy method of the Collection struct
 func TestSortBy(t *testing.T) {
 	// create a new Collection with some elements
