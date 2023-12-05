@@ -773,29 +773,39 @@ func (c *Collection[T]) SortBy(key string) *Collection[T] {
 	sort.Slice(c.value, func(i, j int) bool {
 		val1 := c.getter(c.value[i], key)
 		val2 := c.getter(c.value[j], key)
-		if val1.Kind() != val2.Kind() {
-			c.SetErr(errors.New("key has uncomparable type"))
-			return false
-		}
 
-		switch val1.Kind() {
-		case reflect.String:
-			return val1.String() < val2.String()
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			return val1.Int() < val2.Int()
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-			return val1.Uint() < val2.Uint()
-		case reflect.Float32, reflect.Float64:
-			return val1.Float() < val2.Float()
-		case reflect.Bool:
-			return val1.Bool() == false && val2.Bool() == true
-		default:
-			c.SetErr(errors.New("key has uncomparable type"))
-		}
-
-		return false
+		return c.less(val1, val2)
 	})
 	return c
+}
+func (c *Collection[T]) less(val1, val2 reflect.Value) bool {
+	if val1.Kind() != val2.Kind() {
+		c.SetErr(errors.New("key has uncomparable type"))
+		return false
+	}
+
+	switch val1.Kind() {
+	case reflect.String:
+		return val1.String() < val2.String()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return val1.Int() < val2.Int()
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return val1.Uint() < val2.Uint()
+	case reflect.Float32, reflect.Float64:
+		return val1.Float() < val2.Float()
+	case reflect.Bool:
+		return val1.Bool() == false && val2.Bool() == true
+	case reflect.Struct:
+		// check is time.Time{}
+		if val1.Type().String() == "time.Time" {
+			return val1.Interface().(time.Time).Before(val2.Interface().(time.Time))
+		}
+		return false
+	default:
+		c.SetErr(errors.New("key has uncomparable type"))
+	}
+
+	return false
 }
 
 // SortByDesc 按照某个字段进行排序,倒序
@@ -803,27 +813,8 @@ func (c *Collection[T]) SortByDesc(key string) *Collection[T] {
 	sort.Slice(c.value, func(i, j int) bool {
 		val1 := c.getter(c.value[i], key)
 		val2 := c.getter(c.value[j], key)
-		if val1.Kind() != val2.Kind() {
-			c.SetErr(errors.New("key has uncomparable type"))
-			return false
-		}
 
-		switch val1.Kind() {
-		case reflect.String:
-			return val1.String() > val2.String()
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			return val1.Int() > val2.Int()
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-			return val1.Uint() > val2.Uint()
-		case reflect.Float32, reflect.Float64:
-			return val1.Float() > val2.Float()
-		case reflect.Bool:
-			return val1.Bool() == true && val2.Bool() == false
-		default:
-			c.SetErr(errors.New("key has uncomparable type"))
-		}
-
-		return false
+		return !c.less(val1, val2)
 	})
 	return c
 }
