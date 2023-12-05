@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -73,6 +74,11 @@ type Collection[T any] struct {
 func NewCollection[T any](values []T) *Collection[T] {
 	var zero T
 	typ := reflect.TypeOf(zero)
+
+	if typ == nil {
+		typ = reflect.TypeOf(&zero).Elem()
+	}
+
 	coll := &Collection[T]{value: values, typ: typ}
 
 	switch typ.Kind() {
@@ -338,10 +344,6 @@ func (c *Collection[T]) Unique() *Collection[T] {
 // Filter 过滤
 func (c *Collection[T]) Filter(f func(item T, key int) bool) *Collection[T] {
 	if c.err != nil {
-		return c
-	}
-	if !c.isComparable() {
-		c.SetErr(errors.New("element can not be comparable"))
 		return c
 	}
 
@@ -643,18 +645,10 @@ func (c *Collection[T]) DD() {
 // PluckString 按照某个字段进行筛选
 func (c *Collection[T]) PluckString(key string) *Collection[string] {
 	res := make([]string, 0, len(c.value))
-	if c.typ.Kind() != reflect.Struct && c.typ.Kind() != reflect.Pointer {
-		c.SetErr(errors.New("invalid collection"))
-		return nil
-	}
 
 	for _, v := range c.value {
-		var val reflect.Value
-		if c.typ.Kind() == reflect.Ptr {
-			val = reflect.ValueOf(v).Elem().FieldByName(key)
-		} else if c.typ.Kind() == reflect.Struct {
-			val = reflect.ValueOf(v).FieldByName(key)
-		}
+		val := c.getter(v, key)
+
 		kind := val.Type().Kind()
 		if kind != reflect.String {
 			c.SetErr(errors.New("invalid type"))
@@ -670,12 +664,8 @@ func (c *Collection[T]) PluckString(key string) *Collection[string] {
 func (c *Collection[T]) PluckInt64(key string) *Collection[int64] {
 	res := make([]int64, 0, len(c.value))
 	for _, v := range c.value {
-		var val reflect.Value
-		if c.typ.Kind() == reflect.Ptr {
-			val = reflect.ValueOf(v).Elem().FieldByName(key)
-		} else if c.typ.Kind() == reflect.Struct {
-			val = reflect.ValueOf(v).FieldByName(key)
-		}
+		val := c.getter(v, key)
+
 		if !val.CanInt() {
 			c.SetErr(errors.New("invalid type"))
 			return nil
@@ -690,12 +680,8 @@ func (c *Collection[T]) PluckInt64(key string) *Collection[int64] {
 func (c *Collection[T]) PluckFloat64(key string) *Collection[float64] {
 	res := make([]float64, 0, len(c.value))
 	for _, v := range c.value {
-		var val reflect.Value
-		if c.typ.Kind() == reflect.Ptr {
-			val = reflect.ValueOf(v).Elem().FieldByName(key)
-		} else if c.typ.Kind() == reflect.Struct {
-			val = reflect.ValueOf(v).FieldByName(key)
-		}
+		val := c.getter(v, key)
+
 		if !val.CanFloat() {
 			c.SetErr(errors.New("invalid type"))
 			return nil
@@ -710,12 +696,8 @@ func (c *Collection[T]) PluckFloat64(key string) *Collection[float64] {
 func (c *Collection[T]) PluckUint64(key string) *Collection[uint64] {
 	res := make([]uint64, 0, len(c.value))
 	for _, v := range c.value {
-		var val reflect.Value
-		if c.typ.Kind() == reflect.Ptr {
-			val = reflect.ValueOf(v).Elem().FieldByName(key)
-		} else if c.typ.Kind() == reflect.Struct {
-			val = reflect.ValueOf(v).FieldByName(key)
-		}
+		val := c.getter(v, key)
+
 		if !val.CanUint() {
 			c.SetErr(errors.New("invalid type"))
 			return nil
@@ -730,12 +712,8 @@ func (c *Collection[T]) PluckUint64(key string) *Collection[uint64] {
 func (c *Collection[T]) PluckBool(key string) *Collection[bool] {
 	res := make([]bool, 0, len(c.value))
 	for _, v := range c.value {
-		var val reflect.Value
-		if c.typ.Kind() == reflect.Ptr {
-			val = reflect.ValueOf(v).Elem().FieldByName(key)
-		} else if c.typ.Kind() == reflect.Struct {
-			val = reflect.ValueOf(v).FieldByName(key)
-		}
+		val := c.getter(v, key)
+
 		if val.Kind() != reflect.Bool {
 			c.SetErr(errors.New("invalid type"))
 			return nil
@@ -746,63 +724,97 @@ func (c *Collection[T]) PluckBool(key string) *Collection[bool] {
 	return NewCollection(res)
 }
 
+func (c *Collection[T]) getter(v any, key string) reflect.Value {
+	var ref reflect.Value
+	var field reflect.Value
+
+	if c.typ.Kind() == reflect.Ptr {
+		ref = reflect.ValueOf(v).Elem()
+	} else if c.typ.Kind() == reflect.Struct {
+		ref = reflect.ValueOf(v)
+	} else if c.typ.Kind() == reflect.Interface {
+		ref = reflect.ValueOf(v)
+		goto m
+	} else if c.typ.Kind() == reflect.Map {
+		if c.typ.Key().Kind() == reflect.String {
+			return reflect.ValueOf(v.(map[string]interface{})[key])
+		}
+
+		if c.typ.Key().Kind() == reflect.Int {
+			atoi, err := strconv.Atoi(key)
+			if err != nil {
+				c.SetErr(err)
+				return reflect.Value{}
+			}
+			return reflect.ValueOf(v.(map[int]interface{})[atoi])
+		}
+
+		c.SetErr(errors.New("invalid type"))
+		return reflect.Value{}
+	}
+
+	field = ref.FieldByName(key)
+	if field.IsValid() {
+		return field
+	}
+m:
+
+	method := ref.MethodByName(key)
+	if method.IsValid() && method.Type().NumIn() == 0 && method.Type().NumOut() == 1 {
+		return method.Call(nil)[0]
+	}
+
+	return ref
+}
+
 // SortBy 按照某个字段进行排序
 func (c *Collection[T]) SortBy(key string) *Collection[T] {
 
 	sort.Slice(c.value, func(i, j int) bool {
-		val1 := reflect.ValueOf(c.value[i]).FieldByName(key)
-		val2 := reflect.ValueOf(c.value[j]).FieldByName(key)
-		if val1.Kind() != val2.Kind() {
-			c.SetErr(errors.New("key has uncomparable type"))
-			return false
-		}
+		val1 := c.getter(c.value[i], key)
+		val2 := c.getter(c.value[j], key)
 
-		switch val1.Kind() {
-		case reflect.String:
-			return val1.String() < val2.String()
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			return val1.Int() < val2.Int()
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-			return val1.Uint() < val2.Uint()
-		case reflect.Float32, reflect.Float64:
-			return val1.Float() < val2.Float()
-		case reflect.Bool:
-			return val1.Bool() == false && val2.Bool() == true
-		default:
-			c.SetErr(errors.New("key has uncomparable type"))
-		}
-
-		return false
+		return c.less(val1, val2)
 	})
 	return c
+}
+func (c *Collection[T]) less(val1, val2 reflect.Value) bool {
+	if val1.Kind() != val2.Kind() {
+		c.SetErr(errors.New("key has uncomparable type"))
+		return false
+	}
+
+	switch val1.Kind() {
+	case reflect.String:
+		return val1.String() < val2.String()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return val1.Int() < val2.Int()
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return val1.Uint() < val2.Uint()
+	case reflect.Float32, reflect.Float64:
+		return val1.Float() < val2.Float()
+	case reflect.Bool:
+		return val1.Bool() == false && val2.Bool() == true
+	case reflect.Struct:
+		// check is time.Time{}
+		if val1.Type().String() == "time.Time" {
+			return val1.Interface().(time.Time).Before(val2.Interface().(time.Time))
+		}
+		return false
+	default:
+		c.SetErr(errors.New("key has uncomparable type"))
+	}
+
+	return false
 }
 
 // SortByDesc 按照某个字段进行排序,倒序
 func (c *Collection[T]) SortByDesc(key string) *Collection[T] {
 	sort.Slice(c.value, func(i, j int) bool {
-		val1 := reflect.ValueOf(c.value[i]).FieldByName(key)
-		val2 := reflect.ValueOf(c.value[j]).FieldByName(key)
-		if val1.Kind() != val2.Kind() {
-			c.SetErr(errors.New("key has uncomparable type"))
-			return false
-		}
+		val1 := c.getter(c.value[i], key)
+		val2 := c.getter(c.value[j], key)
 
-		switch val1.Kind() {
-		case reflect.String:
-			return val1.String() > val2.String()
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			return val1.Int() > val2.Int()
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-			return val1.Uint() > val2.Uint()
-		case reflect.Float32, reflect.Float64:
-			return val1.Float() > val2.Float()
-		case reflect.Bool:
-			return val1.Bool() == true && val2.Bool() == false
-		default:
-			c.SetErr(errors.New("key has uncomparable type"))
-		}
-
-		return false
+		return !c.less(val1, val2)
 	})
 	return c
 }
@@ -811,7 +823,7 @@ func (c *Collection[T]) SortByDesc(key string) *Collection[T] {
 func (c *Collection[T]) KeyByStrField(key string) (map[string]T, error) {
 	res := make(map[string]T)
 	for _, v := range c.value {
-		val := reflect.ValueOf(v).FieldByName(key)
+		val := c.getter(v, key)
 		if val.IsValid() && val.CanInterface() {
 			if str, ok := val.Interface().(string); ok {
 				res[str] = v
@@ -821,6 +833,18 @@ func (c *Collection[T]) KeyByStrField(key string) (map[string]T, error) {
 		}
 	}
 	return res, nil
+}
+
+// KeyBy 根据某个字段为key，返回一个map
+func (c *Collection[T]) KeyBy(key string) map[interface{}]T {
+	res := make(map[interface{}]T)
+	for _, v := range c.value {
+		valRef := c.getter(v, key)
+		if valRef.IsValid() && valRef.CanInterface() {
+			res[valRef.Interface()] = v
+		}
+	}
+	return res
 }
 
 // Max 数组中最大的元素，仅对基础Collection生效, 可以传递一个比较函数

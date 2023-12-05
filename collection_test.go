@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -12,6 +13,21 @@ func TestNewCollection(t *testing.T) {
 	// Test that NewCollection returns a non-nil pointer to a Collection struct
 	arr := []int32{1, 2, 3}
 	c := NewCollection[int32](arr)
+	if c == nil {
+		t.Error("NewCollection returned nil")
+	}
+}
+
+func TestNewInterfaceCollection(t *testing.T) {
+	// Test that NewCollection returns a non-nil pointer to a Collection struct
+	arr := []Personal{Person{
+		Name: "Alice",
+		Age:  "20",
+	}, Person{
+		Name: "Bob",
+		Age:  "10",
+	}}
+	c := NewCollection(arr)
 	if c == nil {
 		t.Error("NewCollection returned nil")
 	}
@@ -190,6 +206,34 @@ func TestFilter(t *testing.T) {
 
 	// check if the filtered collection contains the correct elements
 	if filteredColl.value[0] != 2 || filteredColl.value[1] != 4 {
+		t.Errorf("Filter did not return the correct elements")
+	}
+}
+
+// TestFilterObject tests the Filter method of the Collection struct
+func TestFilterObject(t *testing.T) {
+	// create a new Collection with some elements
+	coll := NewCollection([]Person{
+		{"Alice", "20"},
+		{"Bob", "30"},
+		{"Charlie", "40"},
+	})
+
+	// define a filter function that only keeps even numbers
+	filterFunc := func(item Person, key int) bool {
+		return item.Age >= "30"
+	}
+
+	// apply the filter function to the collection
+	filteredColl := coll.Filter(filterFunc)
+
+	// check if the length of the filtered collection is correct
+	if len(filteredColl.value) != 2 {
+		t.Errorf("Filter did not return the correct number of elements")
+	}
+
+	// check if the filtered collection contains the correct elements
+	if filteredColl.value[0].Name == "Alice" || filteredColl.value[1].Name == "Bob" {
 		t.Errorf("Filter did not return the correct elements")
 	}
 }
@@ -712,6 +756,14 @@ type Person struct {
 	Age  string
 }
 
+func (p Person) Key() string {
+	return p.Name + p.Age
+}
+
+type Personal interface {
+	Key() string
+}
+
 func TestPluckString(t *testing.T) {
 	// create a new Collection with some elements
 	coll := NewCollection([]Person{
@@ -760,6 +812,31 @@ func TestPluckStringPointer(t *testing.T) {
 
 	// check if the plucked collection contains the correct elements
 	if pluckedColl.value[0] != "Alice" || pluckedColl.value[1] != "Bob" || pluckedColl.value[2] != "Charlie" {
+		t.Errorf("PluckString did not return the correct elements")
+	}
+}
+
+func TestPluckStringInterface(t *testing.T) {
+	// create a new Collection with some elements
+	person1 := Person{"Alice", "20"}
+	person2 := Person{"Bob", "30"}
+	person3 := Person{"Charlie", "40"}
+	coll := NewCollection([]Personal{&person1, &person2, &person3})
+
+	// pluck the "name" field from the collection
+	pluckedColl := coll.PluckString("Key")
+
+	if pluckedColl.Err() != nil {
+		t.Errorf("PluckString return err")
+	}
+
+	// check if the length of the plucked collection is correct
+	if len(pluckedColl.value) != 3 {
+		t.Errorf("PluckString did not return the correct number of elements")
+	}
+
+	// check if the plucked collection contains the correct elements
+	if pluckedColl.value[0] != "Alice20" || pluckedColl.value[1] != "Bob30" || pluckedColl.value[2] != "Charlie40" {
 		t.Errorf("PluckString did not return the correct elements")
 	}
 
@@ -872,6 +949,66 @@ func TestPluckBool(t *testing.T) {
 	}
 }
 
+func TestGetter(t *testing.T) {
+	v := Person{"Alice", "20"}
+
+	c := NewCollection([]Person{v})
+
+	if c.getter(v, "Name").String() != "Alice" {
+		t.Errorf("Getter did not return the correct value")
+	}
+
+	if c.getter(v, "Key").String() != "Alice20" {
+		t.Errorf("Getter did not return the correct value")
+	}
+}
+
+func TestGetterPoint(t *testing.T) {
+	v := &Person{"Alice", "20"}
+
+	c := NewCollection([]*Person{v})
+
+	if c.getter(v, "Name").String() != "Alice" {
+		t.Errorf("Getter did not return the correct value")
+	}
+
+	if c.getter(v, "Key").String() != "Alice20" {
+		t.Errorf("Getter did not return the correct value")
+	}
+}
+
+func TestGetterInterface(t *testing.T) {
+	v := &Person{"Alice", "20"}
+
+	c := NewCollection([]Personal{v})
+
+	// interface only can get from getter method
+	if c.getter(v, "Name").String() == "Alice" {
+		t.Errorf("Getter did not return the correct value")
+	}
+
+	if c.getter(v, "Key").String() != "Alice20" {
+		t.Errorf("Getter did not return the correct value")
+	}
+}
+
+func TestGetterMapInterface(t *testing.T) {
+	v := map[string]interface{}{
+		"Name": "Alice",
+	}
+
+	c := NewCollection([]map[string]interface{}{v})
+
+	if c.getter(v, "Name").String() != "Alice" {
+		t.Errorf("Getter did not return the correct value")
+	}
+
+	by := c.KeyBy("Name")
+	if g, ok := by["Alice"]; !ok || g["Name"].(string) != "Alice" {
+		t.Errorf("KeyBy did not return the correct value")
+	}
+}
+
 // TestSortBy tests the SortBy method of the Collection struct
 func TestSortBy(t *testing.T) {
 	// create a new Collection with some elements
@@ -887,6 +1024,37 @@ func TestSortBy(t *testing.T) {
 
 	// sort the collection by the "id" field
 	sortedColl := coll.SortBy("Id")
+
+	// check if the length of the sorted collection is correct
+	if len(sortedColl.value) != 3 {
+		t.Errorf("SortBy did not return the correct number of elements")
+	}
+
+	// check if the sorted collection contains the correct elements
+	if sortedColl.value[0].Id != 1 || sortedColl.value[1].Id != 2 || sortedColl.value[2].Id != 3 {
+		t.Errorf("SortBy did not return the correct elements")
+	}
+}
+
+// TestSortBy tests the SortBy method of the Collection struct
+func TestSortByTime(t *testing.T) {
+	// create a new Collection with some elements
+	type Person struct {
+		Id    int
+		Birth time.Time
+	}
+	t1, _ := time.Parse("2006-01-02 15:04:05", "2019-01-01 00:00:00")
+	t2, _ := time.Parse("2006-01-02 15:04:05", "2019-01-01 00:00:01")
+	t3, _ := time.Parse("2006-01-02 15:04:05", "2019-01-01 00:00:02")
+
+	coll := NewCollection([]Person{
+		{3, t3},
+		{1, t1},
+		{2, t2},
+	})
+
+	// sort the collection by the "id" field
+	sortedColl := coll.SortBy("Birth")
 
 	// check if the length of the sorted collection is correct
 	if len(sortedColl.value) != 3 {
@@ -959,6 +1127,41 @@ func TestKeyByStrField(t *testing.T) {
 
 	if _, ok := keyedColl["Bob"]; !ok {
 		t.Errorf("KeyByStrField did not return the correct elements")
+	}
+}
+
+// TestKeyByStrField tests the KeyByStrField method of the Collection struct
+func TestKeyByIntField(t *testing.T) {
+	// create a new Collection with some elements
+	type Person struct {
+		Int   int
+		Int64 int64
+		Int8  int8
+	}
+	coll := NewCollection([]Person{
+		{9, 10, 11},
+		{10, 11, 12},
+		{11, 12, 13},
+	})
+
+	fields := []string{"Int", "Int64", "Int8"}
+	checkInts := [][]interface{}{{9, 10, 11}, {int64(10), int64(11), int64(12)}, {int8(11), int8(12), int8(13)}}
+
+	for i, field := range fields {
+		// key the collection by the "int" field
+		keyedColl := coll.KeyBy(field)
+
+		// check if the length of the keyed collection is correct
+		if len(keyedColl) != 3 {
+			t.Errorf("KeyBy did not return the correct number of elements")
+		}
+
+		for _, checkInt := range checkInts[i] {
+			// check if the keyed collection contains the correct elements
+			if _, ok := keyedColl[checkInt]; !ok {
+				t.Errorf("KeyBy did not return the correct elements")
+			}
+		}
 	}
 }
 
